@@ -1,0 +1,623 @@
+{
+  "product": {
+    "name": "银行董办对标分析工具",
+    "audience": ["董事会办公室", "战略管理部", "财务管理部", "资本市场沟通团队"],
+    "defaultOutput": "董事会汇报版",
+    "rulesVersion": "2026.05.3"
+  },
+  "inputs": {
+    "targetBank": {
+      "required": true,
+      "mode": "single",
+      "chartRole": "highlight"
+    },
+    "peerBanks": {
+      "required": true,
+      "mode": "multiple",
+      "recommendedMin": 3,
+      "recommendedMax": 8
+    },
+    "bankTypes": {
+      "required": false,
+      "mode": "multiple",
+      "allowed": ["国有大行", "股份行", "城市商业银行", "农村商业银行"],
+      "chartRole": "typeAverage"
+    },
+    "analysisYear": {
+      "required": true,
+      "fallback": "latestCompleteYear"
+    }
+  },
+  "metrics": {
+    "roa": {
+      "label": "总资产收益率",
+      "direction": "higherBetter",
+      "theme": "盈利质量"
+    },
+    "coreRevenueGrowth": {
+      "label": "核心营收增速",
+      "direction": "higherBetter",
+      "theme": "盈利质量"
+    },
+    "feeAssetRatio": {
+      "label": "手续费资产比",
+      "direction": "higherBetter",
+      "theme": "盈利质量"
+    },
+    "trueCoreNonInterest": {
+      "label": "真实核心非息占比",
+      "direction": "higherBetter",
+      "theme": "盈利质量"
+    },
+    "volatileIncomeShare": {
+      "label": "高波动收入占比",
+      "direction": "lowerBetter",
+      "theme": "盈利质量"
+    },
+    "adminExpense": {
+      "label": "管理费用",
+      "direction": "lowerBetter",
+      "theme": "盈利质量",
+      "unit": "万元"
+    },
+    "operatingCashFlow": {
+      "label": "经营活动现金流净额",
+      "direction": "higherBetter",
+      "theme": "盈利质量",
+      "unit": "万元"
+    },
+    "nim": {
+      "label": "净息差",
+      "direction": "higherBetter",
+      "theme": "息差负债"
+    },
+    "nimGapPoint": {
+      "label": "NIM缺口",
+      "direction": "lowerBetter",
+      "theme": "息差负债",
+      "unit": "百分点"
+    },
+    "realLoanDepositSpread": {
+      "label": "真实存贷利差",
+      "direction": "higherBetter",
+      "theme": "息差负债"
+    },
+    "earningAssetYield": {
+      "label": "生息资产收益率",
+      "direction": "higherBetter",
+      "theme": "息差负债"
+    },
+    "interestLiabilityCost": {
+      "label": "计息负债成本率",
+      "direction": "lowerBetter",
+      "theme": "息差负债"
+    },
+    "timeDepositShare": {
+      "label": "定期存款占比",
+      "direction": "lowerBetter",
+      "theme": "息差负债"
+    },
+    "npl": {
+      "label": "不良率",
+      "direction": "lowerBetter",
+      "theme": "风险拨备"
+    },
+    "personalLoanNpl": {
+      "label": "个贷不良率",
+      "direction": "lowerBetter",
+      "theme": "风险拨备"
+    },
+    "overdueNplDeviation": {
+      "label": "逾期不良偏离度",
+      "direction": "lowerBetter",
+      "theme": "风险拨备",
+      "watchLine": 1
+    },
+    "hiddenNplExposure": {
+      "label": "隐性不良暴露率",
+      "direction": "lowerBetter",
+      "theme": "风险拨备"
+    },
+    "corporateLoanNpl": {
+      "label": "公司贷款不良率",
+      "direction": "lowerBetter",
+      "theme": "风险拨备"
+    },
+    "provisionCoverage": {
+      "label": "拨备覆盖率",
+      "direction": "higherBetter",
+      "theme": "风险拨备"
+    },
+    "billDiscountNpl": {
+      "label": "票据贴现不良率",
+      "direction": "lowerBetter",
+      "theme": "风险拨备"
+    },
+    "housingLoanShare": {
+      "label": "住房贷款占比",
+      "direction": "contextual",
+      "theme": "零售结构"
+    },
+    "consumerLoanShare": {
+      "label": "消费贷款占比",
+      "direction": "contextual",
+      "theme": "零售结构"
+    },
+    "businessLoanShare": {
+      "label": "经营贷款占比",
+      "direction": "contextual",
+      "theme": "零售结构"
+    },
+    "housingLoanNpl": {
+      "label": "住房贷款不良率",
+      "direction": "lowerBetter",
+      "theme": "零售结构"
+    },
+    "consumerLoanNpl": {
+      "label": "消费贷款不良率",
+      "direction": "lowerBetter",
+      "theme": "零售结构"
+    },
+    "businessLoanNpl": {
+      "label": "经营贷款不良率",
+      "direction": "lowerBetter",
+      "theme": "零售结构"
+    },
+    "cet1Buffer": {
+      "label": "核心一级资本余量",
+      "direction": "higherBetter",
+      "theme": "资本估值",
+      "unit": "bp"
+    },
+    "carBuffer": {
+      "label": "资本充足率余量",
+      "direction": "higherBetter",
+      "theme": "资本估值",
+      "unit": "bp"
+    },
+    "estimatedRwa": {
+      "label": "估算风险加权资产",
+      "direction": "contextual",
+      "theme": "资本估值",
+      "unit": "万元"
+    },
+    "rwaDensity": {
+      "label": "风险加权资产密度",
+      "direction": "lowerBetter",
+      "theme": "资本估值"
+    },
+    "liquidityRatio": {
+      "label": "流动性比率",
+      "direction": "higherBetter",
+      "theme": "流动性"
+    },
+    "liquidityCoverageRatio": {
+      "label": "流动性覆盖率",
+      "direction": "higherBetter",
+      "theme": "流动性"
+    },
+    "costIncomeRatio": {
+      "label": "成本收入比",
+      "direction": "lowerBetter",
+      "theme": "资本估值"
+    },
+    "pb": {
+      "label": "市净率",
+      "direction": "contextual",
+      "theme": "资本估值"
+    },
+    "pbMid": {
+      "label": "年中市净率",
+      "direction": "contextual",
+      "theme": "资本估值"
+    },
+    "basicEps": {
+      "label": "基本每股收益",
+      "direction": "higherBetter",
+      "theme": "资本估值",
+      "unit": "元"
+    },
+    "bondInvestment": {
+      "label": "债券投资",
+      "direction": "contextual",
+      "theme": "投资结构",
+      "unit": "万元"
+    },
+    "fundInvestment": {
+      "label": "基金投资",
+      "direction": "contextual",
+      "theme": "投资结构",
+      "unit": "万元"
+    },
+    "trustWmInvestment": {
+      "label": "信托及理财投资",
+      "direction": "lowerBetter",
+      "theme": "投资结构",
+      "unit": "万元"
+    }
+  },
+  "vqaEngine": {
+    "version": "v0.2",
+    "scoreBands": [
+      { "min": 72, "label": "价值质量具备主动沟通基础" },
+      { "min": 58, "label": "价值质量处于结构修复区间" },
+      { "min": 0, "label": "价值质量仍需先修复经营底盘" }
+    ],
+    "dimensions": {
+      "profit": {
+        "label": "盈利真实性",
+        "note": "主业与中收",
+        "weight": 0.24,
+        "metrics": [
+          { "key": "coreRevenueGrowth", "direction": "higherBetter" },
+          { "key": "feeAssetRatio", "direction": "higherBetter" },
+          { "key": "trueCoreNonInterest", "direction": "higherBetter" },
+          { "key": "volatileIncomeShare", "direction": "lowerBetter" },
+          { "key": "cashProfitRatio", "direction": "higherBetter" }
+        ],
+        "actionTitle": "先修主业造血",
+        "action": "把核心营收、真实核心非息和手续费资产比作为价值质量第一层验证，围绕客户经营、结算沉淀、财富管理和场景服务建立中收修复清单。"
+      },
+      "nim": {
+        "label": "息差防守",
+        "note": "资产负债对冲",
+        "weight": 0.22,
+        "metrics": [
+          { "key": "nim", "direction": "higherBetter" },
+          { "key": "nimGapBp", "direction": "lowerBetter" },
+          { "key": "realLoanDepositSpread", "direction": "higherBetter" },
+          { "key": "timeDepositShare", "direction": "lowerBetter" },
+          { "key": "corporateDemandDepositShare", "direction": "higherBetter" }
+        ],
+        "actionTitle": "先修资产负债底盘",
+        "action": "建立息差对冲缺口月度看板，拆解资产收益率变化和负债成本变化，优先压降高成本定期负债并提升结算沉淀。"
+      },
+      "risk": {
+        "label": "风险确认",
+        "note": "偏离与隐性暴露",
+        "weight": 0.22,
+        "metrics": [
+          { "key": "npl", "direction": "lowerBetter" },
+          { "key": "hiddenNplExposure", "direction": "lowerBetter" },
+          { "key": "overdueNplDeviation", "direction": "lowerBetter" },
+          { "key": "provisionCoverage", "direction": "higherBetter" },
+          { "key": "retailRiskMax", "direction": "lowerBetter" }
+        ],
+        "actionTitle": "风险确认前移",
+        "action": "把逾期账龄、五级分类、零售分产品不良和拨备节奏合并进同一预警框架，避免利润改善掩盖风险滞后确认。"
+      },
+      "capital": {
+        "label": "资本效率",
+        "note": "RWA与资本余量",
+        "weight": 0.2,
+        "metrics": [
+          { "key": "cet1Buffer", "direction": "higherBetter" },
+          { "key": "carBuffer", "direction": "higherBetter" },
+          { "key": "rwaDensity", "direction": "lowerBetter" },
+          { "key": "rwaProfitGrowthGap", "direction": "lowerBetter" },
+          { "key": "roa", "direction": "higherBetter" }
+        ],
+        "actionTitle": "资本回报纪律",
+        "action": "把新增资产投放与RWA消耗、风险调整回报和资本余量挂钩，避免扩表继续消耗战略自由度。"
+      },
+      "valuation": {
+        "label": "估值验证",
+        "note": "PB与质量匹配",
+        "weight": 0.12,
+        "metrics": [
+          { "key": "pb", "direction": "higherBetter" },
+          { "key": "roa", "direction": "higherBetter" },
+          { "key": "coreRevenueGrowth", "direction": "higherBetter" },
+          { "key": "hiddenNplExposure", "direction": "lowerBetter" }
+        ],
+        "actionTitle": "估值叙事重构",
+        "action": "先用经营质量证明低估值是价值错配，而不是质量折价，再进入资本市场沟通。"
+      }
+    }
+  },
+  "warningRules": {
+    "red": {
+      "trigger": "anyTwo",
+      "conditions": [
+        "coreRevenueGrowth < peerAvg.coreRevenueGrowth and coreRevenueGrowth < 0",
+        "nim < peerAvg.nim and interestLiabilityCost > peerAvg.interestLiabilityCost",
+        "overdueNplDeviation > 1.2 and overdueNplDeviation > peerAvg.overdueNplDeviation",
+        "hiddenNplExposure > peerAvg.hiddenNplExposure and overdueNplDeviation > 1",
+        "volatileIncomeShare > peerAvg.volatileIncomeShare and coreRevenueGrowth < peerAvg.coreRevenueGrowth",
+        "liquidityCoverageRatio < peerAvg.liquidityCoverageRatio and liquidityCoverageRatio < 120",
+        "provisionCoverage < peerAvg.provisionCoverage and provisionCoverageChange < 0",
+        "cet1Buffer < 150",
+        "rwaDensity > peerAvg.rwaDensity and roa < peerAvg.roa",
+        "pb < peerAvg.pb and roa < peerAvg.roa and coreRevenueGrowth < peerAvg.coreRevenueGrowth"
+      ],
+      "message": "目标银行当前不宜直接形成估值修复叙事，应优先解释经营质量、风险确认和资本消耗压力。"
+    },
+    "yellow": {
+      "trigger": "anyTwo",
+      "conditions": [
+        "coreRevenueGrowth > 0 and coreRevenueGrowth < peerAvg.coreRevenueGrowth",
+        "feeAssetRatio < peerAvg.feeAssetRatio",
+        "trueCoreNonInterest < peerAvg.trueCoreNonInterest and volatileIncomeShare > peerAvg.volatileIncomeShare",
+        "nim >= peerAvg.nim * 0.95 and interestLiabilityCost > peerAvg.interestLiabilityCost",
+        "liquidityCoverageRatio < peerAvg.liquidityCoverageRatio",
+        "overdueNplDeviation > 1 and provisionCoverage > peerAvg.provisionCoverage",
+        "pb < peerAvg.pb and partialQualityBetterThanPeer"
+      ],
+      "message": "目标银行存在结构性改善空间，建议围绕收入结构、负债成本和风险确认节奏形成专项管理动作。"
+    },
+    "green": {
+      "trigger": "anyThree",
+      "conditions": [
+        "roa > peerAvg.roa",
+        "coreRevenueGrowth > peerAvg.coreRevenueGrowth",
+        "feeAssetRatio > peerAvg.feeAssetRatio",
+        "trueCoreNonInterest > peerAvg.trueCoreNonInterest and volatileIncomeShare <= peerAvg.volatileIncomeShare",
+        "nim > peerAvg.nim or interestLiabilityCost < peerAvg.interestLiabilityCost",
+        "overdueNplDeviation < peerAvg.overdueNplDeviation",
+        "provisionCoverage > peerAvg.provisionCoverage",
+        "cet1Buffer > 300"
+      ],
+      "message": "目标银行具备较好的经营质量基础，可进一步围绕资本效率、轻资本收入和市场定价开展价值重估沟通。"
+    }
+  },
+  "charts": [
+    {
+      "id": "overview_yield_trend",
+      "chapter": "经营压力传导",
+      "title": "LPR 与生息资产收益率趋势",
+      "type": "line",
+      "metrics": ["earningAssetYield"],
+      "question": "利率下行如何传导到资产端"
+    },
+    {
+      "id": "income_structure",
+      "chapter": "经营压力传导",
+      "title": "收入结构缓冲空间",
+      "type": "stackedBar",
+      "metrics": ["nonInterestShare"],
+      "question": "目标银行是否过度依赖生息资产收入"
+    },
+    {
+      "id": "profit_quality_quadrant",
+      "chapter": "盈利质量",
+      "title": "利润质量四象限",
+      "type": "scatter",
+      "metrics": ["profitPpopGap", "provisionCoverage"],
+      "question": "净利润改善是否来自真实经营"
+    },
+    {
+      "id": "light_capital_trajectory",
+      "chapter": "盈利质量",
+      "title": "轻资本协同轨迹",
+      "type": "trajectory",
+      "metrics": ["feeAssetRatio", "coreRevenueGrowth"],
+      "question": "手续费资产比是否与核心营收同步改善"
+    },
+    {
+      "id": "nim_three_metrics",
+      "chapter": "息差负债",
+      "title": "净息差三指标联动",
+      "type": "groupedBar",
+      "metrics": ["nim", "earningAssetYield", "interestLiabilityCost"],
+      "question": "资产收益和负债成本谁在主导息差"
+    },
+    {
+      "id": "deposit_term_share",
+      "chapter": "息差负债",
+      "title": "定期存款占比",
+      "type": "horizontalBar",
+      "metrics": ["timeDepositShare"],
+      "question": "负债重定价弹性是否不足"
+    },
+    {
+      "id": "risk_heatmap",
+      "chapter": "风险拨备",
+      "title": "风险缓冲热力图",
+      "type": "heatmap",
+      "metrics": ["overdueNplDeviation", "provisionCoverage", "profitPpopGap", "npl"],
+      "question": "风险与拨备组合是否健康"
+    },
+    {
+      "id": "capital_efficiency",
+      "chapter": "资本估值",
+      "title": "资本效率四象限",
+      "type": "scatter",
+      "metrics": ["rwaDensity", "cet1Buffer"],
+      "question": "资本占用是否换来足够经营自由度"
+    },
+    {
+      "id": "pb_quality_validation",
+      "chapter": "资本估值",
+      "title": "市净率价值质量验证",
+      "type": "scatter",
+      "metrics": ["pb", "roa"],
+      "question": "低市净率是价值错配还是质量折价"
+    }
+  ],
+  "narrativeBlocks": [
+    "本图回答",
+    "目标银行解读",
+    "对标银行解读",
+    "类型均值参照",
+    "管理含义"
+  ],
+  "export": {
+    "slideStructure": ["章节小标题", "主标题", "副标题", "图表", "图下故事说明", "数据来源"],
+    "storyMaxChars": 180,
+    "versions": ["董事会完整汇报版", "资本市场沟通版", "管理层行动版", "专项分析版", "一页摘要版"]
+  },
+  "reportProfiles": {
+    "董事会完整汇报版": {
+      "includeSections": ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "action", "appendix"],
+      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation"],
+      "tone": "board"
+    },
+    "资本市场沟通版": {
+      "includeSections": ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "appendix"],
+      "defaultTopics": ["valuation", "profit", "capital"],
+      "tone": "market"
+    },
+    "管理层行动版": {
+      "includeSections": ["scope", "executive", "storyline", "topics", "action"],
+      "defaultTopics": ["profit", "nim", "risk", "capital"],
+      "tone": "action"
+    },
+    "专项分析版": {
+      "includeSections": ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "action", "appendix"],
+      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation"],
+      "tone": "board"
+    },
+    "一页摘要版": {
+      "includeSections": ["executive", "vqa", "action"],
+      "defaultTopics": ["profit", "valuation"],
+      "tone": "board"
+    }
+  },
+  "complianceLanguage": {
+    "forbidden": ["必然上涨", "必然改善", "明确低估", "投资建议", "评级上调", "保证改善", "保证修复"],
+    "preferred": ["具备讨论基础", "需要进一步验证", "更接近价值错配", "更接近质量折价", "建议董事会关注", "建议管理层解释"]
+  },
+  "topicDefaults": {
+    "thresholds": {
+      "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+      "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+      "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+    },
+    "signals": {
+      "red": "红色：需优先解释经营质量压力",
+      "yellow": "黄色：存在结构性修复空间",
+      "green": "绿色：具备主动沟通基础"
+    }
+  },
+  "topics": {
+    "profit": {
+      "id": "profit",
+      "title": "盈利真实性专题",
+      "question": "董事会需要判断：当前利润修复是来自客户经营和主业造血，还是来自投资波动、拨备节奏或一次性因素。",
+      "mechanism": "若核心营收和真实核心非息同步改善，且现金利润有支撑，盈利修复更具可持续性；若高波动收入占比偏高，则需要把市场收益与经营能力分开表达。",
+      "actions": [
+        "拆分主业收入、手续费、投资收益和其他非息，形成利润来源桥。",
+        "对低于对标组的轻资本收入设置客户、产品和渠道口径的改进目标。",
+        "把经营现金流与净利润联动披露，增强利润质量解释力。"
+      ],
+      "metrics": [
+        { "key": "coreRevenueGrowth", "weight": 0.24, "direction": "higherBetter" },
+        { "key": "feeAssetRatio", "weight": 0.2, "direction": "higherBetter" },
+        { "key": "trueCoreNonInterest", "weight": 0.2, "direction": "higherBetter" },
+        { "key": "volatileIncomeShare", "weight": 0.18, "direction": "lowerBetter" },
+        { "key": "cashProfitRatio", "weight": 0.18, "direction": "higherBetter" }
+      ],
+      "requiredCitations": ["coreRevenueGrowth", "feeAssetRatio", "trueCoreNonInterest"],
+      "forbiddenPhrases": ["必然改善", "明确低估", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    },
+    "nim": {
+      "id": "nim",
+      "title": "息差对冲专题",
+      "question": "董事会需要判断：资产端收益率下行后，负债端成本压降和存款结构优化能否形成有效对冲。",
+      "mechanism": "息差压力不是单一价格问题，而是资产定价、负债期限、存款客群和同业竞争共同作用的结果；对冲缺口越大，越需要把扩表目标让位于负债质量和客户沉淀。",
+      "actions": [
+        "把核心存款、活期占比和重点客群留存作为资产负债管理前置指标。",
+        "对低收益资产投放设置边际收益红线，避免以规模替代利差。",
+        "按区域和客群复盘存款定期化来源，明确负债成本压降路径。"
+      ],
+      "metrics": [
+        { "key": "nim", "weight": 0.22, "direction": "higherBetter" },
+        { "key": "nimGapBp", "weight": 0.18, "direction": "lowerBetter" },
+        { "key": "realLoanDepositSpread", "weight": 0.18, "direction": "higherBetter" },
+        { "key": "earningAssetYield", "weight": 0.16, "direction": "higherBetter" },
+        { "key": "interestLiabilityCost", "weight": 0.14, "direction": "lowerBetter" },
+        { "key": "timeDepositShare", "weight": 0.12, "direction": "lowerBetter" }
+      ],
+      "requiredCitations": ["nim", "interestLiabilityCost", "timeDepositShare"],
+      "forbiddenPhrases": ["必然改善", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    },
+    "risk": {
+      "id": "risk",
+      "title": "风险确认专题",
+      "question": "董事会需要判断：当期不良率是否充分反映真实风险，逾期、关注和隐性不良是否正在向利润表滞后传导。",
+      "mechanism": "风险质量要看确认节奏和缓冲能力。偏离度、隐性不良和分产品不良上行，往往意味着未来拨备消耗和利润波动压力尚未完全释放。",
+      "actions": [
+        "建立逾期、关注、展期续贷和不良迁徙的月度看板。",
+        "把个贷、公司和票据风险拆开汇报，避免用综合不良率掩盖结构问题。",
+        "结合拨备覆盖率和利润承受力，制定风险确认节奏。"
+      ],
+      "metrics": [
+        { "key": "npl", "weight": 0.18, "direction": "lowerBetter" },
+        { "key": "overdueNplDeviation", "weight": 0.22, "direction": "lowerBetter" },
+        { "key": "hiddenNplExposure", "weight": 0.2, "direction": "lowerBetter" },
+        { "key": "provisionCoverage", "weight": 0.18, "direction": "higherBetter" },
+        { "key": "personalLoanNpl", "weight": 0.12, "direction": "lowerBetter" },
+        { "key": "corporateLoanNpl", "weight": 0.1, "direction": "lowerBetter" }
+      ],
+      "requiredCitations": ["overdueNplDeviation", "hiddenNplExposure", "provisionCoverage"],
+      "forbiddenPhrases": ["必然改善", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    },
+    "capital": {
+      "id": "capital",
+      "title": "资本效率专题",
+      "question": "董事会需要判断：规模扩张是否创造了与资本消耗相匹配的回报，还是形成了风险加权资产压力。",
+      "mechanism": "资本效率的核心不是资产增速，而是风险加权资产增速、资本余量和盈利修复之间是否匹配；若RWA快于利润，扩表会削弱后续战略自由度。",
+      "actions": [
+        "对高资本占用业务设置RAROC或资本回报约束。",
+        "把RWA增速、利润增速和核心营收增速放在同一张管理看板。",
+        "优先发展低资本占用、低波动且可交叉销售的客户经营场景。"
+      ],
+      "metrics": [
+        { "key": "cet1Buffer", "weight": 0.22, "direction": "higherBetter" },
+        { "key": "carBuffer", "weight": 0.18, "direction": "higherBetter" },
+        { "key": "rwaDensity", "weight": 0.2, "direction": "lowerBetter" },
+        { "key": "estimatedRwaGrowth", "weight": 0.14, "direction": "lowerBetter" },
+        { "key": "rwaProfitGrowthGap", "weight": 0.14, "direction": "lowerBetter" },
+        { "key": "roa", "weight": 0.12, "direction": "higherBetter" }
+      ],
+      "requiredCitations": ["cet1Buffer", "rwaDensity", "roa"],
+      "forbiddenPhrases": ["必然改善", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    },
+    "valuation": {
+      "id": "valuation",
+      "title": "估值验证专题",
+      "question": "董事会需要判断：当前PB折价是市场错配、同业低估，还是盈利、风险和资本效率共同导致的质量折价。",
+      "mechanism": "估值修复需要经营端证据支撑。PB不能孤立解释，必须与ROA、核心营收、风险确认和资本余量联读，才能形成资本市场可接受的价值叙事。",
+      "actions": [
+        "把估值沟通从“低PB”升级为“盈利质量、风险透明度、资本纪律”的证据链。",
+        "对低于对标的关键经营指标设置半年和年度改善节点。",
+        "在投资者沟通材料中用同业对标说明折价收敛路径。"
+      ],
+      "metrics": [
+        { "key": "pb", "weight": 0.2, "direction": "contextual" },
+        { "key": "pbMid", "weight": 0.1, "direction": "contextual" },
+        { "key": "roa", "weight": 0.22, "direction": "higherBetter" },
+        { "key": "coreRevenueGrowth", "weight": 0.2, "direction": "higherBetter" },
+        { "key": "hiddenNplExposure", "weight": 0.14, "direction": "lowerBetter" },
+        { "key": "carBuffer", "weight": 0.14, "direction": "higherBetter" }
+      ],
+      "requiredCitations": ["pb", "roa", "coreRevenueGrowth"],
+      "forbiddenPhrases": ["明确低估", "必然上涨", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    }
+  }
+}

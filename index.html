@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>银行董事会价值质量诊断报告</title>
+  <link rel="stylesheet" href="styles/app.css?v=20260530-selector-layout" />
+  <link rel="stylesheet" href="styles/rsm-consulting-ppt.css?v=20260530-client-spine" />
+  <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-rhythm" />
+
+</head>
+<body>
+  <aside class="side-nav analysis-content" id="sideNav" aria-label="章节导航">
+    <h3>页面导航</h3>
+    <div id="sideNavContent"></div>
+  </aside>
+  <main class="app">
+    <section class="hero">
+      <div class="topbar">
+        <div class="eyebrow">董 事 会 汇 报</div>
+        <div class="brand">RSM</div>
+      </div>
+      <div class="hero-main">
+        <div>
+          <h1>银行价值质量诊断与经营对标分析</h1>
+          <p class="hero-subtitle">经营视角与资本市场视角的双重穿透分析</p>
+          <p class="hero-copy">
+            本报告采用 <b>RSM 银行价值质量评估体系</b>，围绕盈利真实性、息差防守、
+            风险确认、资本效率与估值验证五条主线，帮助董事会识别当前经营质量、
+            对标差距和后续管理优先级。
+          </p>
+        </div>
+        <div class="meta-panel">
+          <div class="meta-row"><span>报告属性</span><b>董事会专题汇报</b></div>
+          <div class="meta-row"><span>报告期</span><b>2020 - 2025</b></div>
+          <div class="meta-row"><span>分析对象</span><b>苏农银行，可切换</b></div>
+          <div class="meta-row"><span>对标样本</span><b>自定义银行组 + 同类型样本</b></div>
+          <div class="meta-row"><span>估值样本</span><b>57 家上市银行，6 年面板</b></div>
+          <div class="meta-row"><span>数据来源</span><b>上市公司年报、iFinD、RSM 研究汇总</b></div>
+        </div>
+      </div>
+      <div class="route">阅读路径 · 分析口径 → 核心判断 → 盈利 / 息差 / 风险 / 资本 → 估值验证 → 行动建议</div>
+    </section>
+
+    <section class="workspace">
+      <div class="control-surface">
+        <div class="selection-intro">
+          <div>
+            <span>分析口径设置</span>
+            <h2>先确定分析对象与参照样本，再形成董事会可讨论的经营判断</h2>
+            <p>本页用于确认本次汇报的分析边界：目标银行决定主线，对标银行决定横向参照，分类型银行均值用于识别行业位置。确认后，后续页面将围绕经营质量、风险确认、资本效率和估值反馈展开。</p>
+          </div>
+          <div class="iteration-strip">
+            <div><b>01 明确样本</b><span>锁定目标银行、对标组、类型均值和报告版本，形成一致参照。</span></div>
+            <div><b>02 形成判断</b><span>先给出总判断，再拆成经营、风险、资本和估值四类证据链。</span></div>
+            <div><b>03 输出建议</b><span>把关键发现转化为董事会可审阅、管理层可承接的行动顺序。</span></div>
+          </div>
+        </div>
+        <div class="project-briefing-grid">
+          <div class="briefing-card is-primary">
+            <span>客户问题</span>
+            <b>目标银行当前价值质量差异主要来自哪里，下一步应优先修复什么？</b>
+            <p>报告先给出一句总答案，再用图表和专题页逐层证明，避免仅罗列指标。</p>
+          </div>
+          <div class="briefing-card">
+            <span>分析路径</span>
+            <b>经营压力 → 盈利质量 → 息差防守 → 风险确认 → 资本估值</b>
+            <p>每个章节都有章节答案、关键图表、机制解释和管理含义。</p>
+          </div>
+          <div class="briefing-card">
+            <span>交付形态</span>
+            <b>董事会汇报稿、数据附录和指标底稿</b>
+            <p>汇报材料、数据附录和指标底稿保持同一页序、同一标题体系和同一数据口径。</p>
+          </div>
+        </div>
+        <div class="filters">
+          <div class="field-label selector-field target-field">目标银行
+            <select id="targetBank" hidden>
+              <option>苏州农商行</option>
+            </select>
+            <div class="choice-panel target-panel" id="targetBankChecks"></div>
+          </div>
+          <div class="field-label selector-field peer-field">对标银行
+            <select id="peerBanks" multiple hidden>
+              <option selected>常熟农商行</option>
+              <option selected>瑞丰农商行</option>
+              <option selected>上海农商行</option>
+              <option selected>苏州</option>
+            </select>
+            <div class="choice-panel" id="peerBankChecks"></div>
+            <span class="multi-help">勾选一个或多个对标银行，最多显示 8 家</span>
+          </div>
+          <div class="field-label selector-field year-field">分析年份
+            <select id="analysisYear">
+              <option value="2025">2025 截面</option>
+              <option value="2024">2024 截面</option>
+              <option value="2023">2023 截面</option>
+              <option value="2022">2022 截面</option>
+              <option value="2021">2021 截面</option>
+              <option value="2020">2020 截面</option>
+            </select>
+          </div>
+          <div class="field-label selector-field type-field">分类型银行数据
+            <select id="bankTypes" multiple hidden>
+              <option selected>国有大行</option>
+              <option selected>股份行</option>
+              <option selected>城市商业银行</option>
+              <option selected>农村商业银行</option>
+            </select>
+            <div class="choice-panel" id="typeChecks"></div>
+            <span class="multi-help">勾选后图表显示该类型银行均值</span>
+          </div>
+          <div class="field-label selector-field version-field">报告口径
+            <select id="reportVersion">
+              <option>董事会完整汇报版</option>
+              <option>资本市场沟通版</option>
+              <option>管理层行动版</option>
+            </select>
+          </div>
+          <div class="field-label selector-field template-field">对标组方式
+            <select id="peerTemplate">
+              <option value="manual">手动选择</option>
+              <option value="sameType">同类型对标</option>
+              <option value="sameRegion">同区域对标</option>
+              <option value="sameScale">同规模对标</option>
+              <option value="valuation">资本市场相近</option>
+            </select>
+            <span class="multi-help">选择方式后自动填充对标银行</span>
+            <div class="peer-recommend-box" id="peerRecommendBox">选择目标银行后，将在这里展示推荐对标组及推荐理由。</div>
+            <div class="field-label saved-peer-field">已保存对标组
+              <select id="peerGroupQuickApply">
+                <option value="">选择已保存对标组…</option>
+              </select>
+            <span class="multi-help">可复用历史对标组</span>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="confirmSelection" type="button">形成分析结果</button>
+          <button class="btn secondary post-confirm-action" id="restartAnalysis" type="button">重新开始分析</button>
+          <button class="btn secondary analysis-content" id="refreshAnalysis" type="button">刷新诊断</button>
+          <button class="btn secondary analysis-content" id="saveProject" type="button">保存当前项目</button>
+          <button class="btn secondary analysis-content" id="loadProject" type="button">加载最近项目</button>
+          <button class="btn analysis-content" id="exportReportHtml" type="button">导出汇报稿HTML</button>
+          <button class="btn secondary analysis-content" id="exportReportPptx" type="button">导出汇报PPT</button>
+          <button class="btn secondary analysis-content" id="exportReport" type="button">打印/导出PDF</button>
+          <button class="btn secondary analysis-content" id="exportSelectedData" type="button">导出选定数据</button>
+          <button class="btn secondary analysis-content" id="exportAllData" type="button">导出全部数据</button>
+          <div class="project-status analysis-content" id="projectStatus">当前项目尚未保存。</div>
+        </div>
+        <div class="client-action-bar analysis-content">
+          <div>
+            <span>当前任务</span>
+            <b>审阅本次诊断、调整报告页并完成交付复核</b>
+          </div>
+          <div class="client-action-buttons">
+            <button class="btn secondary" id="clientRefreshAnalysis" type="button">更新分析</button>
+            <button class="btn secondary" id="clientSaveProject" type="button">保存版本</button>
+            <div class="export-menu">
+              <button class="btn" id="clientExportToggle" type="button">导出交付物</button>
+              <div class="export-menu-list" id="clientExportMenu">
+                <button type="button" data-export-target="exportReportPptx">可编辑 PPT</button>
+                <button type="button" data-export-target="exportReport">PDF / 打印</button>
+                <button type="button" data-export-target="exportReportHtml">HTML 汇报稿</button>
+                <button type="button" data-export-target="exportSelectedData">选定数据底稿</button>
+                <button type="button" data-export-target="exportAllData">全量数据底稿</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="selection-summary" id="selectionSummary">
+        <span><strong>目标银行</strong>苏州农商行</span>
+        <span><strong>对标银行</strong>常熟农商行、瑞丰农商行、上海农商行、苏州</span>
+        <span><strong>类型均值</strong>国有大行、股份行、城市商业银行、农村商业银行</span>
+      </div>
+      <section class="client-command-center analysis-content" id="clientCommandCenter" data-workspace-tab="overview" aria-label="客户任务台">
+        <div class="command-main">
+          <span>30 秒结论</span>
+          <h2 id="commandVerdictTitle">确认样本后，先看本次价值质量总答案</h2>
+          <p id="commandVerdictText">这里将汇总 VQA 诊断、数据完整性、最弱维度和建议动作，帮助董办判断是否可以进入报告编排。</p>
+        </div>
+        <div class="command-grid">
+          <div class="command-card"><span>数据可信度</span><b id="commandDataQuality">待生成</b><p>决定结论能否进入主报告。</p></div>
+          <div class="command-card"><span>最弱维度</span><b id="commandWeakDimension">待生成</b><p>优先进入管理层行动清单。</p></div>
+          <div class="command-card"><span>交付状态</span><b id="commandDeliveryStatus">待复核</b><p>通过复核后再导出正式材料。</p></div>
+        </div>
+      </section>
+      <section class="benchmark-v1-panel analysis-content" id="benchmarkV1Panel" data-workspace-tab="overview" aria-label="BenchmarkIQ V1 总览">
+        <div class="benchmark-v1-head">
+          <div>
+            <span>BenchmarkIQ V1</span>
+            <h2>SPARC 总览把价值质量诊断升级为五维同业对标体检</h2>
+            <p>本模块将 PRD 中的规模结构、盈利能力、资产质量、风险资本和能力效率接入当前 VQA 工作流，用于回答“我行在同业中到底强在哪里、弱在哪里、下一步先看什么”。</p>
+          </div>
+          <div class="benchmark-v1-badge" id="sparcOverallBadge">待生成</div>
+        </div>
+        <div class="sparc-overview">
+          <div class="sparc-scoreboard" id="sparcScoreboard"></div>
+          <div class="sparc-radar-card">
+            <div class="sparc-radar" id="sparcRadar"></div>
+            <div class="sparc-radar-note" id="sparcRadarNote">确认分析后展示五维相对位置。</div>
+          </div>
+        </div>
+        <div class="benchmark-v1-grid">
+          <div>
+            <h3>对标组画像</h3>
+            <div class="peer-profile-grid" id="peerProfileGrid"></div>
+          </div>
+          <div>
+            <h3>本期需关注指标</h3>
+            <div class="watchlist-grid" id="benchmarkWatchlist"></div>
+          </div>
+        </div>
+      </section>
+      <nav class="workspace-tabs analysis-content" id="workspaceTabs" aria-label="工作区导航">
+        <button class="is-active" type="button" data-tab-target="overview"><span>1</span>总览</button>
+        <button type="button" data-tab-target="topics"><span>2</span>专题</button>
+        <button type="button" data-tab-target="report"><span>3</span>报告</button>
+        <button type="button" data-tab-target="data"><span>4</span>数据</button>
+        <button type="button" data-tab-target="review"><span>5</span>复核</button>
+        <button type="button" data-tab-target="governance"><span>6</span>管理</button>
+      </nav>
+      <section class="client-brief-panel analysis-content" id="clientBriefPanel" data-workspace-tab="overview" aria-label="客户汇报摘要">
+        <div class="client-brief-main">
+          <span>董事会问题</span>
+          <h2 id="clientBriefQuestion">本次分析需要回答目标银行的价值质量差异主要来自哪里</h2>
+          <p id="clientBriefAnswer">确认分析口径后，本页将展示总答案、核心发现和建议动作。</p>
+        </div>
+        <div class="client-brief-grid">
+          <div>
+            <b>核心发现</b>
+            <ul id="clientBriefFindings"><li>待形成。</li></ul>
+          </div>
+          <div>
+            <b>建议动作</b>
+            <ul id="clientBriefActions"><li>待形成。</li></ul>
+          </div>
+        </div>
+      </section>
+      <section class="board-workflow analysis-content" id="boardWorkflow" data-workspace-tab="overview" aria-label="董办工作台流程">
+        <div class="board-workflow-head">
+          <div>
+            <span>董办汇报流程</span>
+            <h2>从样本确认到行动建议的四步分析路径</h2>
+          </div>
+          <div class="board-workflow-status" id="boardWorkflowStatus">等待形成判断</div>
+        </div>
+        <div class="board-flow-grid" id="boardFlowGrid">
+          <div class="board-flow-step is-active"><b>01</b><span>选择口径</span><em>目标银行、对标组、类型均值</em></div>
+          <div class="board-flow-step"><b>02</b><span>形成诊断</span><em>价值质量、专题和图表证据</em></div>
+          <div class="board-flow-step"><b>03</b><span>审阅材料</span><em>核心结论、章节逻辑、图表说明</em></div>
+          <div class="board-flow-step"><b>04</b><span>形成交付</span><em>汇报稿、数据附录、指标底稿</em></div>
+        </div>
+        <div class="analysis-jump-grid">
+          <a class="analysis-jump-card" href="#analysisDeckShell">
+            <span>报告工作区</span>
+            <b>逐页审阅董事会汇报稿</b>
+            <em>按页序查看标题、图表和讲解</em>
+          </a>
+          <a class="analysis-jump-card" href="#dataCoverageSection">
+            <span>数据工作区</span>
+            <b>跳转查看数据附录</b>
+            <em>字段口径、完整性和时间序列单独复核</em>
+          </a>
+          <a class="analysis-jump-card" href="#topicWorkbenchSection">
+            <span>专题工作区</span>
+            <b>复核专题判断</b>
+            <em>确认事实依据、管理含义和后续动作</em>
+          </a>
+        </div>
+      </section>
+      <div class="rules-version-badge analysis-content client-internal" id="rulesVersionBadge">规则版本加载中…</div>
+      <div class="project-flow analysis-content" id="projectFlow" data-workspace-tab="governance">
+        <div class="project-panel project-manager">
+          <h3>分析项目管理</h3>
+          <div class="project-save-row">
+            <input id="projectNameInput" type="text" placeholder="项目名称，如：苏农2025董事会版" />
+            <button class="btn secondary" id="createProjectBtn" type="button">新建项目</button>
+            <button class="btn secondary" id="copyProjectBtn" type="button">复制当前</button>
+          </div>
+          <div class="project-list" id="projectList"></div>
+        </div>
+        <div class="project-panel peer-group-panel">
+          <h3>对标组治理</h3>
+          <div class="project-save-row">
+            <input id="peerGroupNameInput" type="text" placeholder="对标组名称，如：华东农商行对标组" />
+            <button class="btn secondary" id="savePeerGroupBtn" type="button">保存对标组</button>
+          </div>
+          <div class="peer-group-list" id="peerGroupList"></div>
+        </div>
+        <div class="project-panel">
+          <h3 id="projectSummaryTitle">当前分析项目</h3>
+          <p id="projectSummaryText">确认分析后，系统会把目标银行、对标银行、年份、专题和图表取舍合并成一个可保存的董办项目。</p>
+        </div>
+        <div class="project-panel">
+          <h3>报告生成流程</h3>
+          <div class="flow-steps" id="reportFlowSteps">
+            <div class="flow-step is-done"><b>1</b>选择口径</div>
+            <div class="flow-step"><b>2</b>生成诊断</div>
+            <div class="flow-step"><b>3</b>选择专题与图表</div>
+            <div class="flow-step"><b>4</b>导出报告与底稿</div>
+          </div>
+        </div>
+        <div class="project-panel trial-check-panel">
+          <h3>试点交付检查</h3>
+          <p class="trial-check-summary" id="trialCheckSummary">确认分析后，系统会检查数据、专题、图表、解读和导出准备情况。</p>
+          <div class="trial-check-list" id="trialCheckList"></div>
+        </div>
+        <div class="project-panel trial-export-panel">
+          <h3>导出记录</h3>
+          <p>记录本机最近导出的 HTML、PDF/PPTX 和数据底稿，便于董办回溯报告版本。</p>
+          <div class="export-history" id="exportHistoryList"></div>
+        </div>
+        <div class="project-panel ai-product-panel">
+          <h3>智能解读工作流</h3>
+          <p id="aiProductMode">确认分析后，系统会基于当前目标银行、对标组和类型均值生成事实包，再输出董事会版、资本市场版和管理层行动版解读。</p>
+          <div class="ai-product-flow">
+            <div><b>1. 当前数据</b><span id="aiProductEvidence">等待选择目标银行和对标银行。</span></div>
+            <div><b>2. 事实包约束</b><span id="aiProductGuardrail">所有文字必须回到指标、分位、对标均值和时间变化。</span></div>
+            <div><b>3. 报告输出</b><span id="aiProductOutput">HTML、PPTX、PDF 和 Excel 底稿共享同一套事实口径。</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="selection-hint">
+        <h2>请先选择分析口径</h2>
+        <p>选择目标银行、对标银行、分析年份和参与行业对比的银行类型后，点击“形成分析结果”。后续指标、图表和解释性文字将基于所选样本同步更新。</p>
+      </div>
+
+      <div class="methodology analysis-content client-internal" data-workspace-tab="governance">
+        <article class="method-card">
+          <div class="section-kicker">银行经营端</div>
+          <h2>银行经营端：判断一家银行是否具备可持续的真实经营质量</h2>
+          <p>银行经营端不只看利润高低，而是把“赚了多少钱、靠什么赚钱、风险是否已经充分确认、资本是否支撑得住增长”放在同一张经营答卷里。第一层看总资产收益率和净资产收益率，识别表观回报；第二层看核心营收、拨备前利润和手续费资产比，识别主业与轻资本收入是否真正修复；第三层看净息差、息差对冲缺口和存款定期化，识别负债端能否跟上资产端让价；第四层看不良、关注、逾期偏离度和拨备覆盖率，判断风险是否被延后确认；第五层看核心一级资本余量和风险加权资产密度，判断扩表是否消耗了未来经营自由度。</p>
+          <div class="metric-line">
+            <div class="metric-pill"><b>总资产收益率</b><span>表观回报</span></div>
+            <div class="metric-pill"><b>息差对冲缺口</b><span>息差防守</span></div>
+            <div class="metric-pill"><b>风险调整回报</b><span>质量校验</span></div>
+          </div>
+        </article>
+        <article class="method-card">
+          <div class="section-kicker">资本市场端</div>
+          <h2>资本市场端：验证市场定价是否反映真实价值质量</h2>
+          <p>资本市场端不把低市净率直接理解为“低估”，也不把高市净率直接理解为“优秀”。它先把市净率作为市场结果，再向前追问四件事：第一，目标银行的总资产收益率和风险调整回报是否支撑估值；第二，核心营收、手续费资产比和拨备前利润是否说明盈利质量稳定；第三，不良、偏离度和拨备覆盖率是否显示风险确认充分；第四，资本余量和风险加权资产扩张是否说明增长有纪律。只有经营质量强而市净率偏低时，才更接近价值重估；若经营指标偏弱而市净率偏低，则更可能是质量折价。</p>
+          <div class="metric-line">
+            <div class="metric-pill"><b>市净率</b><span>市场定价</span></div>
+            <div class="metric-pill"><b>经济增加值</b><span>价值创造</span></div>
+            <div class="metric-pill"><b>建议信号</b><span>行动生成</span></div>
+          </div>
+        </article>
+      </div>
+
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+        <div class="section-kicker">图表逻辑</div>
+        <h2>图表分析方法：每张图都先回答一个经营问题，再落到行动优先级</h2>
+        <p>本报告沿用城农商行经营分析的读图方法：先明确图表要回答的董事会问题，再按目标银行、对标银行和类型均值三层拆解，最后把差异转化为可执行的经营管理动作。</p>
+        <div class="logic-grid" style="margin-top:18px;">
+          <div class="logic-card"><b>1. 图要回答什么</b><p>例如“增长是真是假”“负债能否对冲资产让价”“市净率折价是否有基本面依据”。</p></div>
+          <div class="logic-card"><b>2. 先看趋势再看截面</b><p>2020-2025 看方向，2024-2025 看边际变化，2025 截面看位置与分位。</p></div>
+          <div class="logic-card"><b>3. 类型 + 区域 + 个体</b><p>先分国有行、股份行、城商行、农商行，再按五区域拆解，最后定位单家银行。</p></div>
+          <div class="logic-card"><b>4. 输出管理启示</b><p>把指标组合映射成资产负债管理、风险确认、中收、资本纪律、估值修复等行动建议。</p></div>
+        </div>
+      </article>
+
+      <article class="method-card analysis-content" data-workspace-tab="overview" style="margin-top:18px;">
+        <div class="section-kicker">故事线</div>
+        <h2 id="storyTitle">从负债底盘到资本纪律：先解释压力传导，再给出行动顺序</h2>
+        <p id="storyLead">本次汇报将目标银行、对标银行和类型均值放入同一参照体系：先看资产收益率下行与负债成本刚性如何压缩息差，再看核心营收和手续费资产比能否形成第二收入支柱，随后验证风险确认是否充分、资本是否被低效扩张占用，最后用市净率判断市场定价是价值错配还是质量折价。</p>
+        <div class="timeline">
+          <div class="step"><span>01</span><h3>压力来源</h3><p id="storyStep1">利率下行先压资产收益，若负债端降本滞后，净息差会成为第一传导口。</p></div>
+          <div class="step"><span>02</span><h3>盈利结构</h3><p id="storyStep2">核心营收、手续费资产比和拨备前利润共同判断主业是否真实修复。</p></div>
+          <div class="step"><span>03</span><h3>风险与资本</h3><p id="storyStep3">偏离度、拨备覆盖率、资本余量和风险加权资产密度决定增长是否可持续。</p></div>
+          <div class="step"><span>04</span><h3>估值验证</h3><p id="storyStep4">市净率只有在经营质量被验证后，才可能形成价值重估叙事。</p></div>
+        </div>
+      </article>
+
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+        <div class="section-kicker">新增字段洞察</div>
+        <h2 id="enhancedTitle">专项增强分析：把底表新增字段转成董办可讨论的问题</h2>
+        <p id="enhancedLead">系统会把真实核心非息、高波动收入、隐性不良、零售分产品、流动性、投资结构和资本余量纳入同一套判断，避免只看固定几项指标。</p>
+        <div class="logic-grid" style="margin-top:18px;">
+          <div class="logic-card"><b>盈利质量拆解</b><p id="enhancedProfit">选择银行后生成真实核心非息、高波动收入和现金流质量判断。</p></div>
+          <div class="logic-card"><b>息差与流动性</b><p id="enhancedNim">选择银行后生成真实存贷利差、NIM缺口和流动性覆盖判断。</p></div>
+          <div class="logic-card"><b>风险暴露定位</b><p id="enhancedRisk">选择银行后生成隐性不良、公司贷款、个人贷款和票据风险判断。</p></div>
+          <div class="logic-card"><b>零售结构专题</b><p id="enhancedRetail">选择银行后生成住房、消费、经营贷款占比与不良率判断。</p></div>
+          <div class="logic-card"><b>投资结构专题</b><p id="enhancedInvestment">选择银行后生成债券、基金、信托及理财投资占资产比判断。</p></div>
+          <div class="logic-card"><b>资本估值联动</b><p id="enhancedCapital">选择银行后生成资本充足率余量、风险加权资产、每股收益和市净率判断。</p></div>
+        </div>
+      </article>
+
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+        <div class="section-kicker">下一轮迭代</div>
+        <h2>按产品、展示、分析内容三条线继续推进成董办工作台</h2>
+        <p>下一步不只是增加图表数量，而是把一次银行对标汇报拆成“选口径、看诊断、改报告、出底稿、沉淀版本”的完整工作流。页面端先保留清晰路线，后续再逐步接入真正的项目保存、智能写稿和可编辑演示文稿导出。</p>
+        <div class="iteration-grid">
+          <div class="iteration-card">
+            <b>产品端：形成项目化工作台</b>
+            <p>已支持多项目保存/加载/复制/删除，以及自定义对标组保存与复用；推荐理由会在选择模板后自动展示。</p>
+            <ul>
+              <li>本地可保存多个分析项目，按更新时间倒序展示。</li>
+              <li>对标组可命名保存，并在新项目中一键应用。</li>
+              <li>仍保留最近项目快捷加载与图表取舍复用。</li>
+            </ul>
+          </div>
+          <div class="iteration-card">
+            <b>展示端：形成汇报母版体系</b>
+            <p>HTML 演示报告已升级为封面、目录、章节摘要、专题页、图表页、行动建议页和数据附录页结构。</p>
+            <ul>
+              <li>每章先交代本章要回答的经营问题。</li>
+              <li>每张图固定输出关键结论、机制解释和行动启示。</li>
+              <li>已支持导出独立 HTML 演示稿，后续可接入 PDF 和可编辑 PPTX。</li>
+            </ul>
+          </div>
+          <div class="iteration-card">
+            <b>分析内容端：形成事实驱动写稿</b>
+            <p>专题判断规则已配置化，指标口径可下钻复核，AI 解读均展示引用指标并过滤禁用表述。</p>
+            <ul>
+              <li>每个指标输出目标值、对标均值、类型均值、分位和缺口。</li>
+              <li>专题红黄绿判断、引用指标和禁用表述读取 `analysis_rules.json`。</li>
+              <li>点击指标名称可查看来源字段、计算公式和覆盖情况。</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+        <div class="section-kicker">专题深化</div>
+        <h2>下一阶段专题开发：每个专题都形成关键事实、机制解释和管理动作</h2>
+        <p>后续专题不再只是增加图表，而是围绕董事会真正需要讨论的问题形成专题页。每个专题都由底层字段、对标差距、时间变化和管理建议共同驱动。</p>
+        <div class="topic-roadmap">
+          <div class="topic-roadmap-card"><b>盈利真实性专题</b><p>拆分核心营收、真实核心非息、高波动收入和现金利润，回答利润是否来自可持续客户经营。</p></div>
+          <div class="topic-roadmap-card"><b>息差对冲专题</b><p>联动生息资产收益率、计息负债成本率、定期化结构和真实存贷利差，识别息差防守优先级。</p></div>
+          <div class="topic-roadmap-card"><b>风险确认专题</b><p>围绕逾期偏离度、隐性不良、零售分产品不良和拨备覆盖率，判断风险是否已充分确认。</p></div>
+          <div class="topic-roadmap-card"><b>资本效率专题</b><p>对比 RWA 密度、资本余量、RWA增速和利润修复，判断扩表是否创造价值。</p></div>
+          <div class="topic-roadmap-card"><b>估值验证专题</b><p>把 PB 与 ROA、风险确认、核心营收和资本效率联读，判断低估值是价值错配还是质量折价。</p></div>
+        </div>
+      </article>
+
+      <article class="method-card analysis-content" id="topicWorkbenchSection" data-workspace-tab="topics" style="margin-top:18px;">
+        <div class="section-kicker">分析专题主体</div>
+        <h2>专题判断：把关键指标差异转化为董事会可讨论的问题</h2>
+        <p>每个专题均围绕目标银行、对标银行和类型均值展开，重点说明事实依据、形成机制、管理含义和下一步验证指标。</p>
+        <div class="topic-workbench-shell">
+          <div class="topic-tabs" id="topicWorkbenchTabs"></div>
+          <div class="topic-workbench" id="topicWorkbench">
+            <h3>请选择专题</h3>
+            <p class="topic-question">确认目标银行后，将在这里展示专题判断与董办解读。</p>
+          </div>
+        </div>
+      </article>
+
+      <section class="report-page analysis-content data-coverage-page" id="dataCoverageSection" data-workspace-tab="data" data-page="数据覆盖">
+        <div class="report-topbar">
+          <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">数据覆盖</div>
+          <div class="small-brand">RSM</div>
+        </div>
+        <h2 class="page-title" id="coverageTitle">数据覆盖与完整性：先确认口径够不够，再进入经营判断。</h2>
+        <p class="page-note" id="coverageNote">本章展示目标银行、对标银行、类型均值和全样本在核心指标上的可用情况，便于判断哪些结论可以进入主报告。</p>
+        <div class="grid-3" id="coverageKpis">
+          <div class="kpi-card"><div class="label">选定样本记录</div><div class="value" id="coverageSelectedRows">暂无</div><div class="delta">目标银行 + 对标银行</div></div>
+          <div class="kpi-card"><div class="label">全样本记录</div><div class="value" id="coverageAllRows">暂无</div><div class="delta">2020 至最新年份</div></div>
+          <div class="kpi-card"><div class="label">核心指标完整性</div><div class="value" id="coverageCoreRate">暂无</div><div class="delta">按当前选定样本计算</div></div>
+        </div>
+        <div class="coverage-page-brief">
+          <div class="coverage-verdict" id="coverageQualityVerdict">确认分析后，本页将给出本次报告的数据可用性判断。</div>
+          <div class="coverage-ai-story" id="coverageAiStory">数据完整性将作为结论强度的前提：覆盖充分的指标进入主报告，覆盖不足的指标进入附录或待补清单。</div>
+          <div class="coverage-scope-list" id="coverageScopeList">
+            <span>主报告指标：待生成</span>
+            <span>附录指标：待生成</span>
+            <span>待补指标：待生成</span>
+          </div>
+        </div>
+        <div class="calibration-risk-panel" id="calibrationRiskPanel">
+          <div>
+            <span>口径统一 V1</span>
+            <h3>高风险指标先标记可比性，再决定是否进入强结论</h3>
+            <p>净息差、非息收入、信用成本、逾期偏离和资本口径属于董事会报告中的高风险指标。V1 先做可比性标签和脚注建议，后续再接入完整口径统一引擎。</p>
+          </div>
+          <div class="calibration-risk-grid" id="calibrationRiskGrid"></div>
+        </div>
+        <div class="coverage-grid">
+          <div>
+            <h3 style="color:#1A3A5C;margin-bottom:10px;">数据字典与时间变化</h3>
+            <div class="data-browser" id="dataBrowser" data-step="type">
+              <div class="data-browser-head">
+                <div>
+                  <h3 id="dataBrowserTitle">选择数据类型</h3>
+                  <p id="dataBrowserSubtitle">先选择数据类型，再进入字段列表和时间变化。</p>
+                </div>
+                <button class="data-back" id="dataBackButton" type="button">返回上一步</button>
+              </div>
+              <div class="data-type-list" id="dataTypeList"></div>
+              <div class="data-field-list" id="dataFieldList"></div>
+              <div class="data-trend-panel">
+                <h3 id="dataTrendTitle">请选择字段</h3>
+                <p id="dataTrendNote">选择左侧数据类型和字段后，可查看目标银行、对标银行和类型均值的年度变化。</p>
+                <div class="data-trend-chart" id="dataTrendChart"></div>
+              </div>
+            </div>
+            <h3 style="color:#1A3A5C;margin:18px 0 10px;">指标完整性底稿</h3>
+            <div class="coverage-table-wrap">
+              <table class="table" id="coverageMetricTable">
+                <thead><tr><th>指标口径</th><th>主题</th><th>选定样本完整性</th><th>全样本完整性</th><th>可用年份</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 style="color:#1A3A5C;margin-bottom:10px;">数据附录结构</h3>
+            <div class="insight-box" id="coverageExportStory"><b>附录说明：</b>数据附录包括选择摘要、目标银行、对标银行、类型均值、指标完整性和指标口径，全量底表可用于财务与战略部门复核。</div>
+            <div class="data-actions">
+              <button class="btn" id="coverageExportSelected" type="button">导出选定银行数据</button>
+              <button class="btn secondary" id="coverageExportAll" type="button">导出全部底表数据</button>
+            </div>
+            <div class="insight-box" id="coverageDataStory" style="margin-top:14px;"><b>董事会提示：</b>完整性高的指标可以进入主报告；完整性不足的指标建议作为附录或待补数据清单。</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="report-tools analysis-content" data-workspace-tab="report">
+        <h2>报告页面预览</h2>
+        <div class="checks">
+          <label><input type="checkbox" class="report-section-check" value="01 / 06" checked /> 价值质量总览</label>
+          <label><input type="checkbox" class="report-section-check" value="02 / 06" checked /> 盈利质量</label>
+          <label><input type="checkbox" class="report-section-check" value="03 / 06" checked /> 息差负债</label>
+          <label><input type="checkbox" class="report-section-check" value="04 / 06" checked /> 风险拨备</label>
+          <label><input type="checkbox" class="report-section-check" value="05 / 06" checked /> 资本估值</label>
+          <label><input type="checkbox" class="report-section-check" value="06 / 06" checked /> 行动建议</label>
+        </div>
+      </div>
+      <p class="analysis-content client-internal" style="margin:0 0 14px;color:#667789;font-size:13px;font-weight:700;">导出时将隐藏筛选器与勾选区，仅保留已纳入报告的正式页面。</p>
+
+      <section class="analysis-deck-shell analysis-content" id="analysisDeckShell" data-workspace-tab="report" aria-label="PPT版式报告预览">
+        <div class="deck-shell-head">
+          <div>
+            <span>正式报告预览</span>
+            <h2>董事会汇报稿预览</h2>
+            <p>本区域按正式汇报页序呈现核心标题、图表证据、讲解逻辑和数据来源，便于逐页审阅。</p>
+          </div>
+          <div class="deck-shell-meta">16:9 · 一页一主题 · 右侧导航</div>
+        </div>
+        <div class="deck-review-controls">
+          <button class="btn secondary" id="deckPrevPage" type="button">上一页</button>
+          <div class="deck-review-page" id="deckReviewPage">待形成报告</div>
+          <button class="btn secondary" id="deckNextPage" type="button">下一页</button>
+          <select id="deckPageSelect" aria-label="选择报告页"></select>
+        </div>
+        <section class="print-deck" id="printDeck"></section>
+      </section>
+
+      <section class="board-review-panel analysis-content" id="boardReviewPanel" data-workspace-tab="review" aria-label="董办复核">
+        <div class="board-review-head">
+          <div>
+            <span>董办复核</span>
+            <h2>交付前复核：样本边界、数据质量、页面逻辑和行动建议</h2>
+          </div>
+          <div class="board-review-verdict" id="boardReviewVerdict">等待形成报告</div>
+        </div>
+        <div class="board-review-grid" id="boardReviewGrid"></div>
+        <div class="board-review-actions">
+          <button class="btn secondary" id="runBoardReview" type="button">更新复核结果</button>
+          <span id="boardReviewNote">复核结果将随目标银行、对标组、图表取舍和报告版本同步更新。</span>
+        </div>
+      </section>
+
+      <div class="report-deck analysis-content" data-workspace-tab="report">
+        <section class="report-page" data-page="01 / 06">
+          <div class="report-topbar">
+            <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">价值质量总览</div>
+            <div class="small-brand">RSM</div>
+          </div>
+          <h2 class="page-title" id="overviewTitle">苏农银行仍具存量回报优势，但核心营收、息差对冲与中收能力决定优势能否延续。</h2>
+          <p class="page-note" id="overviewNote">本页交付 30 秒定性、核心指标与银行经营端 / 资本市场端的双视角判断。</p>
+          <div class="grid-3">
+            <div class="kpi-card"><div class="label">总资产收益率</div><div class="value" id="kpiRoa">0.92%</div><div class="delta good" id="kpiRoaNote">对标组前段，仍具回报基础</div></div>
+            <div class="kpi-card"><div class="label">核心营收增速</div><div class="value" id="kpiCoreGrowth">-1.58%</div><div class="delta bad" id="kpiCoreNote">主业增长质量承压</div></div>
+            <div class="kpi-card"><div class="label">净息差</div><div class="value" id="kpiNim">1.41%</div><div class="delta bad" id="kpiNimNote">五年约降 109 个基点</div></div>
+            <div class="kpi-card"><div class="label">息差对冲缺口</div><div class="value" id="kpiNimGap">+10 基点</div><div class="delta bad" id="kpiNimGapNote">资产让价快于负债降本</div></div>
+            <div class="kpi-card"><div class="label">手续费/资产</div><div class="value" id="kpiFeeAsset">0.038%</div><div class="delta bad" id="kpiFeeNote">轻资本收入偏薄</div></div>
+            <div class="kpi-card"><div class="label">年末市净率</div><div class="value" id="kpiPb">0.62x</div><div class="delta" id="kpiPbNote">估值须与经营质量交叉验证</div></div>
+          </div>
+          <div class="vqa-panel">
+            <div class="vqa-score">
+              <div class="score-num" id="vqaScore">--</div>
+              <div>
+                <h3 id="vqaSignal">等待形成价值质量诊断</h3>
+                <p id="vqaSummary">确认目标银行、对标银行和类型参照后，本页将展示价值质量评分、关键差异和董事会汇报主线。</p>
+              </div>
+            </div>
+            <div class="vqa-dimensions" id="vqaDimensions">
+              <div class="vqa-dim"><b>盈利真实性</b><span>--</span><em>主业与中收</em></div>
+              <div class="vqa-dim"><b>息差防守</b><span>--</span><em>资产负债对冲</em></div>
+              <div class="vqa-dim"><b>风险确认</b><span>--</span><em>偏离与隐性暴露</em></div>
+              <div class="vqa-dim"><b>资本效率</b><span>--</span><em>RWA与资本余量</em></div>
+              <div class="vqa-dim"><b>估值验证</b><span>--</span><em>PB与质量匹配</em></div>
+            </div>
+          </div>
+          <div class="vqa-conclusion-grid">
+            <div class="vqa-list">
+              <h3>关键事实清单</h3>
+              <ul id="vqaFactList"><li>确认分析口径后展示。</li></ul>
+            </div>
+            <div class="vqa-list">
+              <h3>董办汇报主线</h3>
+              <ul id="vqaBoardLine"><li>确认分析口径后展示。</li></ul>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="insight-box" id="operationJudgement"><b>银行经营端判断：</b>总资产收益率表观仍强，但核心营收为负、息差缺口为正，说明当前回报更依赖存量资产与拨备缓冲，需先修复资产负债管理与主业收入质量。</div>
+            <div class="insight-box" id="marketJudgement"><b>资本市场端判断：</b>市净率低位不能直接理解为低估，应与风险调整回报、偏离度、中收能力和资本占用联读，识别“价值错配”还是“质量折价”。</div>
+          </div>
+          <table class="table">
+            <thead><tr><th>诊断维度</th><th>关键发现</th><th>建议方向</th></tr></thead>
+            <tbody>
+              <tr><td>盈利质量</td><td>净利润表现好于核心营收，需验证拨备前利润与拨备释放关系。</td><td>先修主业，再讨论利润弹性。</td></tr>
+              <tr><td>息差负债</td><td>息差对冲缺口为正，资产端让价压力未被负债端完全吸收。</td><td>建立资产负债月度缺口看板。</td></tr>
+              <tr><td>资本估值</td><td>市净率低位与结构压力并存，需要价值质量交叉验证。</td><td>以风险调整回报约束扩表。</td></tr>
+            </tbody>
+          </table>
+          <details class="more-panel" open>
+            <summary>查看更多：行业坐标与收入结构图</summary>
+            <div class="more-body">
+              <div class="logic-grid">
+                <div class="logic-card"><b>宏观传导</b><p>LPR 下行不等于银行经营宽松，关键看资产收益率下行是否快于负债成本调整。</p></div>
+                <div class="logic-card"><b>收入缓冲</b><p>利息净收入占比越高，越容易在资产让价时直接承压；非息厚度决定缓冲空间。</p></div>
+                <div class="logic-card"><b>类型差异</b><p>大行、股份行、城商行、农商行不应放在同一约束层级内机械比较。</p></div>
+                <div class="logic-card"><b>建议映射</b><p>若目标银行利息依赖深且非息薄，建议先建立轻资本收入基础，再谈估值修复。</p></div>
+              </div>
+              <div class="chart-gallery">
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图1-1_LPR与四类银行生息资产收益率.png" alt="LPR与四类银行生息资产收益率" />
+                  <b>图1-1｜LPR 与四类银行生息资产收益率</b>
+                  <span>回答“同一轮利率下行，哪类银行资产端传导更快”。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图1-2_四类银行收入结构堆叠对比.png" alt="四类银行收入结构堆叠对比" />
+                  <b>图1-2｜收入结构缓冲空间</b>
+                  <span>对照利息与非息占比，看谁对生息资产收入依赖更深。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-4_手续费与核心营收组别散点.png" alt="手续费与核心营收组别散点" />
+                  <b>图2-4｜手续费资产比 × 核心营收</b>
+                  <span>把目标银行放入“轻资本能力与主业修复”的坐标系。</span>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="report-page" data-page="02 / 06">
+          <div class="report-topbar">
+            <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">盈利质量</div>
+            <div class="small-brand">RSM</div>
+          </div>
+          <h2 class="page-title" id="profitTitle">盈利与收入结构显示：表观增速与核心营收背离，需区分非息、投资兑现与拨备节奏的影响。</h2>
+          <p class="page-note" id="profitNote">横轴为净利润相对拨备前利润增速缺口，纵轴为拨备覆盖率变化；浅色区域提示“利润表现与风险缓冲下降需交叉验证”。</p>
+          <div class="chart-card">
+            <div class="chart-title">图表 2-1｜利润质量四象限：净利相对拨备前利润更快 + 覆盖率下降</div>
+            <div class="chart-subtitle">目标银行与对标银行自动定位，重点标注目标与异常样本。</div>
+            <div class="main-dynamic-chart" data-chart="profitQuality"></div>
+            <div class="source">数据来源：iFinD 数据，RSM 研究汇总</div>
+          </div>
+          <div class="grid-2">
+            <div class="insight-box"><b>读图结论：</b>若目标银行落在右下象限，说明净利润表现可能快于拨备前利润，同时拨备覆盖率下降，利润质量需进一步拆解。</div>
+            <div class="insight-box"><b>管理建议：</b>优先看核心营收、拨备前利润与拨备覆盖率是否同向改善，避免用单一净利润增长替代经营质量判断。</div>
+          </div>
+          <details class="more-panel" open>
+            <summary>查看更多：盈利质量与轻资本能力图表组</summary>
+            <div class="more-body">
+              <div class="logic-grid">
+                <div class="logic-card"><b>增长真假</b><p>核心营收是否强于总营收，非核心收入占比是在回落还是抬升。</p></div>
+                <div class="logic-card"><b>第二曲线</b><p>手续费/资产不能只看高低，还要与核心营收、拨备前利润是否同向。</p></div>
+                <div class="logic-card"><b>总资产收益率拆解</b><p>沿利差、中收、费用、减值拆解总资产收益率，识别支撑项与侵蚀项。</p></div>
+                <div class="logic-card"><b>行动建议</b><p>中收薄且核心营收弱时，应先补基础结算、代销、场景金融与客户经营。</p></div>
+              </div>
+              <div class="chart-gallery">
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-1_核心与非核心收入分化散点.png" alt="核心与非核心收入分化散点" />
+                  <b>图2-1｜核心与非核心收入分化</b>
+                  <span>横轴核心营收、纵轴总营收，判断增长来自主业还是补位。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-2_轻资本协同两年轨迹.png" alt="轻资本协同两年轨迹" />
+                  <b>图2-2A｜轻资本协同两年轨迹</b>
+                  <span>看手续费资产比与核心营收是否同步改善。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-3_轻资本协同四类银行三联趋势.png" alt="轻资本协同四类银行三联趋势" />
+                  <b>图2-2B｜四类银行三联趋势</b>
+                  <span>对照手续费、核心营收与拨备前利润，三线同向才更像结构改善。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-5_ROA七因子四类银行类型对比.png" alt="ROA七因子四类银行类型对比" />
+                  <b>图2-5A｜总资产收益率当年支撑与侵蚀</b>
+                  <span>不是只看总资产收益率终值，而是看哪些因子支撑、哪些因子侵蚀。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-5_ROA七因子五年变动对比.png" alt="ROA七因子五年变动对比" />
+                  <b>图2-5B｜总资产收益率五年变化路径</b>
+                  <span>识别旧盈利机制边际效力下降与新收入机制承接不足。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-6_ROA七因子五区域对比.png" alt="ROA七因子五区域对比" />
+                  <b>图2-6｜五区域总资产收益率机制对比</b>
+                  <span>同一盈利指标在不同区域背后可能是不同经营结构。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>真实非息与波动收入质量</b>
+                  <span>区分客户经营形成的稳定非息，和投资、公允价值等高波动补位收入。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>现金利润与费用刚性</b>
+                  <span>用经营现金流/净利润和管理费用/资产，校验利润是否有现金流和成本效率支撑。</span>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="report-page" data-page="03 / 06">
+          <div class="report-topbar">
+            <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">息差负债</div>
+            <div class="small-brand">RSM</div>
+          </div>
+          <h2 class="page-title" id="nimTitle">息差压力体现为对冲缺口为正：资产端收益率降幅难以被负债成本降幅完全对冲。</h2>
+          <p class="page-note" id="nimNote">横向条形图按息差对冲缺口排序，目标银行高亮；左侧浅色为可对冲，右侧深色为不可对冲。</p>
+          <div class="chart-card">
+            <div class="chart-title">图表 3-1｜息差对冲缺口横向排名</div>
+            <div class="chart-subtitle">息差对冲缺口（基点）= 资产端代理收益率变动 - 负债端代理成本率变动</div>
+            <div class="main-dynamic-chart" data-chart="nimGapRank"></div>
+            <div class="source">数据来源：iFinD 数据，RSM 研究汇总</div>
+          </div>
+          <div class="insight-box" id="nimInsight" style="margin-top:20px;"><b>管理含义：</b>当缺口持续为正，说明负债成本调整慢于资产端让价，2026 年应优先把存款结构、内部资金转移定价和重点客群结算沉淀纳入资产负债修复议程。</div>
+          <details class="more-panel" open>
+            <summary>查看更多：息差、负债结构与贷款收益成色图表组</summary>
+            <div class="more-body">
+              <div class="logic-grid">
+                <div class="logic-card"><b>先看缺口</b><p>缺口为正表示负债降本慢于资产让价，正值越大，息差防守压力越硬。</p></div>
+                <div class="logic-card"><b>再看定期化</b><p>定期占比升、活期占比降，会削弱负债重定价弹性。</p></div>
+                <div class="logic-card"><b>再看收益成色</b><p>名义贷款收益高不代表真实回报高，要扣除信用成本。</p></div>
+                <div class="logic-card"><b>行动建议</b><p>缺口大时，优先资产负债管理、内部资金转移定价、活期沉淀和高成本负债压降。</p></div>
+              </div>
+              <div class="chart-gallery">
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-2_存款结构与五区域定期占比.png" alt="存款结构与五区域定期占比" />
+                  <b>图3-2｜存款结构与定期化</b>
+                  <span>解释为什么负债端降本经常慢于资产端让价。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-3_息差缺口与负债成本对照.png" alt="息差缺口与负债成本对照" />
+                  <b>图3-3｜缺口 × 负债成本</b>
+                  <span>区分“已降本但追不上”和“结构联动、缺口收敛”。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-4_贷款收益成色桥图.png" alt="贷款收益成色桥图" />
+                  <b>图3-4｜贷款收益成色桥图</b>
+                  <span>把名义收益拆到风险调整后收益，避免高票面误判。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-5_名义与风险调整收益散点.png" alt="名义与风险调整收益散点" />
+                  <b>图3-5｜名义收益 × 风险调整收益</b>
+                  <span>识别高票面高风险补偿，还是高质量定价能力。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-6_息差缺口与风险调整收益双面板.png" alt="息差缺口与风险调整收益双面板" />
+                  <b>图3-6｜息差缺口与收益成色双面板</b>
+                  <span>把负债防守能力与资产真实收益放在同一框架。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-7_票面与成色四象限.png" alt="票面与成色四象限" />
+                  <b>图3-7｜票面与成色四象限</b>
+                  <span>输出“高收益是否真的高质量”的经营判断。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>真实存贷利差与NIM缺口</b>
+                  <span>把主业利差和息差缺口放在一起，判断压力来自资产定价还是负债重定价。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>活期沉淀与定期化结构</b>
+                  <span>拆分公司活期、个人活期和定期存款占比，解释负债降本弹性。</span>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="report-page" data-page="04 / 06">
+          <div class="report-topbar">
+            <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">风险拨备</div>
+            <div class="small-brand">RSM</div>
+          </div>
+          <h2 class="page-title" id="riskTitle">风险确认进入校验阶段：逾期偏离度、个贷不良与拨备覆盖率需联动观察。</h2>
+          <p class="page-note" id="riskNote">本页用于展示风险指标不只看不良率，还要看确认节奏与安全垫消耗。</p>
+          <div class="grid-2">
+            <div class="chart-card">
+              <div class="chart-title">偏离度与拨备覆盖率定位</div>
+              <div class="chart-subtitle">目标银行高亮，右上为“确认滞后但缓冲尚厚”。</div>
+              <div class="main-dynamic-chart" data-chart="riskPosition"></div>
+              <div class="source">数据来源：iFinD 数据，RSM 研究汇总</div>
+            </div>
+            <div>
+              <table class="table">
+                <thead><tr><th>指标</th><th>目标银行</th><th>读法</th></tr></thead>
+                <tbody>
+                  <tr><td>全行不良率</td><td id="riskNpl">0.88%</td><td id="riskNplRead">表面大盘稳定</td></tr>
+                  <tr><td>个贷不良率</td><td id="riskRetailNpl">2.17%</td><td id="riskRetailRead">零售分项承压</td></tr>
+                  <tr><td>逾期-不良偏离度</td><td id="riskDeviation">1.26</td><td id="riskDeviationRead">确认节奏需审视</td></tr>
+                  <tr><td>拨备覆盖率</td><td id="riskCoverage">370.2%</td><td id="riskCoverageRead">缓冲仍在但需动态跟踪</td></tr>
+                </tbody>
+              </table>
+              <div class="insight-box" id="riskInsight" style="margin-top:18px;"><b>管理建议：</b>若个贷不良高于全行不良且偏离度大于 1，应优先推进零售风险前移、迁徙预警和拨备使用节奏复核。</div>
+            </div>
+          </div>
+          <details class="more-panel" open>
+            <summary>查看更多：零售风险、偏离度与拨备策略图表组</summary>
+            <div class="more-body">
+              <div class="logic-grid">
+                <div class="logic-card"><b>风险先看前瞻</b><p>整体不良稳定不代表风险稳定，零售不良、关注率和逾期偏离度往往先行。</p></div>
+                <div class="logic-card"><b>偏离度联读</b><p>偏离度持续高于 1 且关注率抬头，通常提示风险尚未充分进入不良认定。</p></div>
+                <div class="logic-card"><b>利润质量校验</b><p>净利润快于拨备前利润、拨备覆盖率下降，是拨备释放而非经营修复的警示组合。</p></div>
+                <div class="logic-card"><b>行动建议</b><p>按区域和银行排序风险确认优先级，避免利润表好看掩盖安全垫消耗。</p></div>
+              </div>
+              <div class="chart-gallery">
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-1_零售不良率行业与区域双面板.png" alt="零售不良率行业与区域双面板" />
+                  <b>图4-1｜零售不良率行业与区域双面板</b>
+                  <span>判断风险裂缝是否先出现在零售和下沉资产。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-2_逾期偏离度哑铃图.png" alt="逾期偏离度哑铃图" />
+                  <b>图4-2｜逾期偏离度哑铃图</b>
+                  <span>看 2024-2025 偏离度变化，识别确认滞后加快样本。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-3_偏离度与不良关注走势.png" alt="偏离度与不良关注走势" />
+                  <b>图4-3｜偏离度与不良 + 关注率轨迹</b>
+                  <span>偏离度与关注率同升，提示风险停留在结果指标之前。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-4_利润质量四象限.png" alt="利润质量四象限" />
+                  <b>图4-4｜利润质量四象限</b>
+                  <span>把净利润、拨备前利润与覆盖率放在一起识别利润含金量。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-5_偏离度覆盖率样本散点.png" alt="偏离度覆盖率样本散点" />
+                  <b>图4-5｜偏离度 × 覆盖率样本散点</b>
+                  <span>横看确认节奏，纵看安全垫，气泡看利润质量缺口。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-6_区域风险缓冲热力矩阵.png" alt="区域风险缓冲热力矩阵" />
+                  <b>图4-6｜区域风险缓冲热力矩阵</b>
+                  <span>用于给区域风险动作排优先级。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>零售分产品风险拆解</b>
+                  <span>比较住房、消费、经营贷款不良率，定位个贷风险来自哪条产品线。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>隐性不良与风险确认</b>
+                  <span>把隐性不良暴露率和逾期不良偏离度联读，判断风险是否仍停留在报表之外。</span>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="report-page" data-page="05 / 06">
+          <div class="report-topbar">
+            <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">资本估值</div>
+            <div class="small-brand">RSM</div>
+          </div>
+          <h2 class="page-title" id="capitalTitle">资本市场端要回答：市净率折价是价值错配，还是经营结构折价。</h2>
+          <p class="page-note" id="capitalNote">以市净率为结果变量，用经营质量、风险确认、资本效率和中收能力解释市场定价。</p>
+          <div class="grid-2">
+            <div class="chart-card">
+              <div class="chart-title">资本效率四象限</div>
+              <div class="chart-subtitle">横轴为总资产增速，纵轴为核心一级资本充足率变化，气泡代表资产规模。</div>
+              <div class="main-dynamic-chart" data-chart="capitalEfficiency"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">市净率价值质量验证</div>
+              <div class="chart-subtitle">低市净率 + 高质量：价值重估；低市净率 + 弱质量：质量折价。</div>
+              <div class="main-dynamic-chart" data-chart="pbQuality"></div>
+            </div>
+          </div>
+          <div class="insight-box" id="capitalInsight" style="margin-top:20px;"><b>资本市场端建议：</b>若市净率偏低但总资产收益率、风险调整回报与风险指标稳定，可进入价值重估叙事；若市净率偏低且核心营收、中收、偏离度均弱，则应先修复经营质量，再讨论估值提升。</div>
+          <details class="more-panel" open>
+            <summary>查看更多：资本自由度、成本刚性与市净率质量验证图表组</summary>
+            <div class="more-body">
+              <div class="logic-grid">
+                <div class="logic-card"><b>资本不是只看补充</b><p>新增资本是否转化为安全垫和经营自由度，比到账规模更重要。</p></div>
+                <div class="logic-card"><b>扩表纪律</b><p>右下象限代表扩表快但核心一级资本充足率下降，资本被增长追着跑。</p></div>
+                <div class="logic-card"><b>效率模型</b><p>成本收入比与手续费/资产联读，识别高成本、轻收入薄的结构约束。</p></div>
+                <div class="logic-card"><b>市净率验证</b><p>市净率低位必须与总资产收益率、风险调整回报、风险确认和资本自由度交叉验证。</p></div>
+              </div>
+              <div class="chart-gallery">
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-1_资本效率四象限.png" alt="资本效率四象限" />
+                  <b>图5-1｜资本效率四象限</b>
+                  <span>判断扩表策略是否稀释资本，找出高风险消耗象限。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-2_资本余量与RWA缺口双图.png" alt="资本余量与RWA缺口双图" />
+                  <b>图5-2｜核心一级资本余量 × 风险加权资产缺口</b>
+                  <span>看风险加权资产增速是否快于资本积累。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-3_资本压力指数全员排序.png" alt="资本压力指数全员排序" />
+                  <b>图5-3｜资本压力指数全员排序</b>
+                  <span>分值越高，新增资本越可能只是维持旧比率。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-4_五区域城农商三指标对比.png" alt="五区域城农商三指标对比" />
+                  <b>图5-4｜五区域三指标对比</b>
+                  <span>对照成本刚性、轻收入密度和主业修复。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-5_成本与轻收入象限气泡图.png" alt="成本与轻收入象限气泡图" />
+                  <b>图5-5｜成本刚性 × 轻收入密度</b>
+                  <span>右下象限代表高成本、轻收入薄、主业修复偏弱。</span>
+                </div>
+                <div class="figure-thumb">
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-6_区域风险缓冲热力矩阵.png" alt="市净率验证占位" />
+                  <b>市净率验证｜估值与质量交叉矩阵</b>
+                  <span>纳入市净率数据后，可判断“价值错配 / 质量折价”。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>RWA增速与利润修复缺口</b>
+                  <span>判断风险加权资产扩张是否快于利润和资产质量修复。</span>
+                </div>
+                <div class="figure-thumb">
+                  <b>投资资产波动暴露</b>
+                  <span>用债券、基金、信托及理财占资产比，识别投资端对收入波动的贡献。</span>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="report-page" data-page="06 / 06">
+          <div class="report-topbar">
+            <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">行动建议</div>
+            <div class="small-brand">RSM</div>
+          </div>
+          <h2 class="page-title" id="actionTitle">战略上须以资产负债缺口修复、零售风险压降、中收重构与资本回报纪律四条路径形成闭环。</h2>
+          <p class="page-note" id="actionNote">本页将前述诊断转化为董事会可讨论、管理层可承接的行动顺序。</p>
+          <div class="recommendations">
+            <div class="rec" id="rec1"><b>一、先修资产负债</b><p>围绕息差对冲缺口建立月度看板，压降高成本负债，强化对公结算沉淀和重点客群定价纪律。</p></div>
+            <div class="rec" id="rec2"><b>二、零售风险前移</b><p>将个贷不良、关注率、逾期偏离度纳入同一预警框架，前移迁徙识别与清收策略。</p></div>
+            <div class="rec" id="rec3"><b>三、中收费用化</b><p>用手续费/资产衡量轻资本能力，优先补齐代销、结算、财富管理与场景金融转化。</p></div>
+            <div class="rec" id="rec4"><b>四、资本回报纪律</b><p>把新增资产投放、风险加权资产密度、核心一级资本余量与市净率叙事挂钩，避免单向扩表消耗估值基础。</p></div>
+          </div>
+          <div class="topic-grid" id="topicExplainers"></div>
+          <div class="timeline">
+            <div class="step"><span>0-3 月</span><h3>确认缺口</h3><p>确认核心指标口径，完成目标银行与对标组的价值质量诊断。</p></div>
+            <div class="step"><span>3-6 月</span><h3>修复底盘</h3><p>落实资产负债管理、内部资金转移定价、存款结构和重点风险客群清单。</p></div>
+            <div class="step"><span>6-9 月</span><h3>重构收入</h3><p>推动中收产品、客户经营与渠道转化，建立轻资本收入追踪。</p></div>
+            <div class="step"><span>9-12 月</span><h3>验证价值</h3><p>用风险调整回报、经济增加值与市净率验证经营质量改善是否被资本市场识别。</p></div>
+          </div>
+          <table class="table">
+            <thead><tr><th>输出物</th><th>用途</th><th>页面动作</th></tr></thead>
+            <tbody>
+              <tr><td>价值质量诊断报告</td><td>董事会沟通、战略研讨</td><td>勾选页面后导出</td></tr>
+              <tr><td>专题图表库</td><td>条形图、四象限、哑铃图、桥图等董事会常用图表</td><td>随银行与对标组动态更新</td></tr>
+              <tr><td>管理建议清单</td><td>根据指标组合输出差异化行动建议</td><td>按银行与对标组动态改写</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </section>
+  </main>
+  <div class="metric-modal" id="metricModal" hidden>
+    <div class="metric-modal-backdrop" id="metricModalBackdrop"></div>
+    <div class="metric-modal-panel" role="dialog" aria-modal="true" aria-labelledby="metricModalTitle">
+      <button class="metric-modal-close" id="metricModalClose" type="button">关闭</button>
+      <div id="metricModalContent"></div>
+    </div>
+  </div>
+  <div class="peer-edit-modal" id="peerEditModal" hidden>
+    <div class="peer-edit-backdrop" id="peerEditModalBackdrop"></div>
+    <div class="peer-edit-panel" role="dialog" aria-modal="true">
+      <button class="peer-edit-close" id="peerEditModalClose" type="button">关闭</button>
+      <div id="peerEditModalContent"></div>
+    </div>
+  </div>
+  <script src="data.js"></script>
+  <script src="js/01-state.js"></script>
+  <script src="js/02-config.js"></script>
+  <script src="js/03-data-format.js"></script>
+  <script src="js/04-ui-selection.js"></script>
+  <script src="js/05-analysis.js"></script>
+  <script src="js/06-charts.js?v=20260529-deck-ui"></script>
+  <script src="js/07-export.js?v=20260530-rsm-storyline"></script>
+  <script src="js/08-report.js?v=20260530-rsm-storyline"></script>
+  <script src="js/09-projects.js"></script>
+  <script src="js/11-fact-pack.js"></script>
+  <script src="js/12-ai-narrative.js?v=20260530-client-language"></script>
+  <script src="js/13-pptx-export.js?v=20260530-rsm-rhythm"></script>
+  <script src="js/14-report-profiles.js?v=20260530-client-language"></script>
+  <script src="js/15-chart-narrative.js?v=20260530-product-storyline"></script>
+  <script src="js/16-trial-checks.js"></script>
+  <script src="js/17-rsm-deck-theme.js?v=20260529-deck-ui"></script>
+  <script src="js/18-board-workbench.js?v=20260530-client-language"></script>
+  <script src="js/19-product-workspace.js?v=20260530-v123-product"></script>
+  <script src="js/10-bootstrap.js"></script>
+</body>
+</html>

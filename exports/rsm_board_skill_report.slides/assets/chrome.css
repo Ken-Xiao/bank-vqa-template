@@ -1,0 +1,700 @@
+/* ============================================================
+ * RSM 金融咨询 PPT · 参考 PDF 视觉复刻样式系统
+ * Canvas: 1920×1080
+ * Default: rsm-insurance-results
+ * Secondary: rsm-practice-sharing
+ * ============================================================ */
+
+:root {
+  /* —— RSM 基础色板 —— */
+  --rsm-navy:        #061B3A;   /* 深蓝 · 正文强调 / 章节压线 */
+  --rsm-navy-deep:   #0A2F5C;   /* 深蓝 · 章节封面左侧 */
+  --rsm-blue:        #0099D8;   /* 亮蓝 · 大标题 / 主线 / 图标 */
+  --rsm-blue-deep:   #0077AA;   /* 深亮蓝 · 表头 / 维度列 */
+  --rsm-sky:         #DFF1FC;   /* 浅蓝 · 规则框底 */
+  --rsm-sky-light:   #F4F8FB;   /* 极浅灰蓝 · 卡片底 */
+  --rsm-red:         #EF4444;   /* 警示红 · 仅关键负向数据 */
+  --rsm-green:       #10B981;   /* 成功绿 · 可行 / 财政协同 */
+  --rsm-amber:       #F59E0B;   /* 强调金 · 条件 / 过渡 */
+  --rsm-purple:      #8B5CF6;   /* 低饱和紫 · 分类辅助 */
+  --rsm-pink:        #F3DDE6;   /* 低饱和粉 · 矩阵列底 */
+  --rsm-mint:        #E8F7EC;   /* 低饱和绿 · 矩阵列底 */
+  --rsm-cream:       #FFF4DF;   /* 低饱和金 · 矩阵列底 */
+  --rsm-grey:        #2F3A4A;   /* 正文灰黑 */
+  --rsm-grey-mid:    #667085;   /* 次级文字 */
+  --rsm-grey-light:  #A6B0BE;   /* 辅助说明 */
+  --rsm-bg:          #FFFFFF;   /* 页面背景 */
+  --rsm-card-bg:     #F7F8FA;   /* 卡片背景 */
+  --rsm-border:      #D9E1EA;   /* 边框 */
+  --rsm-line:        #E5EAF0;   /* 表格线 */
+
+  /* —— 字号梯度 —— */
+  --fs-h1:           48pt;
+  --fs-h2:           32pt;
+  --fs-h3:           23pt;
+  --fs-body-lg:      22pt;
+  --fs-body:         18pt;
+  --fs-caption:      14pt;
+  --fs-foot:         12pt;
+  --fs-table:        16pt;
+  --fs-table-dense:  14pt;
+  --fs-kpi-num:      92pt;
+  --fs-kpi-unit:     34pt;
+
+  /* —— 保险业绩盘点 / 不良处置实践分享扩展 —— */
+  --rsm-chart-cyan:  #00A3D9;
+  --rsm-chart-navy:  #061B3A;
+  --rsm-chart-gray:  #6A6F76;
+  --rsm-chart-sky:   #7ED0F0;
+  --rsm-soft-module: #DDF2FF;
+  --rsm-title-gray:  #333333;
+  --rsm-practice-blue: #0099D8;
+  --rsm-practice-gray: #8A8F95;
+  --rsm-cover-bg:    #EEF6FC;
+  --rsm-results-rule:#F2F2F2;
+  --rsm-takeaway:    #F3F3F3;
+  --rsm-logo-gray:   #777777;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  margin: 0; padding: 0; overflow: hidden;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN',
+               'Noto Sans SC', Arial, sans-serif;
+  color: var(--rsm-grey);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.slide-container {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--rsm-bg);
+}
+
+/* 数字与英文使用 Inter */
+.num, .en, .metric, .stat {
+  font-family: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+/* —— 共享 chrome：页眉、页脚、页码 —— */
+.chrome-header {
+  position: absolute; left: 0; top: 0;
+  width: 1920px; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px;
+  font-size: var(--fs-foot);
+  color: var(--rsm-grey-mid);
+  letter-spacing: 0.06em;
+  z-index: 100;
+}
+.chrome-header .module-tag {
+  display: flex; align-items: center; gap: 12px;
+}
+.chrome-header .module-tag .dot {
+  width: 8px; height: 8px; background: var(--rsm-blue); border-radius: 50%;
+}
+.chrome-header .module-tag .label {
+  font-weight: 500; color: var(--rsm-navy);
+}
+.chrome-header .breadcrumb {
+  font-weight: 400;
+}
+
+.chrome-footer {
+  position: absolute; left: 0; bottom: 0;
+  width: 1920px; height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px;
+  font-size: var(--fs-foot);
+  color: var(--rsm-grey-light);
+  border-top: none;
+  background: transparent;
+  z-index: 100;
+}
+.chrome-footer .src {
+  color: var(--rsm-grey-mid);
+}
+.chrome-footer .rsm-brand {
+  display: flex; align-items: center; gap: 16px;
+  font-weight: 500;
+  color: var(--rsm-navy);
+}
+.chrome-footer .rsm-brand .logo-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--rsm-navy); color: white;
+  padding: 4px 10px; border-radius: 0;
+  font-family: Arial, sans-serif; font-weight: 800; font-size: 11pt;
+  letter-spacing: 0.1em;
+}
+.chrome-footer .pagenum {
+  color: var(--rsm-grey-mid);
+  font-family: Arial, sans-serif;
+  font-weight: 500;
+}
+
+/* —— 页面标题块 —— */
+.page-title-block {
+  position: absolute; left: 60px; top: 74px;
+  width: 1800px;
+}
+.page-title-block .h1 {
+  font-size: var(--fs-h1);
+  font-weight: 800;
+  color: var(--rsm-blue);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+.page-title-block .h2 {
+  font-size: var(--fs-h3);
+  font-weight: 400;
+  color: var(--rsm-grey-mid);
+  margin-top: 12px;
+  line-height: 1.4;
+}
+.page-title-block .rule {
+  position: absolute; left: 0; top: 68px;
+  width: 1800px; height: 5px;
+  background: var(--rsm-blue);
+}
+
+/* —— KPI 数字卡（4 数字格） —— */
+.kpi-card {
+  background: var(--rsm-card-bg);
+  border: 0;
+  border-top: 6px solid var(--rsm-blue);
+  border-radius: 12px;
+  padding: 28px 32px 24px;
+  box-shadow: 0 10px 24px rgba(6,27,58,0.08);
+}
+.kpi-card .label {
+  font-size: var(--fs-caption);
+  color: var(--rsm-grey-mid);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.kpi-card .label .tag {
+  display: inline-block;
+  background: var(--rsm-navy);
+  color: white;
+  font-size: 11pt;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 8px;
+  font-weight: 500;
+}
+.kpi-card .num {
+  font-size: var(--fs-kpi-num);
+  font-weight: 700;
+  color: var(--rsm-navy);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+}
+.kpi-card .num .unit {
+  font-size: var(--fs-kpi-unit);
+  font-weight: 500;
+  color: var(--rsm-grey-mid);
+}
+.kpi-card .num.pos { color: var(--rsm-green); }
+.kpi-card .num.neg { color: var(--rsm-red); }
+.kpi-card .num.warn { color: var(--rsm-amber); }
+.kpi-card .meta {
+  font-size: 13.5pt;
+  color: var(--rsm-grey-mid);
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--rsm-line);
+  line-height: 1.5;
+}
+.kpi-card .meta .rank {
+  display: inline-block;
+  background: var(--rsm-sky);
+  color: var(--rsm-navy);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* —— 结论卡（左结论 + 右数字） —— */
+.conclusion-block {
+  background: var(--rsm-card-bg);
+  border-left: 6px solid var(--rsm-blue);
+  border-radius: 10px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 18px rgba(6,27,58,0.06);
+}
+.conclusion-block .tag {
+  display: inline-block;
+  font-size: 12pt;
+  color: var(--rsm-blue);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.conclusion-block .text {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--rsm-grey);
+}
+.conclusion-block .text strong {
+  color: var(--rsm-navy);
+  font-weight: 700;
+}
+
+/* —— PDF 风格正文页标题：亮蓝大标题 + 右侧延展横线 —— */
+.policy-title {
+  position: absolute; left: 64px; top: 62px; right: 64px;
+  color: var(--rsm-blue); font-size: 56px; font-weight: 800;
+  display: flex; align-items: center; gap: 28px;
+}
+.policy-title:after {
+  content: ""; height: 5px; flex: 1; background: var(--rsm-blue);
+}
+.policy-title.has-segments:after {
+  background: linear-gradient(to right, #8A8F95 0 12%, var(--rsm-blue) 12% 86%, var(--rsm-navy) 86% 100%);
+}
+
+/* —— 保险业绩盘点页眉：亮蓝总标题 + 右上浅蓝模块胶囊 —— */
+.results-header {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 146px;
+  display: grid; grid-template-columns: 1fr 560px; align-items: end;
+  padding: 48px 68px 18px 68px;
+  border-bottom: 14px solid var(--rsm-results-rule);
+  background: #FFFFFF;
+}
+.results-brand-bars {
+  position: absolute; left: 0; top: 70px; display: flex; gap: 6px;
+}
+.results-brand-bars span { display: block; width: 16px; height: 42px; }
+.results-brand-bars .gray { background: #808285; }
+.results-brand-bars .green { background: #39A935; }
+.results-brand-bars .blue { background: var(--rsm-blue); width: 42px; }
+.results-header .deck-title {
+  color: var(--rsm-blue); font-size: 50px; font-weight: 900; line-height: 1.05;
+  padding-left: 38px; letter-spacing: 0;
+}
+.module-pill {
+  justify-self: end; min-width: 555px; height: 78px; border-radius: 32px 0 0 0;
+  background: linear-gradient(90deg, #DFF3FF 0%, #EAF6FF 62%, #CFE5FF 100%);
+  display: flex; align-items: center; justify-content: flex-end; gap: 32px;
+  padding: 0 42px; color: var(--rsm-navy); font-size: 33px; font-weight: 700;
+  position: relative;
+}
+.module-pill:after {
+  content: ""; position: absolute; right: 0; bottom: -14px;
+  width: 108px; height: 20px; background: var(--rsm-blue);
+  border-radius: 10px 0 0 0;
+}
+.module-pill .module-num {
+  color: #89C9EC; font-size: 56px; font-weight: 900;
+  text-shadow: 0 2px 0 rgba(255,255,255,.9);
+}
+.results-subtitle {
+  position: absolute; left: 106px; top: 182px;
+  font-size: 42px; color: var(--rsm-title-gray); font-weight: 400; line-height: 1.2;
+}
+.results-takeaway {
+  position: absolute; left: 106px; right: 106px; top: 296px;
+  min-height: 82px; background: var(--rsm-takeaway); border-left: 18px solid var(--rsm-blue);
+  padding: 18px 28px; font-size: 29px; line-height: 1.28; color: var(--rsm-grey);
+}
+.results-chart-card {
+  position: absolute; left: 106px; right: 106px; top: 410px; bottom: 118px;
+  background: #FFFFFF; border-radius: 10px;
+  box-shadow: 0 16px 30px rgba(6,27,58,.14);
+  padding: 34px 42px;
+}
+.results-footnote {
+  position: absolute; left: 106px; right: 106px; bottom: 58px;
+  color: var(--rsm-grey-mid); font-size: 17px; line-height: 1.35;
+}
+
+/* —— 保险业绩盘点封面 —— */
+.insurance-cover {
+  background: linear-gradient(135deg, #EEF6FC 0%, #F7FBFF 64%, #FFFFFF 100%);
+}
+.insurance-cover-title {
+  position: absolute; left: 106px; top: 115px; width: 1180px;
+  color: var(--rsm-navy); font-size: 64px; font-weight: 900; line-height: 1.08;
+}
+.insurance-cover-subtitle {
+  position: absolute; left: 106px; top: 250px; width: 960px;
+  color: #333333; font-size: 44px; font-weight: 800; line-height: 1.15;
+}
+.insurance-cover-meta {
+  position: absolute; left: 106px; top: 330px; width: 720px;
+  color: #666666; font-size: 28px; line-height: 1.45;
+}
+.insurance-cover-logo {
+  position: absolute; right: 112px; top: 118px;
+  color: var(--rsm-logo-gray); font-size: 44px; font-weight: 800;
+}
+.insurance-hero-image {
+  position: absolute; left: 32px; right: 108px; bottom: 94px; height: 535px;
+  background:
+    linear-gradient(rgba(210,230,244,.22), rgba(210,230,244,.22)),
+    linear-gradient(135deg, #D3E7F6 0%, #AFCBE0 45%, #67859D 100%);
+  overflow: hidden;
+}
+.insurance-hero-image:before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.52) 0 1px, transparent 1px 100px),
+    linear-gradient(0deg, rgba(255,255,255,.34) 0 1px, transparent 1px 88px);
+}
+.insurance-hero-image:after {
+  content: ""; position: absolute; left: 55%; top: 18%; width: 620px; height: 250px;
+  border: 5px solid rgba(255,255,255,.88); border-left: none; border-bottom: none;
+  transform: skewX(-12deg);
+}
+.insurance-side-bars {
+  position: absolute; right: 0; bottom: 94px; width: 66px; height: 535px;
+  display: grid; grid-template-rows: 94px 156px 285px; gap: 0;
+}
+.insurance-side-bars .gray { background:#8A8F8E; }
+.insurance-side-bars .green { background:#39A935; }
+.insurance-side-bars .blue { background:var(--rsm-blue); }
+.insurance-dot-field {
+  position: absolute; left: 790px; top: 265px; width: 520px; height: 130px;
+  background-image: radial-gradient(circle, rgba(255,255,255,.8) 0 8px, transparent 9px);
+  background-size: 42px 34px;
+  opacity: .75;
+}
+.insurance-line-art {
+  position: absolute; right: 135px; top: 245px; width: 480px; height: 220px;
+  border-left: 2px solid rgba(255,255,255,.5);
+  border-bottom: 2px solid rgba(255,255,255,.5);
+  opacity: .76;
+}
+
+/* —— 保险业绩盘点章节页 —— */
+.insurance-section-photo {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 610px;
+  background:
+    linear-gradient(rgba(255,255,255,.22), rgba(255,255,255,.22)),
+    linear-gradient(120deg, #B4D3EA 0%, #79A9CE 42%, #1F5B8C 100%);
+  overflow: hidden;
+}
+.insurance-section-photo:before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(65deg, transparent 0 18%, rgba(255,255,255,.58) 18% 23%, transparent 23% 100%),
+    linear-gradient(90deg, rgba(255,255,255,.35) 0 2px, transparent 2px 86px),
+    linear-gradient(0deg, rgba(255,255,255,.25) 0 2px, transparent 2px 72px);
+}
+.geo-squares {
+  position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;
+  background:
+    linear-gradient(#fff,#fff) 90px 195px/76px 76px no-repeat,
+    linear-gradient(#fff,#fff) 300px 142px/54px 54px no-repeat,
+    linear-gradient(#fff,#fff) 505px 70px/72px 72px no-repeat,
+    linear-gradient(#fff,#fff) 725px 0/105px 105px no-repeat,
+    linear-gradient(#fff,#fff) 0 380px/260px 160px no-repeat;
+  opacity:.95;
+}
+.insurance-section-band {
+  position:absolute; left:70px; right:0; top:540px; height:210px;
+  background:rgba(245,245,245,.96);
+  display:flex; align-items:center;
+}
+.insurance-section-num {
+  width:190px; height:210px; background:var(--rsm-navy);
+  color:white; display:flex; align-items:center; justify-content:center;
+  font-size:72px; font-weight:900;
+}
+.insurance-section-title {
+  color:var(--rsm-navy); font-size:58px; font-weight:900;
+  padding-left:62px;
+}
+.insurance-section-accent {
+  position:absolute; right:0; top:540px; width:28px; height:210px; background:var(--rsm-blue);
+}
+
+/* —— 不良处置实践分享：书法感标题 + 三段标题线 —— */
+.practice-title {
+  position: absolute; left: 64px; top: 72px; right: 64px;
+  color: var(--rsm-practice-blue);
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 58px; font-weight: 800; line-height: 1.1; letter-spacing: 0;
+}
+.practice-title-rule {
+  position: absolute; left: 64px; right: 64px; top: 178px; height: 12px;
+  background:
+    linear-gradient(to right,
+      var(--rsm-practice-gray) 0 12.5%,
+      transparent 12.5% 13.5%,
+      var(--rsm-navy) 13.5% 42.5%,
+      transparent 42.5% 43.5%,
+      var(--rsm-practice-blue) 43.5% 100%);
+}
+.practice-lead {
+  position: absolute; left: 64px; right: 64px; top: 238px;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 27px; line-height: 1.55; color: #111;
+}
+.practice-card {
+  background: #FFFFFF; border-radius: 14px; border: 2px solid #C7EEFB;
+  box-shadow: 0 10px 22px rgba(0,153,216,.22);
+  padding: 26px 30px; color: #111;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 26px; line-height: 1.45;
+}
+.practice-card .pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 250px; height: 62px; border-radius: 32px;
+  background: var(--rsm-practice-blue); color: #FFFFFF;
+  font-size: 30px; font-weight: 800; margin-bottom: 24px;
+}
+.practice-step-card {
+  background: #FFFFFF; border-radius: 28px;
+  box-shadow: 0 18px 32px rgba(6,27,58,.10);
+  padding: 62px 42px 38px; min-height: 330px;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 28px; line-height: 1.55; color: #111;
+}
+.practice-step-num {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: var(--rsm-practice-blue); color: #FFFFFF;
+  display: flex; align-items: center; justify-content: center;
+  font-family: Arial, sans-serif; font-size: 28px; font-weight: 800;
+  box-shadow: 0 8px 18px rgba(0,153,216,.28);
+}
+.practice-timeline {
+  border-left: 2px solid #BFC4C8; padding-left: 42px;
+}
+.practice-timeline .item {
+  position: relative; margin-bottom: 54px;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+}
+
+/* —— 实践分享封面 / 目录 / 照片拼贴 —— */
+.practice-photo-bg {
+  position:absolute; top:0; bottom:0; right:0; width:63%;
+  background:
+    linear-gradient(rgba(235,247,255,.24), rgba(235,247,255,.24)),
+    linear-gradient(130deg, #D9EDF9 0%, #8DBEE0 46%, #2F6FA5 100%);
+}
+.practice-photo-bg:before {
+  content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(67deg, transparent 0 36%, rgba(255,255,255,.55) 36% 40%, transparent 40% 100%),
+    linear-gradient(90deg, rgba(255,255,255,.42) 0 2px, transparent 2px 95px),
+    linear-gradient(0deg, rgba(255,255,255,.3) 0 2px, transparent 2px 78px);
+}
+.practice-blue-side {
+  position:absolute; left:0; top:260px; width:30px; height:350px;
+  background:var(--rsm-practice-blue);
+}
+.practice-cover-title {
+  position:absolute; left:95px; top:260px; width:750px;
+  color:var(--rsm-practice-blue);
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:60px; line-height:1.25; font-weight:900;
+}
+.practice-cover-meta {
+  position:absolute; left:95px; top:500px; width:760px;
+  color:#666; font-size:30px; line-height:1.55; font-weight:600;
+}
+.practice-logo {
+  position:absolute; left:95px; bottom:118px; color:#777; font-size:42px; font-weight:900;
+}
+.practice-geo-white {
+  position:absolute; pointer-events:none; inset:0;
+  background:
+    linear-gradient(#fff,#fff) 655px 240px/72px 72px no-repeat,
+    linear-gradient(#fff,#fff) 800px 680px/110px 110px no-repeat,
+    linear-gradient(#fff,#fff) 940px 780px/70px 70px no-repeat,
+    linear-gradient(#fff,#fff) 1180px 915px/360px 95px no-repeat,
+    linear-gradient(#fff,#fff) 1740px 995px/55px 55px no-repeat;
+}
+.practice-agenda-label {
+  position:absolute; left:665px; top:145px; width:180px; height:95px;
+  background:white; display:flex; align-items:center; justify-content:center;
+  color:var(--rsm-practice-blue);
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:54px; font-weight:900;
+}
+.practice-agenda-label:after {
+  content:""; position:absolute; right:-88px; top:0; width:28px; height:95px;
+  background:var(--rsm-practice-blue);
+}
+.practice-agenda-list {
+  position:absolute; left:985px; top:195px; right:70px;
+}
+.practice-agenda-row {
+  height:128px; display:grid; grid-template-columns:80px 1fr 160px;
+  align-items:center; border-bottom:8px solid #E6E6E6;
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:34px; color:#111;
+}
+.practice-agenda-row .num { font-size:33px; color:#111; }
+.practice-agenda-row .pages { font-family:Arial,sans-serif; font-size:34px; text-align:right; }
+.practice-agenda-row .pages:after {
+  content:""; display:block; height:8px; background:#BFEFFF; margin-top:28px;
+}
+
+/* —— 不良处置实践分享：章节页 —— */
+.practice-section-photo {
+  position:absolute; left:0; top:0; bottom:0; width:1040px;
+  background:
+    linear-gradient(rgba(235,247,255,.28), rgba(235,247,255,.28)),
+    linear-gradient(128deg, #D8ECF8 0%, #8CBFE0 48%, #2D6FA7 100%);
+  overflow:hidden;
+}
+.practice-section-photo:before {
+  content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(64deg, transparent 0 33%, rgba(255,255,255,.58) 33% 37%, transparent 37% 100%),
+    linear-gradient(90deg, rgba(255,255,255,.42) 0 2px, transparent 2px 96px),
+    linear-gradient(0deg, rgba(255,255,255,.28) 0 2px, transparent 2px 82px);
+}
+.practice-section-geo {
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    linear-gradient(#fff,#fff) 720px 92px/78px 78px no-repeat,
+    linear-gradient(#fff,#fff) 855px 220px/124px 124px no-repeat,
+    linear-gradient(#fff,#fff) 620px 710px/86px 86px no-repeat,
+    linear-gradient(#fff,#fff) 790px 818px/280px 110px no-repeat,
+    linear-gradient(#fff,#fff) 1010px 480px/54px 54px no-repeat;
+  opacity:.96;
+}
+.practice-section-accent {
+  position:absolute; right:0; top:0; width:34px; height:1080px;
+  background:var(--rsm-practice-blue);
+}
+.practice-section-panel {
+  position:absolute; left:1010px; top:150px; right:112px; bottom:170px;
+  background:#FFFFFF;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:70px 72px 76px;
+}
+.practice-section-number {
+  font-family:Arial, sans-serif; font-size:138px; line-height:1;
+  color:#D4DAE0; font-weight:900; letter-spacing:-0.04em;
+  margin-bottom:22px;
+}
+.practice-section-kicker {
+  color:var(--rsm-practice-blue);
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:34px; font-weight:900; margin-bottom:28px;
+}
+.practice-section-title {
+  color:#111;
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:66px; line-height:1.18; font-weight:900;
+  padding-bottom:36px; border-bottom:8px solid var(--rsm-practice-blue);
+}
+.practice-section-question {
+  margin-top:34px; color:#333; font-size:28px; line-height:1.45;
+  font-family:'PingFang SC','Microsoft YaHei','Source Han Sans CN',sans-serif;
+}
+.practice-timeline .item:before {
+  content: ""; position: absolute; left: -58px; top: 2px;
+  width: 42px; height: 42px; border-radius: 50%; background: var(--rsm-practice-blue);
+}
+.practice-timeline .item-title {
+  font-size: 29px; font-weight: 900; color: #111; margin-bottom: 12px;
+}
+.practice-timeline .item-body {
+  font-size: 24px; line-height: 1.45; color: #222;
+}
+
+/* —— PDF 风格规则卡：浅灰底 + 左亮蓝竖线 + 内嵌浅蓝框 —— */
+.policy-card {
+  background: var(--rsm-card-bg);
+  border-left: 6px solid var(--rsm-blue);
+  border-radius: 4px;
+  box-shadow: 0 8px 18px rgba(6,27,58,0.05);
+  padding: 32px 36px;
+}
+.policy-card .card-title {
+  color: var(--rsm-blue); font-size: 32px; font-weight: 800;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+}
+.policy-card .body {
+  font-size: 27px; line-height: 1.5; color: var(--rsm-grey);
+}
+.policy-rule-box {
+  margin-top: 24px; border: 2px solid var(--rsm-blue);
+  background: var(--rsm-sky); border-radius: 6px;
+  padding: 20px 24px; color: var(--rsm-grey-mid);
+  font-size: 23px; line-height: 1.45;
+}
+.policy-rule-box strong {
+  display: block; color: var(--rsm-blue); font-size: 26px; margin-bottom: 8px;
+}
+
+/* —— PDF 风格三栏影响卡 —— */
+.impact-card {
+  background: white; border-radius: 16px; border-top: 7px solid var(--rsm-blue);
+  box-shadow: 0 12px 28px rgba(6,27,58,0.08);
+  padding: 34px 36px;
+}
+.impact-card .impact-title {
+  color: var(--rsm-blue); font-size: 32px; font-weight: 800;
+  border-bottom: 2px solid var(--rsm-line);
+  padding-bottom: 20px; margin-bottom: 22px;
+}
+.impact-card .impact-body {
+  color: var(--rsm-grey); font-size: 26px; line-height: 1.62;
+}
+.evidence-strip {
+  background: #F8FAFC; border-left: 6px solid var(--rsm-blue);
+  border-radius: 8px; padding: 18px 22px;
+  color: var(--rsm-navy); font-size: 22px; font-weight: 700;
+}
+
+/* —— PDF 风格章节封面：城市/抽象背景 + 半透明白色结论条 + 指标卡 —— */
+.photo-chapter-bg {
+  background:
+    linear-gradient(rgba(6,27,58,.34), rgba(6,27,58,.34)),
+    linear-gradient(135deg, #24364A 0%, #5E7688 50%, #9AA8B5 100%);
+}
+.chapter-thesis {
+  background: rgba(255,255,255,.94); border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  color: var(--rsm-navy); text-align: center;
+  padding: 38px 48px;
+}
+
+/* —— 字号底线：装不下就拆页、减字或改版式，不继续缩小 —— */
+.readable-body { font-size: var(--fs-body); line-height: 1.5; }
+.readable-body-lg { font-size: var(--fs-body-lg); line-height: 1.45; }
+.readable-caption { font-size: var(--fs-caption); line-height: 1.35; }
+.readable-footnote { font-size: var(--fs-foot); line-height: 1.35; }
+.readable-table { font-size: var(--fs-table); line-height: 1.35; }
+.readable-table.dense { font-size: var(--fs-table-dense); line-height: 1.3; }
+.density-standard .readable-body { font-size: 20pt; }
+.density-standard .readable-caption { font-size: 15pt; }
+.density-dense .readable-body { font-size: 18pt; }
+.density-dense .readable-caption { font-size: 14pt; }
+.density-matrix .readable-table { font-size: 16pt; }
+.density-matrix .readable-table.dense { font-size: 14pt; }
+
+/* —— 通用工具类 —— */
+.text-navy { color: var(--rsm-navy); }
+.text-blue { color: var(--rsm-blue); }
+.text-red { color: var(--rsm-red); }
+.text-green { color: var(--rsm-green); }
+.text-amber { color: var(--rsm-amber); }
+.text-grey { color: var(--rsm-grey-mid); }
+
+.fw-300 { font-weight: 300; }
+.fw-400 { font-weight: 400; }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+
+/* —— SVG 几何装饰（替代照片） —— */
+.geo-decor {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.85;
+}

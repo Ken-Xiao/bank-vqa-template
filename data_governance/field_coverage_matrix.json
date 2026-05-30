@@ -1,0 +1,1801 @@
+[
+  {
+    "source_group": "基本信息",
+    "source_field": "银行简称",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "基本信息",
+    "source_field": "银行类型",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "基本信息",
+    "source_field": "年份",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "营业收入",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "净利息收入",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "手续费净收入",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "营业收入增速%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "净利润",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "归母净利润",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "净利润增速%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "PPOP",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "PPOP增速%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "核心营收",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利概览(万元)",
+    "source_field": "核心营收增速%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "ROE%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "ROA%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "NIM%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "净利差%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "成本收入比%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "非息占比%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "真实核心非息%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "盈利指标",
+    "source_field": "高波动收入%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "资产总计",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "负债合计",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "股东权益",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "贷款总额",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "存款总额",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "生息资产",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "计息负债",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债(万元)",
+    "source_field": "存贷比%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "息差分析",
+    "source_field": "生息资产收益率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "息差分析",
+    "source_field": "计息负债成本率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "息差分析",
+    "source_field": "NIM_Gap百分点",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "息差分析",
+    "source_field": "真实存贷利差",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "息差分析",
+    "source_field": "核心存款定期化%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "不良率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "五级分类不良率%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "拨备覆盖率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "五级分类覆盖率%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "贷款拨备率%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "逾期率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "关注率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "逾期-不良偏离度",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资产质量",
+    "source_field": "隐性不良暴露率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "资本充足率%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "一级资本充足%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "核心一级充足%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "资本杠杆率%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "CET1余量bp",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "资本充足余量bp",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "估算RWA(万元)",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "RWA密度%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "资本净额",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "一级资本净额",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资本充足率",
+    "source_field": "核心一级净额",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "流动性指标",
+    "source_field": "流动性比率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "流动性指标",
+    "source_field": "流动性覆盖率%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "流动性指标",
+    "source_field": "备付金率%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "流动性与集中度风险"
+  },
+  {
+    "source_group": "流动性指标",
+    "source_field": "存贷比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "流动性与集中度风险"
+  },
+  {
+    "source_group": "流动性指标",
+    "source_field": "单一最大贷款比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "流动性与集中度风险"
+  },
+  {
+    "source_group": "流动性指标",
+    "source_field": "最大十家贷款比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "流动性与集中度风险"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "存款总额",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "公司存款",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "公司定期",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "公司活期",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "个人存款",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "个人定期",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "个人活期",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "存款结构(万元)",
+    "source_field": "保证金存款",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "贷款结构(万元)",
+    "source_field": "贷款总额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "贷款结构与分项不良"
+  },
+  {
+    "source_group": "贷款结构(万元)",
+    "source_field": "公司贷款",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "贷款结构与分项不良"
+  },
+  {
+    "source_group": "贷款结构(万元)",
+    "source_field": "个人贷款",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "贷款结构与分项不良"
+  },
+  {
+    "source_group": "贷款结构(万元)",
+    "source_field": "票据贴现",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "贷款结构与分项不良"
+  },
+  {
+    "source_group": "贷款结构(万元)",
+    "source_field": "公司贷款不良%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "贷款结构(万元)",
+    "source_field": "个人贷款不良%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "贷款结构(万元)",
+    "source_field": "票据贴现不良%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "正常贷款",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "正常类",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "关注类",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "次级类",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "可疑类",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "损失类",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "不良合计",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-余额(万元)",
+    "source_field": "贷款损失准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-各档拨备率(%)",
+    "source_field": "正常类拨备%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "五级分类-各档拨备率(%)",
+    "source_field": "关注类拨备%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "五级分类-各档拨备率(%)",
+    "source_field": "次级类拨备%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "五级分类-各档拨备率(%)",
+    "source_field": "可疑类拨备%",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "五级分类-占贷款比(%)",
+    "source_field": "正常类占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-占贷款比(%)",
+    "source_field": "关注类占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-占贷款比(%)",
+    "source_field": "次级类占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-占贷款比(%)",
+    "source_field": "可疑类占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "五级分类-占贷款比(%)",
+    "source_field": "损失类占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "风险确认与迁徙"
+  },
+  {
+    "source_group": "逾期贷款(万元)",
+    "source_field": "逾期合计",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "逾期结构与期限迁徙"
+  },
+  {
+    "source_group": "逾期贷款(万元)",
+    "source_field": "逾期3月内",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "逾期结构与期限迁徙"
+  },
+  {
+    "source_group": "逾期贷款(万元)",
+    "source_field": "逾期3月-1年",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "逾期结构与期限迁徙"
+  },
+  {
+    "source_group": "逾期贷款(万元)",
+    "source_field": "逾期1-3年",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "逾期结构与期限迁徙"
+  },
+  {
+    "source_group": "逾期贷款(万元)",
+    "source_field": "逾期3年以上",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "逾期结构与期限迁徙"
+  },
+  {
+    "source_group": "逾期贷款-信用类(万元)",
+    "source_field": "信用逾期合计",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-信用类(万元)",
+    "source_field": "信用-3月内",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-信用类(万元)",
+    "source_field": "信用-3月-1年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-信用类(万元)",
+    "source_field": "信用-1-3年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-信用类(万元)",
+    "source_field": "信用-3年+",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-保证类(万元)",
+    "source_field": "保证逾期合计",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-保证类(万元)",
+    "source_field": "保证-3月内",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-保证类(万元)",
+    "source_field": "保证-3月-1年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-保证类(万元)",
+    "source_field": "保证-1-3年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-保证类(万元)",
+    "source_field": "保证-3年+",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-抵押类(万元)",
+    "source_field": "抵押逾期合计",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-抵押类(万元)",
+    "source_field": "抵押-3月内",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-抵押类(万元)",
+    "source_field": "抵押-3月-1年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-抵押类(万元)",
+    "source_field": "抵押-1-3年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-抵押类(万元)",
+    "source_field": "抵押-3年+",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-质押类(万元)",
+    "source_field": "质押逾期合计",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-质押类(万元)",
+    "source_field": "质押-3月内",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-质押类(万元)",
+    "source_field": "质押-3月-1年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-质押类(万元)",
+    "source_field": "质押-1-3年",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "逾期贷款-质押类(万元)",
+    "source_field": "质押-3年+",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "个人贷款总额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "零售风险分产品"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "住房贷款占比%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "消费贷款占比%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "经营贷款占比%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "信用卡占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "零售风险分产品"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "其他个贷占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "零售风险分产品"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "个贷综合不良%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "零售风险分产品"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "住房贷款不良%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "消费贷款不良%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "经营贷款不良%",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "个人贷款分产品(万元/%)",
+    "source_field": "信用卡不良%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "零售风险分产品"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "农林牧渔%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "采矿业%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "制造业%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "电力热力%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "建筑业%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "批发零售%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "交通运输%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "信息传输%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "住宿餐饮%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "金融业%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "房地产%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "租赁商务%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "科学研究%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "水利环境%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "居民服务%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "教育%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "卫生社会%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "文化体育%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "综合%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-占比(%)",
+    "source_field": "其他服务%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "对公行业集中度"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "农林牧渔不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "采矿业不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "制造业不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "电力热力不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "建筑业不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "批发零售不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "交通运输不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "信息传输不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "住宿餐饮不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "金融业不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "房地产不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "租赁商务不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "科学研究不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "水利环境不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "居民服务不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "教育不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "卫生社会不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "文化体育不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "综合不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "公司贷款分行业-不良率(%)",
+    "source_field": "其他服务不良",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "行业风险暴露"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "金融投资总额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "债券合计",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "政府债",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "政金债",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "金融债",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "企业债",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "同业存单",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "ABS",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "权益性投资",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "基金",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "信托及理财",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "金融投资分布(万元)",
+    "source_field": "其他投资",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融投资配置"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款一阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款一阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款一阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款一阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款二阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款二阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款二阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款二阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款三阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款三阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款三阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-贷款(万元/%)",
+    "source_field": "贷款三阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "新金融工具三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资一阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资一阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资一阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资一阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资二阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资二阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资二阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资二阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资三阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资三阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资三阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-金融投资(万元/%)",
+    "source_field": "投资三阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "投资资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计一阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计一阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计一阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计一阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计二阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计二阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计二阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计二阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计三阶段余额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计三阶段占比%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计三阶段准备",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "金融资产三阶段-合计(万元/%)",
+    "source_field": "合计三阶段拨备%",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "全资产三阶段风险"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "利息收入",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "利息支出",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "手续费收入",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "手续费支出",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "管理费用",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "营业税费",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "营业支出",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "营业利润",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "营业外收入",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "营业外支出",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "利润总额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "所得税",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "利润表详情(万元)",
+    "source_field": "少数股东损益",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "利润表归因"
+  },
+  {
+    "source_group": "资产负债-金融资产(万元)",
+    "source_field": "FVTPL金融资产",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融资产结构"
+  },
+  {
+    "source_group": "资产负债-金融资产(万元)",
+    "source_field": "FVOCI金融资产",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融资产结构"
+  },
+  {
+    "source_group": "资产负债-金融资产(万元)",
+    "source_field": "AC金融资产",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融资产结构"
+  },
+  {
+    "source_group": "资产负债-金融资产(万元)",
+    "source_field": "应收利息",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融资产结构"
+  },
+  {
+    "source_group": "资产负债-金融资产(万元)",
+    "source_field": "固定资产",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "金融资产结构"
+  },
+  {
+    "source_group": "资产负债-同业往来(万元)",
+    "source_field": "存放同业",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "同业与流动性配置"
+  },
+  {
+    "source_group": "资产负债-同业往来(万元)",
+    "source_field": "拆出资金",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "同业与流动性配置"
+  },
+  {
+    "source_group": "资产负债-同业往来(万元)",
+    "source_field": "同业存放",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "同业与流动性配置"
+  },
+  {
+    "source_group": "资产负债-同业往来(万元)",
+    "source_field": "向央行借款",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "同业与流动性配置"
+  },
+  {
+    "source_group": "资产负债-同业往来(万元)",
+    "source_field": "拆入资金",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "同业与流动性配置"
+  },
+  {
+    "source_group": "资产负债-同业往来(万元)",
+    "source_field": "现金及准备金",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "同业与流动性配置"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "股本",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "资本公积",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "盈余公积",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "未分配利润",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "一般风险准备",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "归母权益合计",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "所有者权益合计",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "负债及权益总计",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "应交税费",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "资产负债-权益构成(万元)",
+    "source_field": "应付利息",
+    "status": "未接入",
+    "priority": "暂缓",
+    "recommendation": "暂不进入董办首版，可保留在底层明细"
+  },
+  {
+    "source_group": "现金流量(万元)",
+    "source_field": "经营活动净额",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "现金流量(万元)",
+    "source_field": "投资活动净额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "现金流与经营质量"
+  },
+  {
+    "source_group": "现金流量(万元)",
+    "source_field": "筹资活动净额",
+    "status": "未接入",
+    "priority": "中",
+    "recommendation": "现金流与经营质量"
+  },
+  {
+    "source_group": "每股指标",
+    "source_field": "基本EPS(元)",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "估值指标",
+    "source_field": "PB(年末)",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  },
+  {
+    "source_group": "估值指标",
+    "source_field": "PB(年中)",
+    "status": "已接入",
+    "priority": "-",
+    "recommendation": "当前应用和治理字典已使用"
+  }
+]

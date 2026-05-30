@@ -1,0 +1,10 @@
+[
+  {
+    "level": "warning",
+    "type": "range",
+    "bank": "西安",
+    "year": 2024,
+    "metric": "liquidityCoverageRatio",
+    "message": "liquidityCoverageRatio=1110.87 超出建议区间 [0, 1000]"
+  }
+]

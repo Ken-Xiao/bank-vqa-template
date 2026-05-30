@@ -1,0 +1,246 @@
+/* ============================================================
+ * RSM 苏农银行价值创造汇报 · 共享样式系统
+ * Canvas: 1920×1080  ·  独立阅读版  ·  高信息密度
+ * ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* —— RSM 价值创造汇报色板 —— */
+  --rsm-navy:        #1A3A5C;   /* 主蓝 · 标题强调 */
+  --rsm-navy-deep:   #0D2137;   /* 深蓝 · 封面底 */
+  --rsm-blue:        #1565C0;   /* 辅蓝 · 数据条 */
+  --rsm-sky:         #E3F2FD;   /* 浅蓝 · 卡片底 */
+  --rsm-sky-light:   #F0F6FC;   /* 极浅蓝 · 区块底 */
+  --rsm-red:         #C62828;   /* 警示红 */
+  --rsm-green:       #2E7D32;   /* 成功绿 */
+  --rsm-amber:       #B8860B;   /* 强调金 · 仅核心 KPI 用 */
+  --rsm-grey:        #37474F;   /* 正文灰 */
+  --rsm-grey-mid:    #607D8B;   /* 次级文字 */
+  --rsm-grey-light:  #B0BEC5;   /* 辅助说明 */
+  --rsm-bg:          #F8F9FB;   /* 页面背景 */
+  --rsm-border:      #DEE2E6;   /* 边框 */
+  --rsm-line:        #E0E6ED;   /* 表格线 */
+
+  /* —— 字号梯度 —— */
+  --fs-h1:           42pt;
+  --fs-h2:           28pt;
+  --fs-h3:           20pt;
+  --fs-body-lg:      18pt;
+  --fs-body:         15pt;
+  --fs-caption:      12pt;
+  --fs-foot:         10pt;
+  --fs-kpi-num:      96pt;
+  --fs-kpi-unit:     32pt;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  margin: 0; padding: 0; overflow: hidden;
+  font-family: 'Noto Sans SC', 'Source Han Sans CN', 'PingFang SC',
+               'Microsoft YaHei', sans-serif;
+  color: var(--rsm-grey);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.slide-container {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--rsm-bg);
+}
+
+/* 数字与英文使用 Inter */
+.num, .en, .metric, .stat {
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+/* —— 共享 chrome：页眉、页脚、页码 —— */
+.chrome-header {
+  position: absolute; left: 0; top: 0;
+  width: 1920px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px;
+  font-size: var(--fs-foot);
+  color: var(--rsm-grey-mid);
+  letter-spacing: 0.06em;
+  z-index: 100;
+}
+.chrome-header .module-tag {
+  display: flex; align-items: center; gap: 12px;
+}
+.chrome-header .module-tag .dot {
+  width: 8px; height: 8px; background: var(--rsm-blue); border-radius: 50%;
+}
+.chrome-header .module-tag .label {
+  font-weight: 500; color: var(--rsm-navy);
+}
+.chrome-header .breadcrumb {
+  font-weight: 400;
+}
+
+.chrome-footer {
+  position: absolute; left: 0; bottom: 0;
+  width: 1920px; height: 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px;
+  font-size: var(--fs-foot);
+  color: var(--rsm-grey-light);
+  border-top: 1px solid var(--rsm-line);
+  background: rgba(255,255,255,0.6);
+  z-index: 100;
+}
+.chrome-footer .src {
+  color: var(--rsm-grey-mid);
+}
+.chrome-footer .rsm-brand {
+  display: flex; align-items: center; gap: 16px;
+  font-weight: 500;
+  color: var(--rsm-navy);
+}
+.chrome-footer .rsm-brand .logo-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--rsm-navy); color: white;
+  padding: 4px 10px; border-radius: 2px;
+  font-family: 'Inter', sans-serif; font-weight: 800; font-size: 11pt;
+  letter-spacing: 0.1em;
+}
+.chrome-footer .pagenum {
+  color: var(--rsm-grey-mid);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+/* —— 页面标题块 —— */
+.page-title-block {
+  position: absolute; left: 60px; top: 88px;
+  width: 1800px;
+}
+.page-title-block .h1 {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  color: var(--rsm-navy);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.page-title-block .h2 {
+  font-size: var(--fs-h3);
+  font-weight: 400;
+  color: var(--rsm-grey-mid);
+  margin-top: 12px;
+  line-height: 1.4;
+}
+.page-title-block .rule {
+  position: absolute; left: 0; top: -16px;
+  width: 80px; height: 4px;
+  background: var(--rsm-blue);
+}
+
+/* —— KPI 数字卡（4 数字格） —— */
+.kpi-card {
+  background: white;
+  border: 1px solid var(--rsm-border);
+  border-top: 4px solid var(--rsm-blue);
+  padding: 28px 32px 24px;
+  box-shadow: 0 2px 4px rgba(26,58,92,0.04);
+}
+.kpi-card .label {
+  font-size: var(--fs-caption);
+  color: var(--rsm-grey-mid);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.kpi-card .label .tag {
+  display: inline-block;
+  background: var(--rsm-navy);
+  color: white;
+  font-size: 9pt;
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-right: 8px;
+  font-weight: 500;
+}
+.kpi-card .num {
+  font-size: var(--fs-kpi-num);
+  font-weight: 700;
+  color: var(--rsm-navy);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+}
+.kpi-card .num .unit {
+  font-size: var(--fs-kpi-unit);
+  font-weight: 500;
+  color: var(--rsm-grey-mid);
+}
+.kpi-card .num.pos { color: var(--rsm-green); }
+.kpi-card .num.neg { color: var(--rsm-red); }
+.kpi-card .num.warn { color: var(--rsm-amber); }
+.kpi-card .meta {
+  font-size: 11pt;
+  color: var(--rsm-grey-mid);
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--rsm-line);
+  line-height: 1.5;
+}
+.kpi-card .meta .rank {
+  display: inline-block;
+  background: var(--rsm-sky);
+  color: var(--rsm-navy);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-right: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* —— 结论卡（左结论 + 右数字） —— */
+.conclusion-block {
+  background: white;
+  border-left: 4px solid var(--rsm-navy);
+  padding: 24px 28px;
+  box-shadow: 0 1px 3px rgba(26,58,92,0.05);
+}
+.conclusion-block .tag {
+  display: inline-block;
+  font-size: 10pt;
+  color: var(--rsm-blue);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.conclusion-block .text {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--rsm-grey);
+}
+.conclusion-block .text strong {
+  color: var(--rsm-navy);
+  font-weight: 700;
+}
+
+/* —— 通用工具类 —— */
+.text-navy { color: var(--rsm-navy); }
+.text-blue { color: var(--rsm-blue); }
+.text-red { color: var(--rsm-red); }
+.text-green { color: var(--rsm-green); }
+.text-amber { color: var(--rsm-amber); }
+.text-grey { color: var(--rsm-grey-mid); }
+
+.fw-300 { font-weight: 300; }
+.fw-400 { font-weight: 400; }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+
+/* —— SVG 几何装饰（替代照片） —— */
+.geo-decor {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.85;
+}

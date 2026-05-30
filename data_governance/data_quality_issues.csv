@@ -1,0 +1,2 @@
+﻿level,type,bank,year,metric,message
+warning,range,西安,2024,liquidityCoverageRatio,"liquidityCoverageRatio=1110.87 超出建议区间 [0, 1000]"

@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>苏州农村商业银行价值创造与经营对标分析汇报</title>
+<style>
+/* ============================================================
+ * RSM 金融咨询 PPT · 参考 PDF 视觉复刻样式系统
+ * Canvas: 1920×1080
+ * Default: rsm-insurance-results
+ * Secondary: rsm-practice-sharing
+ * ============================================================ */
+
+:root {
+  /* —— RSM 基础色板 —— */
+  --rsm-navy:        #061B3A;   /* 深蓝 · 正文强调 / 章节压线 */
+  --rsm-navy-deep:   #0A2F5C;   /* 深蓝 · 章节封面左侧 */
+  --rsm-blue:        #0099D8;   /* 亮蓝 · 大标题 / 主线 / 图标 */
+  --rsm-blue-deep:   #0077AA;   /* 深亮蓝 · 表头 / 维度列 */
+  --rsm-sky:         #DFF1FC;   /* 浅蓝 · 规则框底 */
+  --rsm-sky-light:   #F4F8FB;   /* 极浅灰蓝 · 卡片底 */
+  --rsm-red:         #EF4444;   /* 警示红 · 仅关键负向数据 */
+  --rsm-green:       #10B981;   /* 成功绿 · 可行 / 财政协同 */
+  --rsm-amber:       #F59E0B;   /* 强调金 · 条件 / 过渡 */
+  --rsm-purple:      #8B5CF6;   /* 低饱和紫 · 分类辅助 */
+  --rsm-pink:        #F3DDE6;   /* 低饱和粉 · 矩阵列底 */
+  --rsm-mint:        #E8F7EC;   /* 低饱和绿 · 矩阵列底 */
+  --rsm-cream:       #FFF4DF;   /* 低饱和金 · 矩阵列底 */
+  --rsm-grey:        #2F3A4A;   /* 正文灰黑 */
+  --rsm-grey-mid:    #667085;   /* 次级文字 */
+  --rsm-grey-light:  #A6B0BE;   /* 辅助说明 */
+  --rsm-bg:          #FFFFFF;   /* 页面背景 */
+  --rsm-card-bg:     #F7F8FA;   /* 卡片背景 */
+  --rsm-border:      #D9E1EA;   /* 边框 */
+  --rsm-line:        #E5EAF0;   /* 表格线 */
+
+  /* —— 字号梯度 —— */
+  --fs-h1:           48pt;
+  --fs-h2:           32pt;
+  --fs-h3:           23pt;
+  --fs-body-lg:      22pt;
+  --fs-body:         18pt;
+  --fs-caption:      14pt;
+  --fs-foot:         12pt;
+  --fs-table:        16pt;
+  --fs-table-dense:  14pt;
+  --fs-kpi-num:      92pt;
+  --fs-kpi-unit:     34pt;
+
+  /* —— 保险业绩盘点 / 不良处置实践分享扩展 —— */
+  --rsm-chart-cyan:  #00A3D9;
+  --rsm-chart-navy:  #061B3A;
+  --rsm-chart-gray:  #6A6F76;
+  --rsm-chart-sky:   #7ED0F0;
+  --rsm-soft-module: #DDF2FF;
+  --rsm-title-gray:  #333333;
+  --rsm-practice-blue: #0099D8;
+  --rsm-practice-gray: #8A8F95;
+  --rsm-cover-bg:    #EEF6FC;
+  --rsm-results-rule:#F2F2F2;
+  --rsm-takeaway:    #F3F3F3;
+  --rsm-logo-gray:   #777777;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  margin: 0; padding: 0; overflow: hidden;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans CN',
+               'Noto Sans SC', Arial, sans-serif;
+  color: var(--rsm-grey);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.slide-container {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--rsm-bg);
+}
+
+/* 数字与英文使用 Inter */
+.num, .en, .metric, .stat {
+  font-family: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+/* —— 共享 chrome：页眉、页脚、页码 —— */
+.chrome-header {
+  position: absolute; left: 0; top: 0;
+  width: 1920px; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px;
+  font-size: var(--fs-foot);
+  color: var(--rsm-grey-mid);
+  letter-spacing: 0.06em;
+  z-index: 100;
+}
+.chrome-header .module-tag {
+  display: flex; align-items: center; gap: 12px;
+}
+.chrome-header .module-tag .dot {
+  width: 8px; height: 8px; background: var(--rsm-blue); border-radius: 50%;
+}
+.chrome-header .module-tag .label {
+  font-weight: 500; color: var(--rsm-navy);
+}
+.chrome-header .breadcrumb {
+  font-weight: 400;
+}
+
+.chrome-footer {
+  position: absolute; left: 0; bottom: 0;
+  width: 1920px; height: 54px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 60px;
+  font-size: var(--fs-foot);
+  color: var(--rsm-grey-light);
+  border-top: none;
+  background: transparent;
+  z-index: 100;
+}
+.chrome-footer .src {
+  color: var(--rsm-grey-mid);
+}
+.chrome-footer .rsm-brand {
+  display: flex; align-items: center; gap: 16px;
+  font-weight: 500;
+  color: var(--rsm-navy);
+}
+.chrome-footer .rsm-brand .logo-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--rsm-navy); color: white;
+  padding: 4px 10px; border-radius: 0;
+  font-family: Arial, sans-serif; font-weight: 800; font-size: 11pt;
+  letter-spacing: 0.1em;
+}
+.chrome-footer .pagenum {
+  color: var(--rsm-grey-mid);
+  font-family: Arial, sans-serif;
+  font-weight: 500;
+}
+
+/* —— 页面标题块 —— */
+.page-title-block {
+  position: absolute; left: 60px; top: 74px;
+  width: 1800px;
+}
+.page-title-block .h1 {
+  font-size: var(--fs-h1);
+  font-weight: 800;
+  color: var(--rsm-blue);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+.page-title-block .h2 {
+  font-size: var(--fs-h3);
+  font-weight: 400;
+  color: var(--rsm-grey-mid);
+  margin-top: 12px;
+  line-height: 1.4;
+}
+.page-title-block .rule {
+  position: absolute; left: 0; top: 68px;
+  width: 1800px; height: 5px;
+  background: var(--rsm-blue);
+}
+
+/* —— KPI 数字卡（4 数字格） —— */
+.kpi-card {
+  background: var(--rsm-card-bg);
+  border: 0;
+  border-top: 6px solid var(--rsm-blue);
+  border-radius: 12px;
+  padding: 28px 32px 24px;
+  box-shadow: 0 10px 24px rgba(6,27,58,0.08);
+}
+.kpi-card .label {
+  font-size: var(--fs-caption);
+  color: var(--rsm-grey-mid);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.kpi-card .label .tag {
+  display: inline-block;
+  background: var(--rsm-navy);
+  color: white;
+  font-size: 11pt;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 8px;
+  font-weight: 500;
+}
+.kpi-card .num {
+  font-size: var(--fs-kpi-num);
+  font-weight: 700;
+  color: var(--rsm-navy);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+}
+.kpi-card .num .unit {
+  font-size: var(--fs-kpi-unit);
+  font-weight: 500;
+  color: var(--rsm-grey-mid);
+}
+.kpi-card .num.pos { color: var(--rsm-green); }
+.kpi-card .num.neg { color: var(--rsm-red); }
+.kpi-card .num.warn { color: var(--rsm-amber); }
+.kpi-card .meta {
+  font-size: 13.5pt;
+  color: var(--rsm-grey-mid);
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--rsm-line);
+  line-height: 1.5;
+}
+.kpi-card .meta .rank {
+  display: inline-block;
+  background: var(--rsm-sky);
+  color: var(--rsm-navy);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* —— 结论卡（左结论 + 右数字） —— */
+.conclusion-block {
+  background: var(--rsm-card-bg);
+  border-left: 6px solid var(--rsm-blue);
+  border-radius: 10px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 18px rgba(6,27,58,0.06);
+}
+.conclusion-block .tag {
+  display: inline-block;
+  font-size: 12pt;
+  color: var(--rsm-blue);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.conclusion-block .text {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  color: var(--rsm-grey);
+}
+.conclusion-block .text strong {
+  color: var(--rsm-navy);
+  font-weight: 700;
+}
+
+/* —— PDF 风格正文页标题：亮蓝大标题 + 右侧延展横线 —— */
+.policy-title {
+  position: absolute; left: 64px; top: 62px; right: 64px;
+  color: var(--rsm-blue); font-size: 56px; font-weight: 800;
+  display: flex; align-items: center; gap: 28px;
+}
+.policy-title:after {
+  content: ""; height: 5px; flex: 1; background: var(--rsm-blue);
+}
+.policy-title.has-segments:after {
+  background: linear-gradient(to right, #8A8F95 0 12%, var(--rsm-blue) 12% 86%, var(--rsm-navy) 86% 100%);
+}
+
+/* —— 保险业绩盘点页眉：亮蓝总标题 + 右上浅蓝模块胶囊 —— */
+.results-header {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 146px;
+  display: grid; grid-template-columns: 1fr 560px; align-items: end;
+  padding: 48px 68px 18px 68px;
+  border-bottom: 14px solid var(--rsm-results-rule);
+  background: #FFFFFF;
+}
+.results-brand-bars {
+  position: absolute; left: 0; top: 70px; display: flex; gap: 6px;
+}
+.results-brand-bars span { display: block; width: 16px; height: 42px; }
+.results-brand-bars .gray { background: #808285; }
+.results-brand-bars .green { background: #39A935; }
+.results-brand-bars .blue { background: var(--rsm-blue); width: 42px; }
+.results-header .deck-title {
+  color: var(--rsm-blue); font-size: 50px; font-weight: 900; line-height: 1.05;
+  padding-left: 38px; letter-spacing: 0;
+}
+.module-pill {
+  justify-self: end; min-width: 555px; height: 78px; border-radius: 32px 0 0 0;
+  background: linear-gradient(90deg, #DFF3FF 0%, #EAF6FF 62%, #CFE5FF 100%);
+  display: flex; align-items: center; justify-content: flex-end; gap: 32px;
+  padding: 0 42px; color: var(--rsm-navy); font-size: 33px; font-weight: 700;
+  position: relative;
+}
+.module-pill:after {
+  content: ""; position: absolute; right: 0; bottom: -14px;
+  width: 108px; height: 20px; background: var(--rsm-blue);
+  border-radius: 10px 0 0 0;
+}
+.module-pill .module-num {
+  color: #89C9EC; font-size: 56px; font-weight: 900;
+  text-shadow: 0 2px 0 rgba(255,255,255,.9);
+}
+.results-subtitle {
+  position: absolute; left: 106px; top: 182px;
+  font-size: 42px; color: var(--rsm-title-gray); font-weight: 400; line-height: 1.2;
+}
+.results-takeaway {
+  position: absolute; left: 106px; right: 106px; top: 296px;
+  min-height: 82px; background: var(--rsm-takeaway); border-left: 18px solid var(--rsm-blue);
+  padding: 18px 28px; font-size: 29px; line-height: 1.28; color: var(--rsm-grey);
+}
+.results-chart-card {
+  position: absolute; left: 106px; right: 106px; top: 410px; bottom: 118px;
+  background: #FFFFFF; border-radius: 10px;
+  box-shadow: 0 16px 30px rgba(6,27,58,.14);
+  padding: 34px 42px;
+}
+.results-footnote {
+  position: absolute; left: 106px; right: 106px; bottom: 58px;
+  color: var(--rsm-grey-mid); font-size: 17px; line-height: 1.35;
+}
+
+/* —— 保险业绩盘点封面 —— */
+.insurance-cover {
+  background: linear-gradient(135deg, #EEF6FC 0%, #F7FBFF 64%, #FFFFFF 100%);
+}
+.insurance-cover-title {
+  position: absolute; left: 106px; top: 115px; width: 1180px;
+  color: var(--rsm-navy); font-size: 64px; font-weight: 900; line-height: 1.08;
+}
+.insurance-cover-subtitle {
+  position: absolute; left: 106px; top: 250px; width: 960px;
+  color: #333333; font-size: 44px; font-weight: 800; line-height: 1.15;
+}
+.insurance-cover-meta {
+  position: absolute; left: 106px; top: 330px; width: 720px;
+  color: #666666; font-size: 28px; line-height: 1.45;
+}
+.insurance-cover-logo {
+  position: absolute; right: 112px; top: 118px;
+  color: var(--rsm-logo-gray); font-size: 44px; font-weight: 800;
+}
+.insurance-hero-image {
+  position: absolute; left: 32px; right: 108px; bottom: 94px; height: 535px;
+  background:
+    linear-gradient(rgba(210,230,244,.22), rgba(210,230,244,.22)),
+    linear-gradient(135deg, #D3E7F6 0%, #AFCBE0 45%, #67859D 100%);
+  overflow: hidden;
+}
+.insurance-hero-image:before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.52) 0 1px, transparent 1px 100px),
+    linear-gradient(0deg, rgba(255,255,255,.34) 0 1px, transparent 1px 88px);
+}
+.insurance-hero-image:after {
+  content: ""; position: absolute; left: 55%; top: 18%; width: 620px; height: 250px;
+  border: 5px solid rgba(255,255,255,.88); border-left: none; border-bottom: none;
+  transform: skewX(-12deg);
+}
+.insurance-side-bars {
+  position: absolute; right: 0; bottom: 94px; width: 66px; height: 535px;
+  display: grid; grid-template-rows: 94px 156px 285px; gap: 0;
+}
+.insurance-side-bars .gray { background:#8A8F8E; }
+.insurance-side-bars .green { background:#39A935; }
+.insurance-side-bars .blue { background:var(--rsm-blue); }
+.insurance-dot-field {
+  position: absolute; left: 790px; top: 265px; width: 520px; height: 130px;
+  background-image: radial-gradient(circle, rgba(255,255,255,.8) 0 8px, transparent 9px);
+  background-size: 42px 34px;
+  opacity: .75;
+}
+.insurance-line-art {
+  position: absolute; right: 135px; top: 245px; width: 480px; height: 220px;
+  border-left: 2px solid rgba(255,255,255,.5);
+  border-bottom: 2px solid rgba(255,255,255,.5);
+  opacity: .76;
+}
+
+/* —— 保险业绩盘点章节页 —— */
+.insurance-section-photo {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 610px;
+  background:
+    linear-gradient(rgba(255,255,255,.22), rgba(255,255,255,.22)),
+    linear-gradient(120deg, #B4D3EA 0%, #79A9CE 42%, #1F5B8C 100%);
+  overflow: hidden;
+}
+.insurance-section-photo:before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(65deg, transparent 0 18%, rgba(255,255,255,.58) 18% 23%, transparent 23% 100%),
+    linear-gradient(90deg, rgba(255,255,255,.35) 0 2px, transparent 2px 86px),
+    linear-gradient(0deg, rgba(255,255,255,.25) 0 2px, transparent 2px 72px);
+}
+.geo-squares {
+  position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;
+  background:
+    linear-gradient(#fff,#fff) 90px 195px/76px 76px no-repeat,
+    linear-gradient(#fff,#fff) 300px 142px/54px 54px no-repeat,
+    linear-gradient(#fff,#fff) 505px 70px/72px 72px no-repeat,
+    linear-gradient(#fff,#fff) 725px 0/105px 105px no-repeat,
+    linear-gradient(#fff,#fff) 0 380px/260px 160px no-repeat;
+  opacity:.95;
+}
+.insurance-section-band {
+  position:absolute; left:70px; right:0; top:540px; height:210px;
+  background:rgba(245,245,245,.96);
+  display:flex; align-items:center;
+}
+.insurance-section-num {
+  width:190px; height:210px; background:var(--rsm-navy);
+  color:white; display:flex; align-items:center; justify-content:center;
+  font-size:72px; font-weight:900;
+}
+.insurance-section-title {
+  color:var(--rsm-navy); font-size:58px; font-weight:900;
+  padding-left:62px;
+}
+.insurance-section-accent {
+  position:absolute; right:0; top:540px; width:28px; height:210px; background:var(--rsm-blue);
+}
+
+/* —— 不良处置实践分享：书法感标题 + 三段标题线 —— */
+.practice-title {
+  position: absolute; left: 64px; top: 72px; right: 64px;
+  color: var(--rsm-practice-blue);
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 58px; font-weight: 800; line-height: 1.1; letter-spacing: 0;
+}
+.practice-title-rule {
+  position: absolute; left: 64px; right: 64px; top: 178px; height: 12px;
+  background:
+    linear-gradient(to right,
+      var(--rsm-practice-gray) 0 12.5%,
+      transparent 12.5% 13.5%,
+      var(--rsm-navy) 13.5% 42.5%,
+      transparent 42.5% 43.5%,
+      var(--rsm-practice-blue) 43.5% 100%);
+}
+.practice-lead {
+  position: absolute; left: 64px; right: 64px; top: 238px;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 27px; line-height: 1.55; color: #111;
+}
+.practice-card {
+  background: #FFFFFF; border-radius: 14px; border: 2px solid #C7EEFB;
+  box-shadow: 0 10px 22px rgba(0,153,216,.22);
+  padding: 26px 30px; color: #111;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 26px; line-height: 1.45;
+}
+.practice-card .pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 250px; height: 62px; border-radius: 32px;
+  background: var(--rsm-practice-blue); color: #FFFFFF;
+  font-size: 30px; font-weight: 800; margin-bottom: 24px;
+}
+.practice-step-card {
+  background: #FFFFFF; border-radius: 28px;
+  box-shadow: 0 18px 32px rgba(6,27,58,.10);
+  padding: 62px 42px 38px; min-height: 330px;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+  font-size: 28px; line-height: 1.55; color: #111;
+}
+.practice-step-num {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: var(--rsm-practice-blue); color: #FFFFFF;
+  display: flex; align-items: center; justify-content: center;
+  font-family: Arial, sans-serif; font-size: 28px; font-weight: 800;
+  box-shadow: 0 8px 18px rgba(0,153,216,.28);
+}
+.practice-timeline {
+  border-left: 2px solid #BFC4C8; padding-left: 42px;
+}
+.practice-timeline .item {
+  position: relative; margin-bottom: 54px;
+  font-family: 'STKaiti', 'KaiTi', 'Kaiti SC', 'Noto Serif SC', serif;
+}
+
+/* —— 实践分享封面 / 目录 / 照片拼贴 —— */
+.practice-photo-bg {
+  position:absolute; top:0; bottom:0; right:0; width:63%;
+  background:
+    linear-gradient(rgba(235,247,255,.24), rgba(235,247,255,.24)),
+    linear-gradient(130deg, #D9EDF9 0%, #8DBEE0 46%, #2F6FA5 100%);
+}
+.practice-photo-bg:before {
+  content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(67deg, transparent 0 36%, rgba(255,255,255,.55) 36% 40%, transparent 40% 100%),
+    linear-gradient(90deg, rgba(255,255,255,.42) 0 2px, transparent 2px 95px),
+    linear-gradient(0deg, rgba(255,255,255,.3) 0 2px, transparent 2px 78px);
+}
+.practice-blue-side {
+  position:absolute; left:0; top:260px; width:30px; height:350px;
+  background:var(--rsm-practice-blue);
+}
+.practice-cover-title {
+  position:absolute; left:95px; top:260px; width:750px;
+  color:var(--rsm-practice-blue);
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:60px; line-height:1.25; font-weight:900;
+}
+.practice-cover-meta {
+  position:absolute; left:95px; top:500px; width:760px;
+  color:#666; font-size:30px; line-height:1.55; font-weight:600;
+}
+.practice-logo {
+  position:absolute; left:95px; bottom:118px; color:#777; font-size:42px; font-weight:900;
+}
+.practice-geo-white {
+  position:absolute; pointer-events:none; inset:0;
+  background:
+    linear-gradient(#fff,#fff) 655px 240px/72px 72px no-repeat,
+    linear-gradient(#fff,#fff) 800px 680px/110px 110px no-repeat,
+    linear-gradient(#fff,#fff) 940px 780px/70px 70px no-repeat,
+    linear-gradient(#fff,#fff) 1180px 915px/360px 95px no-repeat,
+    linear-gradient(#fff,#fff) 1740px 995px/55px 55px no-repeat;
+}
+.practice-agenda-label {
+  position:absolute; left:665px; top:145px; width:180px; height:95px;
+  background:white; display:flex; align-items:center; justify-content:center;
+  color:var(--rsm-practice-blue);
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:54px; font-weight:900;
+}
+.practice-agenda-label:after {
+  content:""; position:absolute; right:-88px; top:0; width:28px; height:95px;
+  background:var(--rsm-practice-blue);
+}
+.practice-agenda-list {
+  position:absolute; left:985px; top:195px; right:70px;
+}
+.practice-agenda-row {
+  height:128px; display:grid; grid-template-columns:80px 1fr 160px;
+  align-items:center; border-bottom:8px solid #E6E6E6;
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:34px; color:#111;
+}
+.practice-agenda-row .num { font-size:33px; color:#111; }
+.practice-agenda-row .pages { font-family:Arial,sans-serif; font-size:34px; text-align:right; }
+.practice-agenda-row .pages:after {
+  content:""; display:block; height:8px; background:#BFEFFF; margin-top:28px;
+}
+
+/* —— 不良处置实践分享：章节页 —— */
+.practice-section-photo {
+  position:absolute; left:0; top:0; bottom:0; width:1040px;
+  background:
+    linear-gradient(rgba(235,247,255,.28), rgba(235,247,255,.28)),
+    linear-gradient(128deg, #D8ECF8 0%, #8CBFE0 48%, #2D6FA7 100%);
+  overflow:hidden;
+}
+.practice-section-photo:before {
+  content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(64deg, transparent 0 33%, rgba(255,255,255,.58) 33% 37%, transparent 37% 100%),
+    linear-gradient(90deg, rgba(255,255,255,.42) 0 2px, transparent 2px 96px),
+    linear-gradient(0deg, rgba(255,255,255,.28) 0 2px, transparent 2px 82px);
+}
+.practice-section-geo {
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    linear-gradient(#fff,#fff) 720px 92px/78px 78px no-repeat,
+    linear-gradient(#fff,#fff) 855px 220px/124px 124px no-repeat,
+    linear-gradient(#fff,#fff) 620px 710px/86px 86px no-repeat,
+    linear-gradient(#fff,#fff) 790px 818px/280px 110px no-repeat,
+    linear-gradient(#fff,#fff) 1010px 480px/54px 54px no-repeat;
+  opacity:.96;
+}
+.practice-section-accent {
+  position:absolute; right:0; top:0; width:34px; height:1080px;
+  background:var(--rsm-practice-blue);
+}
+.practice-section-panel {
+  position:absolute; left:1010px; top:150px; right:112px; bottom:170px;
+  background:#FFFFFF;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:70px 72px 76px;
+}
+.practice-section-number {
+  font-family:Arial, sans-serif; font-size:138px; line-height:1;
+  color:#D4DAE0; font-weight:900; letter-spacing:-0.04em;
+  margin-bottom:22px;
+}
+.practice-section-kicker {
+  color:var(--rsm-practice-blue);
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:34px; font-weight:900; margin-bottom:28px;
+}
+.practice-section-title {
+  color:#111;
+  font-family:'STKaiti','KaiTi','Kaiti SC','Noto Serif SC',serif;
+  font-size:66px; line-height:1.18; font-weight:900;
+  padding-bottom:36px; border-bottom:8px solid var(--rsm-practice-blue);
+}
+.practice-section-question {
+  margin-top:34px; color:#333; font-size:28px; line-height:1.45;
+  font-family:'PingFang SC','Microsoft YaHei','Source Han Sans CN',sans-serif;
+}
+.practice-timeline .item:before {
+  content: ""; position: absolute; left: -58px; top: 2px;
+  width: 42px; height: 42px; border-radius: 50%; background: var(--rsm-practice-blue);
+}
+.practice-timeline .item-title {
+  font-size: 29px; font-weight: 900; color: #111; margin-bottom: 12px;
+}
+.practice-timeline .item-body {
+  font-size: 24px; line-height: 1.45; color: #222;
+}
+
+/* —— PDF 风格规则卡：浅灰底 + 左亮蓝竖线 + 内嵌浅蓝框 —— */
+.policy-card {
+  background: var(--rsm-card-bg);
+  border-left: 6px solid var(--rsm-blue);
+  border-radius: 4px;
+  box-shadow: 0 8px 18px rgba(6,27,58,0.05);
+  padding: 32px 36px;
+}
+.policy-card .card-title {
+  color: var(--rsm-blue); font-size: 32px; font-weight: 800;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+}
+.policy-card .body {
+  font-size: 27px; line-height: 1.5; color: var(--rsm-grey);
+}
+.policy-rule-box {
+  margin-top: 24px; border: 2px solid var(--rsm-blue);
+  background: var(--rsm-sky); border-radius: 6px;
+  padding: 20px 24px; color: var(--rsm-grey-mid);
+  font-size: 23px; line-height: 1.45;
+}
+.policy-rule-box strong {
+  display: block; color: var(--rsm-blue); font-size: 26px; margin-bottom: 8px;
+}
+
+/* —— PDF 风格三栏影响卡 —— */
+.impact-card {
+  background: white; border-radius: 16px; border-top: 7px solid var(--rsm-blue);
+  box-shadow: 0 12px 28px rgba(6,27,58,0.08);
+  padding: 34px 36px;
+}
+.impact-card .impact-title {
+  color: var(--rsm-blue); font-size: 32px; font-weight: 800;
+  border-bottom: 2px solid var(--rsm-line);
+  padding-bottom: 20px; margin-bottom: 22px;
+}
+.impact-card .impact-body {
+  color: var(--rsm-grey); font-size: 26px; line-height: 1.62;
+}
+.evidence-strip {
+  background: #F8FAFC; border-left: 6px solid var(--rsm-blue);
+  border-radius: 8px; padding: 18px 22px;
+  color: var(--rsm-navy); font-size: 22px; font-weight: 700;
+}
+
+/* —— PDF 风格章节封面：城市/抽象背景 + 半透明白色结论条 + 指标卡 —— */
+.photo-chapter-bg {
+  background:
+    linear-gradient(rgba(6,27,58,.34), rgba(6,27,58,.34)),
+    linear-gradient(135deg, #24364A 0%, #5E7688 50%, #9AA8B5 100%);
+}
+.chapter-thesis {
+  background: rgba(255,255,255,.94); border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  color: var(--rsm-navy); text-align: center;
+  padding: 38px 48px;
+}
+
+/* —— 字号底线：装不下就拆页、减字或改版式，不继续缩小 —— */
+.readable-body { font-size: var(--fs-body); line-height: 1.5; }
+.readable-body-lg { font-size: var(--fs-body-lg); line-height: 1.45; }
+.readable-caption { font-size: var(--fs-caption); line-height: 1.35; }
+.readable-footnote { font-size: var(--fs-foot); line-height: 1.35; }
+.readable-table { font-size: var(--fs-table); line-height: 1.35; }
+.readable-table.dense { font-size: var(--fs-table-dense); line-height: 1.3; }
+.density-standard .readable-body { font-size: 20pt; }
+.density-standard .readable-caption { font-size: 15pt; }
+.density-dense .readable-body { font-size: 18pt; }
+.density-dense .readable-caption { font-size: 14pt; }
+.density-matrix .readable-table { font-size: 16pt; }
+.density-matrix .readable-table.dense { font-size: 14pt; }
+
+/* —— 通用工具类 —— */
+.text-navy { color: var(--rsm-navy); }
+.text-blue { color: var(--rsm-blue); }
+.text-red { color: var(--rsm-red); }
+.text-green { color: var(--rsm-green); }
+.text-amber { color: var(--rsm-amber); }
+.text-grey { color: var(--rsm-grey-mid); }
+
+.fw-300 { font-weight: 300; }
+.fw-400 { font-weight: 400; }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+
+/* —— SVG 几何装饰（替代照片） —— */
+.geo-decor {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+@page { size: 1920px 1080px; margin: 0; }
+body { overflow:auto; background:#eef3f8; }
+body, .slide-container { font-family:'Noto Sans SC','Source Han Sans CN','PingFang SC','Microsoft YaHei',sans-serif; }
+.num, .en, .metric, .stat { font-family:'Inter','Noto Sans SC',sans-serif; }
+.slide-container { margin: 24px auto 24px 32px; box-shadow:0 18px 60px rgba(6,27,58,.16); }
+.slide-container.export-render { margin: 0; box-shadow: none; }
+.html-report-nav {
+  position:fixed; right:24px; top:24px; bottom:24px; width:260px; overflow:auto;
+  background:rgba(255,255,255,.96); border:1px solid #D9E1EA; border-top:6px solid #0099D8;
+  box-shadow:0 12px 34px rgba(6,27,58,.14); padding:14px; z-index:1000;
+}
+.html-report-nav h3 { margin:0 0 10px; color:#061B3A; font-size:16px; }
+.html-report-nav a {
+  display:block; color:#667085; text-decoration:none; font-size:13px; font-weight:800;
+  line-height:1.35; padding:8px 9px; border-left:3px solid transparent;
+}
+.html-report-nav a:hover { color:#061B3A; background:#DFF1FC; border-left-color:#0099D8; }
+@media print {
+  body { background:#fff; }
+  .slide-container { margin:0; box-shadow:none; page-break-after:always; }
+  .html-report-nav { display:none; }
+}
+</style>
+</head>
+<body>
+<nav class="html-report-nav"><h3>页面导航</h3><a href="#slide-01">01｜01 封面</a>
+<a href="#slide-02">02｜报告页面</a>
+<a href="#slide-03">03｜报告页面</a>
+<a href="#slide-04">04｜04 研究口径、对标样本与指标定义</a>
+<a href="#slide-05">05｜报告页面</a>
+<a href="#slide-06">06｜06 盈利质量与轻资本收入穿透</a>
+<a href="#slide-07">07｜07 息差防守与负债底盘</a>
+<a href="#slide-08">08｜08 风险确认与拨备缓冲</a>
+<a href="#slide-09">09｜报告页面</a>
+<a href="#slide-10">10｜10 12 个月行动建议</a></nav>
+<div id="slide-01" class="slide-container" data-screen-label="01 封面" style="background:linear-gradient(135deg,#FFFFFF 0%,#061B3A 55%,#0099D8 100%);">
+<div style="position:absolute;left:1720px;top:60px;width:140px;height:48px;background:white;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-weight:800;font-size:24pt;color:#061B3A;letter-spacing:.12em;">RSM</div>
+<div style="position:absolute;left:60px;top:80px;width:80px;height:3px;background:#0099D8;"></div>
+<div style="position:absolute;left:60px;top:100px;width:600px;height:30px;font-size:13pt;color:#667085;letter-spacing:.3em;font-weight:500;">董　事　会　汇　报</div>
+<div style="position:absolute;left:60px;top:200px;width:1500px;font-size:24pt;color:#667085;font-weight:400;letter-spacing:.05em;">苏州农村商业银行</div>
+<div style="position:absolute;left:60px;top:255px;width:1700px;font-size:64pt;color:#061B3A;font-weight:800;line-height:1.1;letter-spacing:-.02em;">价值创造与经营对标分析汇报</div>
+<div style="position:absolute;left:60px;top:400px;width:1700px;font-size:24pt;color:#667085;font-weight:300;line-height:1.4;">经营视角与资本市场视角的双重穿透分析</div>
+<div style="position:absolute;left:60px;top:500px;width:1800px;height:1px;background:linear-gradient(to right,#0099D8 0%,rgba(255,255,255,.1) 100%);"></div>
+<div style="position:absolute;left:60px;top:540px;width:1100px;font-size:16pt;color:#2F3A4A;font-weight:300;line-height:1.7;">
+本汇报采用 <strong style="color:#0099D8;font-weight:600;">RSM 银行价值质量评估体系</strong>（VQA）——总资产收益率（ROA）→ 风险调整资本回报率（RAROC）→ 经济增加值（EVA）三层穿透框架，重估 苏州农村商业银行 2025 年 <strong style="color:#061B3A;">ROA 0.92%</strong> 的可持续性；并以 PB、市净率和同业指标进行交叉验证。
+</div>
+<div style="position:absolute;left:1280px;top:540px;width:560px;font-size:13pt;color:#667085;line-height:1.9;border-left:2px solid rgba(255,255,255,.2);padding-left:32px;">
+<div style="font-size:11pt;color:#7090A8;letter-spacing:.2em;margin-bottom:14px;">报告元数据</div>
+<div><span style="display:inline-block;width:90px;color:#7090A8;">报告期</span>2026 年 5 月</div>
+<div><span style="display:inline-block;width:90px;color:#7090A8;">报告口径</span>2020 — 2025</div>
+<div><span style="display:inline-block;width:90px;color:#7090A8;">沟通对象</span>董事会 / 董事长</div>
+<div><span style="display:inline-block;width:90px;color:#7090A8;">目标银行</span>苏州农村商业银行</div>
+<div><span style="display:inline-block;width:90px;color:#7090A8;">对标样本</span>常熟农村商业银行、瑞丰农村商业银行、上海农村商业银行、无锡农村商业银行、张家港农村商业银行</div>
+<div><span style="display:inline-block;width:90px;color:#7090A8;">数据来源</span>iFinD · 上市公司年报 · RSM 研究</div>
+</div>
+<div style="position:absolute;left:60px;top:870px;width:1800px;font-size:13pt;color:#7090A8;letter-spacing:.15em;">阅读路径　·　研究口径 → 执行摘要 → VQA 框架 → 行业坐标 → 盈利／中收／息差／风险／资本专题 → 行动方案</div>
+<div style="position:absolute;left:60px;top:950px;width:1800px;height:1px;background:rgba(255,255,255,.15);"></div>
+<div style="position:absolute;left:60px;top:980px;width:900px;font-size:11pt;color:#7090A8;letter-spacing:.1em;">审计　｜　税务　｜　咨询　　·　　© 2026 RSM 中国 版权所有</div>
+<div style="position:absolute;left:1740px;top:980px;width:120px;font-size:13pt;color:#667085;text-align:right;font-family:Inter,sans-serif;">01 / 10</div>
+</div><div id="slide-02" class="slide-container"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">P02 · 报告导航</span></div><div class="breadcrumb">目录</div></div>
+<div style="position:absolute;left:0;top:0;width:560px;height:1080px;background:#F7F8FA;"></div>
+<div style="position:absolute;left:60px;top:190px;width:400px;color:#061B3A;"><div style="width:80px;height:4px;background:#0099D8;margin-bottom:26px;"></div><div style="font-size:42pt;font-weight:800;">目录</div><div style="font-size:16pt;color:#667085;line-height:1.7;margin-top:24px;">本报告按 SCQA 节拍展开：先给出经营事实，再解释价值质量差异，最后落到 12 个月管理动作。</div></div>
+<div style="position:absolute;left:620px;top:150px;width:1240px;"><div style="display:grid;grid-template-columns:86px 1fr;gap:22px;padding:18px 0;border-bottom:1px solid #D9E1EA;"><div style="font-family:Inter,sans-serif;font-size:28pt;font-weight:800;color:#0099D8;">01</div><div><div style="font-size:18pt;font-weight:700;color:#061B3A;">摘要与价值质量评估体系（VQA）</div><div style="font-size:12pt;color:#667085;margin-top:6px;">研究口径、执行摘要、VQA框架</div></div></div><div style="display:grid;grid-template-columns:86px 1fr;gap:22px;padding:18px 0;border-bottom:1px solid #D9E1EA;"><div style="font-family:Inter,sans-serif;font-size:28pt;font-weight:800;color:#0099D8;">02</div><div><div style="font-size:18pt;font-weight:700;color:#061B3A;">行业坐标与同业对标</div><div style="font-size:12pt;color:#667085;margin-top:6px;">同区域、同类型与同城样本</div></div></div><div style="display:grid;grid-template-columns:86px 1fr;gap:22px;padding:18px 0;border-bottom:1px solid #D9E1EA;"><div style="font-family:Inter,sans-serif;font-size:28pt;font-weight:800;color:#0099D8;">03</div><div><div style="font-size:18pt;font-weight:700;color:#061B3A;">盈利质量与轻资本收入</div><div style="font-size:12pt;color:#667085;margin-top:6px;">核心营收、手续费、拨备前利润</div></div></div><div style="display:grid;grid-template-columns:86px 1fr;gap:22px;padding:18px 0;border-bottom:1px solid #D9E1EA;"><div style="font-family:Inter,sans-serif;font-size:28pt;font-weight:800;color:#0099D8;">04</div><div><div style="font-size:18pt;font-weight:700;color:#061B3A;">息差防守与负债底盘</div><div style="font-size:12pt;color:#667085;margin-top:6px;">NIM、息差对冲缺口、存款结构</div></div></div><div style="display:grid;grid-template-columns:86px 1fr;gap:22px;padding:18px 0;border-bottom:1px solid #D9E1EA;"><div style="font-family:Inter,sans-serif;font-size:28pt;font-weight:800;color:#0099D8;">05</div><div><div style="font-size:18pt;font-weight:700;color:#061B3A;">风险确认与拨备缓冲</div><div style="font-size:12pt;color:#667085;margin-top:6px;">不良、偏离度、个贷风险、PCR</div></div></div><div style="display:grid;grid-template-columns:86px 1fr;gap:22px;padding:18px 0;border-bottom:1px solid #D9E1EA;"><div style="font-family:Inter,sans-serif;font-size:28pt;font-weight:800;color:#0099D8;">06</div><div><div style="font-size:18pt;font-weight:700;color:#061B3A;">资本纪律与市场定价</div><div style="font-size:12pt;color:#667085;margin-top:6px;">CET1、RWA、PB与行动建议</div></div></div></div>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">02 / 10</div></div></div><div id="slide-03" class="slide-container"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">① 摘要 + RSM VQA 框架</span></div><div class="breadcrumb">P04 · 执行摘要 — 4 项 KPI 全景</div></div>
+<div class="page-title-block"><div class="rule"></div><div class="h1">苏州农村商业银行 2025 年 · 4 项关键绩效指标全景</div><div class="h2">阅读路径：行业坐标 → 4 项 KPI → 经营视角与资本市场视角结论 → 战略行动</div></div>
+<div style="position:absolute;left:60px;top:236px;width:1800px;height:54px;background:#DFF1FC;border-left:4px solid #0099D8;padding:14px 22px;font-size:14pt;color:#2F3A4A;">行业锚 · 所选样本共 9 家；本页所有排名基于目标银行 + 对标银行的 2025 年截面数据。</div>
+<div style="position:absolute;left:60px;top:316px;width:445px;height:340px;background:white;border:1px solid #D9E1EA;border-top:4px solid #0099D8;padding:24px 26px;">
+<div style="font-size:11pt;color:#667085;letter-spacing:.04em;"><span style="display:inline-block;background:#F7F8FA;color:#061B3A;font-size:9pt;padding:2px 8px;border-radius:2px;margin-right:8px;">指标 01</span>总资产收益率 · ROA</div>
+<div style="font-family:Inter,sans-serif;font-size:88pt;font-weight:700;color:#0099D8;line-height:1;margin-top:12px;">0.92<span style="font-size:36pt;font-weight:500;color:#667085;">%</span></div>
+<div style="font-size:11pt;color:#2F3A4A;margin-top:14px;padding-top:12px;border-top:1px dashed #E5EAF0;line-height:1.7;"><span style="background:#E3F2FD;color:#061B3A;font-weight:600;padding:2px 8px;border-radius:2px;">样本排名 3 / 9</span><br>账面回报水平 · 样本均值 0.85%</div>
+</div><div style="position:absolute;left:520px;top:316px;width:445px;height:340px;background:white;border:1px solid #D9E1EA;border-top:4px solid #EF4444;padding:24px 26px;">
+<div style="font-size:11pt;color:#667085;letter-spacing:.04em;"><span style="display:inline-block;background:#F7F8FA;color:#061B3A;font-size:9pt;padding:2px 8px;border-radius:2px;margin-right:8px;">指标 02</span>核心营收同比</div>
+<div style="font-family:Inter,sans-serif;font-size:88pt;font-weight:700;color:#EF4444;line-height:1;margin-top:12px;">-1.58<span style="font-size:36pt;font-weight:500;color:#667085;">%</span></div>
+<div style="font-size:11pt;color:#2F3A4A;margin-top:14px;padding-top:12px;border-top:1px dashed #E5EAF0;line-height:1.7;"><span style="background:#E3F2FD;color:#061B3A;font-weight:600;padding:2px 8px;border-radius:2px;">样本排名 6 / 9</span><br>主业收入修复 · 样本均值 0.11%</div>
+</div><div style="position:absolute;left:980px;top:316px;width:445px;height:340px;background:white;border:1px solid #D9E1EA;border-top:4px solid #F59E0B;padding:24px 26px;">
+<div style="font-size:11pt;color:#667085;letter-spacing:.04em;"><span style="display:inline-block;background:#F7F8FA;color:#061B3A;font-size:9pt;padding:2px 8px;border-radius:2px;margin-right:8px;">指标 03</span>息差对冲缺口</div>
+<div style="font-family:Inter,sans-serif;font-size:88pt;font-weight:700;color:#F59E0B;line-height:1;margin-top:12px;">-13.8<span style="font-size:36pt;font-weight:500;color:#667085;">bp</span></div>
+<div style="font-size:11pt;color:#2F3A4A;margin-top:14px;padding-top:12px;border-top:1px dashed #E5EAF0;line-height:1.7;"><span style="background:#E3F2FD;color:#061B3A;font-weight:600;padding:2px 8px;border-radius:2px;">样本排名 5 / 9</span><br>资产负债管理 · 样本均值 -14.2bp</div>
+</div><div style="position:absolute;left:1440px;top:316px;width:420px;height:340px;background:white;border:1px solid #D9E1EA;border-top:4px solid #EF4444;padding:24px 26px;">
+<div style="font-size:11pt;color:#667085;letter-spacing:.04em;"><span style="display:inline-block;background:#F7F8FA;color:#061B3A;font-size:9pt;padding:2px 8px;border-radius:2px;margin-right:8px;">指标 04</span>个人贷款不良率</div>
+<div style="font-family:Inter,sans-serif;font-size:88pt;font-weight:700;color:#EF4444;line-height:1;margin-top:12px;">2.17<span style="font-size:36pt;font-weight:500;color:#667085;">%</span></div>
+<div style="font-size:11pt;color:#2F3A4A;margin-top:14px;padding-top:12px;border-top:1px dashed #E5EAF0;line-height:1.7;"><span style="background:#E3F2FD;color:#061B3A;font-weight:600;padding:2px 8px;border-radius:2px;">样本排名 9 / 9</span><br>零售风险暴露 · 样本均值 0.84%</div>
+</div>
+<div style="position:absolute;left:60px;top:686px;width:910px;height:282px;background:white;border-left:4px solid #061B3A;padding:24px 28px;"><div style="font-size:10pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:10px;">经营视角结论</div><div style="font-size:14pt;line-height:1.7;color:#2F3A4A;">苏州农村商业银行 2025 年营业收入 42.13 亿元，归母净利润 20.43 亿元，ROA 为 0.92%。需要进一步区分账面回报、核心营收修复和风险调整后收益，避免只用利润增速解释经营质量。</div></div>
+<div style="position:absolute;left:980px;top:686px;width:880px;height:282px;background:white;border-left:4px solid #0099D8;padding:24px 28px;"><div style="font-size:10pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:10px;">资本市场视角结论</div><div style="font-size:14pt;line-height:1.7;color:#2F3A4A;">PB 为 0.55倍。市净率不应单独解释为价值错配，而应与 ROA、手续费资产比、风险确认和资本余量联读，判断市场定价反映的是价值重估基础还是质量折价。</div></div>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">03 / 10</div></div></div><div id="slide-04" class="slide-container" data-screen-label="04 研究口径、对标样本与指标定义"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">专题证据页</span></div><div class="breadcrumb">P04 · 研究口径、对标样本与指标定义</div></div><div class="page-title-block"><div class="rule"></div><div class="h1">研究口径、对标样本与指标定义</div><div class="h2">苏州农村商业银行｜目标银行 + 对标银行｜2020—2025 年</div></div>
+<div style="position:absolute;left:60px;top:250px;width:1180px;height:650px;background:white;border:1px solid #D9E1EA;">
+  <div style="padding:20px 26px 12px;border-bottom:1px solid #D9E1EA;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;">结论证据矩阵</div>
+    <div style="font-size:15pt;color:#061B3A;font-weight:700;margin-top:6px;">每项判断均保留目标值、样本值和董事会阅读含义</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13.5pt;color:#2F3A4A;">
+    <thead><tr style="background:#F7F8FA;color:#061B3A;"><th>指标/动作</th><th>目标银行</th><th>样本/责任</th><th>董事会阅读含义</th></tr></thead>
+    <tbody><tr><td>样本边界</td><td>苏州农村商业银行</td><td>9 家银行</td><td>所有结论先在目标银行与对标组内比较，再与类型均值联读。</td></tr><tr><td>数据口径</td><td>上市公司年报 / iFinD</td><td>2020—2025</td><td>利润、资产、风险、资本和 PB 指标均来自同一底表。</td></tr><tr><td>方法论</td><td>VQA 三层穿透</td><td>ROA → RAROC → EVA</td><td>先解释账面回报，再解释风险调整和资本占用。</td></tr></tbody>
+  </table>
+</div>
+<div style="position:absolute;left:1280px;top:250px;width:580px;height:650px;">
+  <div style="height:150px;background:#061B3A;color:white;padding:22px 26px;border-top:5px solid #0099D8;">
+    <div style="font-size:11pt;color:#DFF1FC;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">本页回答</div>
+    <div style="font-size:20pt;font-weight:800;line-height:1.28;">本次汇报的结论边界是什么？</div>
+  </div>
+  <div style="height:205px;background:white;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">关键证据</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">样本边界：苏州农村商业银行 / 样本 9 家银行；数据口径：上市公司年报 / iFinD / 样本 2020—2025；方法论：VQA 三层穿透 / 样本 ROA → RAROC → EVA</div>
+  </div>
+  <div style="height:205px;background:#F7F8FA;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">管理含义</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">所有结论先在目标银行与对标组内比较，再与类型均值联读。<br>先冻结样本、指标和年份口径，再进入经营判断。</div>
+  </div>
+  <div style="margin-top:14px;background:#DFF1FC;border-left:4px solid #0099D8;padding:14px 18px;font-size:12pt;color:#2F3A4A;line-height:1.5;">
+    口径边界：本页所有结论均基于 2020—2025 年年报与 iFinD 数据；强判断需回到事实包复核。
+  </div>
+</div>
+<style>td,th{border-bottom:1px solid #E5EAF0;padding:15px 18px;text-align:left;vertical-align:top;line-height:1.45;} th{font-weight:800;}</style>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">04 / 10</div></div></div><div id="slide-05" class="slide-container"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">行业坐标与同业对标</span></div><div class="breadcrumb">P05 · 模块小结</div></div>
+<div style="position:absolute;left:0;top:0;width:480px;height:1080px;background:#F7F8FA;"></div>
+<div style="position:absolute;left:60px;top:200px;width:400px;z-index:10;"><div style="width:80px;height:4px;background:#0099D8;margin-bottom:24px;"></div><div style="font-size:18pt;color:#667085;letter-spacing:.2em;margin-bottom:12px;">模 块 小 结</div><div style="font-family:Inter,sans-serif;font-size:96pt;font-weight:800;color:#061B3A;line-height:.95;">02</div><div style="font-size:28pt;font-weight:700;color:#061B3A;margin-top:18px;line-height:1.3;">行业坐标与同业对标</div><div style="font-size:14pt;color:#667085;margin-top:24px;line-height:1.65;">当前样本：目标银行 + 对标银行<br>报告口径：2020—2025<br>输出对象：董事会 / 管理层</div></div>
+<div style="position:absolute;left:540px;top:130px;width:1320px;"><div style="font-size:11pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:14px;">模块核心结论</div><div style="font-size:28pt;font-weight:700;color:#061B3A;line-height:1.3;margin-bottom:24px;">苏州农村商业银行需要同时解释账面位次和结构位次的差异</div></div>
+<div style="position:absolute;left:540px;top:300px;width:1320px;"><div style="display:flex;gap:20px;"><div style="flex:1;background:white;border:1px solid #D9E1EA;border-top:4px solid #0099D8;padding:22px 24px;"><div style="font-family:Inter,sans-serif;font-size:36pt;font-weight:800;color:#0099D8;line-height:1;margin-bottom:10px;">01</div><div style="font-size:16pt;font-weight:700;color:#061B3A;margin-bottom:10px;">账面回报</div><div style="font-size:13pt;color:#2F3A4A;line-height:1.65;">ROA 0.92%，在样本内排名 3 / 9。</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;border-top:4px solid #F59E0B;padding:22px 24px;"><div style="font-family:Inter,sans-serif;font-size:36pt;font-weight:800;color:#F59E0B;line-height:1;margin-bottom:10px;">02</div><div style="font-size:16pt;font-weight:700;color:#061B3A;margin-bottom:10px;">收入结构</div><div style="font-size:13pt;color:#2F3A4A;line-height:1.65;">手续费资产比 0.038%，用于检验轻资本收入能力。</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;border-top:4px solid #EF4444;padding:22px 24px;"><div style="font-family:Inter,sans-serif;font-size:36pt;font-weight:800;color:#EF4444;line-height:1;margin-bottom:10px;">03</div><div style="font-size:16pt;font-weight:700;color:#061B3A;margin-bottom:10px;">风险确认</div><div style="font-size:13pt;color:#2F3A4A;line-height:1.65;">隐性不良暴露 2.21%，需要与拨备覆盖率联读。</div></div></div></div>
+<div style="position:absolute;left:540px;top:620px;width:1320px;"><div style="font-size:11pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:14px;">本模块核心数据</div><div style="display:flex;gap:20px;"><div style="flex:1;background:white;border:1px solid #D9E1EA;padding:28px 26px;text-align:center;"><div style="font-size:12pt;color:#667085;margin-bottom:8px;">ROA 排名</div><div style="font-family:Inter,sans-serif;font-size:54pt;font-weight:800;color:#0099D8;line-height:1;">3 / 9</div><div style="font-size:12pt;color:#2F3A4A;margin-top:14px;">0.92%</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;padding:28px 26px;text-align:center;"><div style="font-size:12pt;color:#667085;margin-bottom:8px;">PB 水平</div><div style="font-family:Inter,sans-serif;font-size:54pt;font-weight:800;color:#F59E0B;line-height:1;">0.55倍</div><div style="font-size:12pt;color:#2F3A4A;margin-top:14px;">资本市场读数</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;padding:28px 26px;text-align:center;"><div style="font-size:12pt;color:#667085;margin-bottom:8px;">拨备覆盖率</div><div style="font-family:Inter,sans-serif;font-size:54pt;font-weight:800;color:#10B981;line-height:1;">370.17%</div><div style="font-size:12pt;color:#2F3A4A;margin-top:14px;">风险缓冲</div></div></div></div>
+<div style="position:absolute;left:540px;top:900px;width:1320px;height:80px;background:#DFF1FC;border-left:4px solid #0099D8;padding:18px 24px;"><div style="font-size:11pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:6px;">下一模块预告</div><div style="font-size:13.5pt;color:#2F3A4A;line-height:1.5;">下一模块进入盈利质量穿透，重点回答利润增长是否来自主业修复。</div></div>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">05 / 10</div></div></div><div id="slide-06" class="slide-container" data-screen-label="06 盈利质量与轻资本收入穿透"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">专题证据页</span></div><div class="breadcrumb">P06 · 盈利质量与轻资本收入穿透</div></div><div class="page-title-block"><div class="rule"></div><div class="h1">盈利质量与轻资本收入穿透</div><div class="h2">核心营收、手续费资产比、拨备前利润共同决定利润质量</div></div>
+<div style="position:absolute;left:60px;top:250px;width:1180px;height:650px;background:white;border:1px solid #D9E1EA;">
+  <div style="padding:20px 26px 12px;border-bottom:1px solid #D9E1EA;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;">结论证据矩阵</div>
+    <div style="font-size:15pt;color:#061B3A;font-weight:700;margin-top:6px;">每项判断均保留目标值、样本值和董事会阅读含义</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13.5pt;color:#2F3A4A;">
+    <thead><tr style="background:#F7F8FA;color:#061B3A;"><th>指标/动作</th><th>目标银行</th><th>样本/责任</th><th>董事会阅读含义</th></tr></thead>
+    <tbody><tr><td>核心营收同比</td><td>-1.58%</td><td>0.11%</td><td>低于样本均值时，应拆分净息收入、手续费和投资收益贡献。</td></tr><tr><td>手续费资产比</td><td>0.038%</td><td>0.073%</td><td>该指标用于判断轻资本收入是否足以缓冲息差压力。</td></tr><tr><td>PPOP 增速</td><td>1.97%</td><td>1.29%</td><td>拨备前利润能解释利润增长的经营底色。</td></tr></tbody>
+  </table>
+</div>
+<div style="position:absolute;left:1280px;top:250px;width:580px;height:650px;">
+  <div style="height:150px;background:#061B3A;color:white;padding:22px 26px;border-top:5px solid #0099D8;">
+    <div style="font-size:11pt;color:#DFF1FC;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">本页回答</div>
+    <div style="font-size:20pt;font-weight:800;line-height:1.28;">利润表现是否来自可持续主业修复？</div>
+  </div>
+  <div style="height:205px;background:white;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">关键证据</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">核心营收同比：-1.58% / 样本 0.11%；手续费资产比：0.038% / 样本 0.073%；PPOP 增速：1.97% / 样本 1.29%</div>
+  </div>
+  <div style="height:205px;background:#F7F8FA;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">管理含义</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">低于样本均值时，应拆分净息收入、手续费和投资收益贡献。<br>将核心营收、手续费资产比和 PPOP 纳入季度复盘，避免只用净利润解释经营质量。</div>
+  </div>
+  <div style="margin-top:14px;background:#DFF1FC;border-left:4px solid #0099D8;padding:14px 18px;font-size:12pt;color:#2F3A4A;line-height:1.5;">
+    口径边界：本页所有结论均基于 2020—2025 年年报与 iFinD 数据；强判断需回到事实包复核。
+  </div>
+</div>
+<style>td,th{border-bottom:1px solid #E5EAF0;padding:15px 18px;text-align:left;vertical-align:top;line-height:1.45;} th{font-weight:800;}</style>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">06 / 10</div></div></div><div id="slide-07" class="slide-container" data-screen-label="07 息差防守与负债底盘"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">专题证据页</span></div><div class="breadcrumb">P07 · 息差防守与负债底盘</div></div><div class="page-title-block"><div class="rule"></div><div class="h1">息差防守与负债底盘</div><div class="h2">资产端让价与负债端降本需要放在同一张表里阅读</div></div>
+<div style="position:absolute;left:60px;top:250px;width:1180px;height:650px;background:white;border:1px solid #D9E1EA;">
+  <div style="padding:20px 26px 12px;border-bottom:1px solid #D9E1EA;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;">结论证据矩阵</div>
+    <div style="font-size:15pt;color:#061B3A;font-weight:700;margin-top:6px;">每项判断均保留目标值、样本值和董事会阅读含义</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13.5pt;color:#2F3A4A;">
+    <thead><tr style="background:#F7F8FA;color:#061B3A;"><th>指标/动作</th><th>目标银行</th><th>样本/责任</th><th>董事会阅读含义</th></tr></thead>
+    <tbody><tr><td>净息差</td><td>1.41%</td><td>1.51%</td><td>NIM 反映资产负债定价能力的综合结果。</td></tr><tr><td>生息资产收益率</td><td>3.17%</td><td>3.17%</td><td>资产端收益率下行会直接影响收入底盘。</td></tr><tr><td>计息负债成本率</td><td>1.62%</td><td>1.72%</td><td>负债成本下降速度决定息差能否对冲。</td></tr><tr><td>息差对冲缺口</td><td>-13.8bp</td><td>-14.2bp</td><td>正值表示资产让价快于负债降本。</td></tr></tbody>
+  </table>
+</div>
+<div style="position:absolute;left:1280px;top:250px;width:580px;height:650px;">
+  <div style="height:150px;background:#061B3A;color:white;padding:22px 26px;border-top:5px solid #0099D8;">
+    <div style="font-size:11pt;color:#DFF1FC;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">本页回答</div>
+    <div style="font-size:20pt;font-weight:800;line-height:1.28;">负债端降本能否对冲资产端让价？</div>
+  </div>
+  <div style="height:205px;background:white;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">关键证据</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">净息差：1.41% / 样本 1.51%；生息资产收益率：3.17% / 样本 3.17%；计息负债成本率：1.62% / 样本 1.72%</div>
+  </div>
+  <div style="height:205px;background:#F7F8FA;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">管理含义</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">NIM 反映资产负债定价能力的综合结果。<br>建立息差对冲缺口月度看板，跟踪资产收益、负债成本和高成本存款压降。</div>
+  </div>
+  <div style="margin-top:14px;background:#DFF1FC;border-left:4px solid #0099D8;padding:14px 18px;font-size:12pt;color:#2F3A4A;line-height:1.5;">
+    口径边界：本页所有结论均基于 2020—2025 年年报与 iFinD 数据；强判断需回到事实包复核。
+  </div>
+</div>
+<style>td,th{border-bottom:1px solid #E5EAF0;padding:15px 18px;text-align:left;vertical-align:top;line-height:1.45;} th{font-weight:800;}</style>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">07 / 10</div></div></div><div id="slide-08" class="slide-container" data-screen-label="08 风险确认与拨备缓冲"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">专题证据页</span></div><div class="breadcrumb">P08 · 风险确认与拨备缓冲</div></div><div class="page-title-block"><div class="rule"></div><div class="h1">风险确认与拨备缓冲</div><div class="h2">不良率、逾期偏离度与拨备覆盖率共同决定利润质量边界</div></div>
+<div style="position:absolute;left:60px;top:250px;width:1180px;height:650px;background:white;border:1px solid #D9E1EA;">
+  <div style="padding:20px 26px 12px;border-bottom:1px solid #D9E1EA;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;">结论证据矩阵</div>
+    <div style="font-size:15pt;color:#061B3A;font-weight:700;margin-top:6px;">每项判断均保留目标值、样本值和董事会阅读含义</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13.5pt;color:#2F3A4A;">
+    <thead><tr style="background:#F7F8FA;color:#061B3A;"><th>指标/动作</th><th>目标银行</th><th>样本/责任</th><th>董事会阅读含义</th></tr></thead>
+    <tbody><tr><td>不良率</td><td>0.88%</td><td>0.92%</td><td>结果指标，用于判断账面风险水平。</td></tr><tr><td>逾期/不良偏离度</td><td>1.26倍</td><td>1.60倍</td><td>偏离度大于 1 时需要关注风险确认节奏。</td></tr><tr><td>拨备覆盖率</td><td>370.17%</td><td>349.92%</td><td>拨备厚度应与隐性风险暴露同时阅读。</td></tr></tbody>
+  </table>
+</div>
+<div style="position:absolute;left:1280px;top:250px;width:580px;height:650px;">
+  <div style="height:150px;background:#061B3A;color:white;padding:22px 26px;border-top:5px solid #0099D8;">
+    <div style="font-size:11pt;color:#DFF1FC;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">本页回答</div>
+    <div style="font-size:20pt;font-weight:800;line-height:1.28;">风险是否已经充分确认，拨备缓冲是否足够？</div>
+  </div>
+  <div style="height:205px;background:white;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">关键证据</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">不良率：0.88% / 样本 0.92%；逾期/不良偏离度：1.26倍 / 样本 1.60倍；拨备覆盖率：370.17% / 样本 349.92%</div>
+  </div>
+  <div style="height:205px;background:#F7F8FA;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">管理含义</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">结果指标，用于判断账面风险水平。<br>把不良、逾期偏离度、关注率和拨备覆盖率放入同一预警框架。</div>
+  </div>
+  <div style="margin-top:14px;background:#DFF1FC;border-left:4px solid #0099D8;padding:14px 18px;font-size:12pt;color:#2F3A4A;line-height:1.5;">
+    口径边界：本页所有结论均基于 2020—2025 年年报与 iFinD 数据；强判断需回到事实包复核。
+  </div>
+</div>
+<style>td,th{border-bottom:1px solid #E5EAF0;padding:15px 18px;text-align:left;vertical-align:top;line-height:1.45;} th{font-weight:800;}</style>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">08 / 10</div></div></div><div id="slide-09" class="slide-container"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">资本纪律与市场定价</span></div><div class="breadcrumb">P09 · 模块小结</div></div>
+<div style="position:absolute;left:0;top:0;width:480px;height:1080px;background:#F7F8FA;"></div>
+<div style="position:absolute;left:60px;top:200px;width:400px;z-index:10;"><div style="width:80px;height:4px;background:#0099D8;margin-bottom:24px;"></div><div style="font-size:18pt;color:#667085;letter-spacing:.2em;margin-bottom:12px;">模 块 小 结</div><div style="font-family:Inter,sans-serif;font-size:96pt;font-weight:800;color:#061B3A;line-height:.95;">06</div><div style="font-size:28pt;font-weight:700;color:#061B3A;margin-top:18px;line-height:1.3;">资本纪律与市场定价</div><div style="font-size:14pt;color:#667085;margin-top:24px;line-height:1.65;">当前样本：目标银行 + 对标银行<br>报告口径：2020—2025<br>输出对象：董事会 / 管理层</div></div>
+<div style="position:absolute;left:540px;top:130px;width:1320px;"><div style="font-size:11pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:14px;">模块核心结论</div><div style="font-size:28pt;font-weight:700;color:#061B3A;line-height:1.3;margin-bottom:24px;">苏州农村商业银行的 PB 解释必须回到经营质量、风险确认和资本余量</div></div>
+<div style="position:absolute;left:540px;top:300px;width:1320px;"><div style="display:flex;gap:20px;"><div style="flex:1;background:white;border:1px solid #D9E1EA;border-top:4px solid #0099D8;padding:22px 24px;"><div style="font-family:Inter,sans-serif;font-size:36pt;font-weight:800;color:#0099D8;line-height:1;margin-bottom:10px;">01</div><div style="font-size:16pt;font-weight:700;color:#061B3A;margin-bottom:10px;">资本余量</div><div style="font-size:13pt;color:#2F3A4A;line-height:1.65;">核心一级资本缓冲 315bp，决定扩表和分红空间。</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;border-top:4px solid #F59E0B;padding:22px 24px;"><div style="font-family:Inter,sans-serif;font-size:36pt;font-weight:800;color:#F59E0B;line-height:1;margin-bottom:10px;">02</div><div style="font-size:16pt;font-weight:700;color:#061B3A;margin-bottom:10px;">风险加权资产密度</div><div style="font-size:13pt;color:#2F3A4A;line-height:1.65;">70.15%，用于观察规模扩张的资本消耗。</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;border-top:4px solid #EF4444;padding:22px 24px;"><div style="font-family:Inter,sans-serif;font-size:36pt;font-weight:800;color:#EF4444;line-height:1;margin-bottom:10px;">03</div><div style="font-size:16pt;font-weight:700;color:#061B3A;margin-bottom:10px;">市净率</div><div style="font-size:13pt;color:#2F3A4A;line-height:1.65;">PB 0.55倍，需要与 ROA、风险和中收联读。</div></div></div></div>
+<div style="position:absolute;left:540px;top:620px;width:1320px;"><div style="font-size:11pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:14px;">本模块核心数据</div><div style="display:flex;gap:20px;"><div style="flex:1;background:white;border:1px solid #D9E1EA;padding:28px 26px;text-align:center;"><div style="font-size:12pt;color:#667085;margin-bottom:8px;">CET1缓冲</div><div style="font-family:Inter,sans-serif;font-size:54pt;font-weight:800;color:#10B981;line-height:1;">315bp</div><div style="font-size:12pt;color:#2F3A4A;margin-top:14px;">资本安全边界</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;padding:28px 26px;text-align:center;"><div style="font-size:12pt;color:#667085;margin-bottom:8px;">RWA密度</div><div style="font-family:Inter,sans-serif;font-size:54pt;font-weight:800;color:#F59E0B;line-height:1;">70.15%</div><div style="font-size:12pt;color:#2F3A4A;margin-top:14px;">资本消耗</div></div><div style="flex:1;background:white;border:1px solid #D9E1EA;padding:28px 26px;text-align:center;"><div style="font-size:12pt;color:#667085;margin-bottom:8px;">PB</div><div style="font-family:Inter,sans-serif;font-size:54pt;font-weight:800;color:#0099D8;line-height:1;">0.55倍</div><div style="font-size:12pt;color:#2F3A4A;margin-top:14px;">市场定价</div></div></div></div>
+<div style="position:absolute;left:540px;top:900px;width:1320px;height:80px;background:#DFF1FC;border-left:4px solid #0099D8;padding:18px 24px;"><div style="font-size:11pt;color:#0099D8;font-weight:600;letter-spacing:.12em;margin-bottom:6px;">下一模块预告</div><div style="font-size:13.5pt;color:#2F3A4A;line-height:1.5;">最后进入 12 个月行动地图，把指标改善转化为管理层可执行任务。</div></div>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">09 / 10</div></div></div><div id="slide-10" class="slide-container" data-screen-label="10 12 个月行动建议"><div class="chrome-header"><div class="module-tag"><span class="dot"></span><span class="label">专题证据页</span></div><div class="breadcrumb">P10 · 12 个月行动建议</div></div><div class="page-title-block"><div class="rule"></div><div class="h1">12 个月行动建议</div><div class="h2">把 VQA 诊断转成董事会可以批准、管理层可以承接的动作</div></div>
+<div style="position:absolute;left:60px;top:250px;width:1180px;height:650px;background:white;border:1px solid #D9E1EA;">
+  <div style="padding:20px 26px 12px;border-bottom:1px solid #D9E1EA;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;">结论证据矩阵</div>
+    <div style="font-size:15pt;color:#061B3A;font-weight:700;margin-top:6px;">每项判断均保留目标值、样本值和董事会阅读含义</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13.5pt;color:#2F3A4A;">
+    <thead><tr style="background:#F7F8FA;color:#061B3A;"><th>指标/动作</th><th>目标银行</th><th>样本/责任</th><th>董事会阅读含义</th></tr></thead>
+    <tbody><tr><td>0—3 个月</td><td>冻结口径、复核数据、锁定短板指标</td><td>董办 / 财务 / 战略</td><td>先形成可复核底稿，避免汇报口径反复变化。</td></tr><tr><td>3—6 个月</td><td>拆解息差缺口、存款结构、风险确认节奏</td><td>资产负债 / 风险 / 零售</td><td>把经营压力拆到部门和指标。</td></tr><tr><td>6—12 个月</td><td>建立核心营收、中收转化、资本消耗和 PB 追踪</td><td>经营管理层</td><td>用季度复盘验证价值质量是否改善。</td></tr></tbody>
+  </table>
+</div>
+<div style="position:absolute;left:1280px;top:250px;width:580px;height:650px;">
+  <div style="height:150px;background:#061B3A;color:white;padding:22px 26px;border-top:5px solid #0099D8;">
+    <div style="font-size:11pt;color:#DFF1FC;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">本页回答</div>
+    <div style="font-size:20pt;font-weight:800;line-height:1.28;">董事会应批准哪些可追踪的管理动作？</div>
+  </div>
+  <div style="height:205px;background:white;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">关键证据</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">0—3 个月：冻结口径、复核数据、锁定短板指标 / 样本 董办 / 财务 / 战略；3—6 个月：拆解息差缺口、存款结构、风险确认节奏 / 样本 资产负债 / 风险 / 零售；6—12 个月：建立核心营收、中收转化、资本消耗和 PB 追踪 / 样本 经营管理层</div>
+  </div>
+  <div style="height:205px;background:#F7F8FA;border:1px solid #D9E1EA;border-top:0;padding:22px 26px;">
+    <div style="font-size:11pt;color:#0099D8;font-weight:700;letter-spacing:.12em;margin-bottom:10px;">管理含义</div>
+    <div style="font-size:13.5pt;color:#2F3A4A;line-height:1.65;">先形成可复核底稿，避免汇报口径反复变化。<br>按 0-3、3-6、6-12 个月拆分责任部门、指标阈值和复核频率。</div>
+  </div>
+  <div style="margin-top:14px;background:#DFF1FC;border-left:4px solid #0099D8;padding:14px 18px;font-size:12pt;color:#2F3A4A;line-height:1.5;">
+    口径边界：本页所有结论均基于 2020—2025 年年报与 iFinD 数据；强判断需回到事实包复核。
+  </div>
+</div>
+<style>td,th{border-bottom:1px solid #E5EAF0;padding:15px 18px;text-align:left;vertical-align:top;line-height:1.45;} th{font-weight:800;}</style>
+<div class="chrome-footer"><div class="src">数据来源：iFinD · 上市公司年报 · RSM 整理 · 2020—2025 全年口径</div><div class="rsm-brand"><span class="logo-box">RSM</span><span>苏州农村商业银行价值创造汇报 · 2026.05</span></div><div class="pagenum">10 / 10</div></div></div>
+</body>
+</html>

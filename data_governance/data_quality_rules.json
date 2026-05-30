@@ -1,0 +1,463 @@
+{
+  "required_columns": [
+    {
+      "field": "基本信息.银行简称",
+      "level": "error"
+    },
+    {
+      "field": "基本信息.银行类型",
+      "level": "error"
+    },
+    {
+      "field": "基本信息.年份",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).营业收入",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).净利息收入",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).手续费净收入",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).营业收入增速%",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).净利润",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).净利润增速%",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).PPOP",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).PPOP增速%",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).核心营收",
+      "level": "error"
+    },
+    {
+      "field": "盈利概览(万元).核心营收增速%",
+      "level": "error"
+    },
+    {
+      "field": "盈利指标.ROE%",
+      "level": "error"
+    },
+    {
+      "field": "盈利指标.ROA%",
+      "level": "error"
+    },
+    {
+      "field": "盈利指标.NIM%",
+      "level": "error"
+    },
+    {
+      "field": "盈利指标.成本收入比%",
+      "level": "error"
+    },
+    {
+      "field": "盈利指标.非息占比%",
+      "level": "error"
+    },
+    {
+      "field": "盈利指标.真实核心非息%",
+      "level": "error"
+    },
+    {
+      "field": "盈利指标.高波动收入%",
+      "level": "error"
+    },
+    {
+      "field": "资产负债(万元).资产总计",
+      "level": "error"
+    },
+    {
+      "field": "资产负债(万元).负债合计",
+      "level": "error"
+    },
+    {
+      "field": "资产负债(万元).股东权益",
+      "level": "error"
+    },
+    {
+      "field": "资产负债(万元).贷款总额",
+      "level": "error"
+    },
+    {
+      "field": "资产负债(万元).存款总额",
+      "level": "error"
+    },
+    {
+      "field": "息差分析.生息资产收益率%",
+      "level": "error"
+    },
+    {
+      "field": "息差分析.计息负债成本率%",
+      "level": "error"
+    },
+    {
+      "field": "息差分析.NIM_Gap百分点",
+      "level": "error"
+    },
+    {
+      "field": "息差分析.真实存贷利差",
+      "level": "error"
+    },
+    {
+      "field": "资产质量.不良率%",
+      "level": "error"
+    },
+    {
+      "field": "资产质量.拨备覆盖率%",
+      "level": "error"
+    },
+    {
+      "field": "资产质量.逾期率%",
+      "level": "error"
+    },
+    {
+      "field": "资产质量.关注率%",
+      "level": "error"
+    },
+    {
+      "field": "资产质量.逾期-不良偏离度",
+      "level": "error"
+    },
+    {
+      "field": "资产质量.隐性不良暴露率%",
+      "level": "error"
+    },
+    {
+      "field": "资本充足率.核心一级充足%",
+      "level": "error"
+    },
+    {
+      "field": "资本充足率.CET1余量bp",
+      "level": "error"
+    },
+    {
+      "field": "资本充足率.资本充足余量bp",
+      "level": "error"
+    },
+    {
+      "field": "资本充足率.估算RWA(万元)",
+      "level": "error"
+    },
+    {
+      "field": "资本充足率.RWA密度%",
+      "level": "error"
+    },
+    {
+      "field": "流动性指标.流动性比率%",
+      "level": "error"
+    },
+    {
+      "field": "流动性指标.流动性覆盖率%",
+      "level": "error"
+    },
+    {
+      "field": "存款结构(万元).公司定期",
+      "level": "error"
+    },
+    {
+      "field": "存款结构(万元).个人定期",
+      "level": "error"
+    },
+    {
+      "field": "贷款结构(万元).公司贷款不良%",
+      "level": "error"
+    },
+    {
+      "field": "贷款结构(万元).个人贷款不良%",
+      "level": "error"
+    },
+    {
+      "field": "贷款结构(万元).票据贴现不良%",
+      "level": "error"
+    },
+    {
+      "field": "个人贷款分产品(万元/%).住房贷款占比%",
+      "level": "error"
+    },
+    {
+      "field": "个人贷款分产品(万元/%).消费贷款占比%",
+      "level": "error"
+    },
+    {
+      "field": "个人贷款分产品(万元/%).经营贷款占比%",
+      "level": "error"
+    },
+    {
+      "field": "个人贷款分产品(万元/%).住房贷款不良%",
+      "level": "error"
+    },
+    {
+      "field": "个人贷款分产品(万元/%).消费贷款不良%",
+      "level": "error"
+    },
+    {
+      "field": "个人贷款分产品(万元/%).经营贷款不良%",
+      "level": "error"
+    },
+    {
+      "field": "金融投资分布(万元).债券合计",
+      "level": "error"
+    },
+    {
+      "field": "金融投资分布(万元).基金",
+      "level": "error"
+    },
+    {
+      "field": "金融投资分布(万元).信托及理财",
+      "level": "error"
+    },
+    {
+      "field": "利润表详情(万元).利息收入",
+      "level": "error"
+    },
+    {
+      "field": "利润表详情(万元).利息支出",
+      "level": "error"
+    },
+    {
+      "field": "利润表详情(万元).管理费用",
+      "level": "error"
+    },
+    {
+      "field": "利润表详情(万元).所得税",
+      "level": "error"
+    },
+    {
+      "field": "现金流量(万元).经营活动净额",
+      "level": "error"
+    },
+    {
+      "field": "每股指标.基本EPS(元)",
+      "level": "error"
+    },
+    {
+      "field": "估值指标.PB(年末)",
+      "level": "error"
+    },
+    {
+      "field": "估值指标.PB(年中)",
+      "level": "error"
+    }
+  ],
+  "uniqueness": [
+    {
+      "keys": [
+        "银行简称",
+        "年份"
+      ],
+      "level": "error",
+      "message": "同一银行同一年只能有一条记录"
+    }
+  ],
+  "completeness": [
+    {
+      "metric": "roa",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "coreRevenueGrowth",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "nim",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "feeAssetRatio",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "npl",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "overdueNplDeviation",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "hiddenNplExposure",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "provisionCoverage",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "cet1Buffer",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "carBuffer",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "rwaDensity",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "liquidityCoverageRatio",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    },
+    {
+      "metric": "pb",
+      "min_non_null_ratio": 0.85,
+      "scope": "latest_year",
+      "level": "warning"
+    }
+  ],
+  "range_checks": [
+    {
+      "metric": "roa",
+      "min": -10,
+      "max": 10,
+      "level": "warning"
+    },
+    {
+      "metric": "coreRevenueGrowth",
+      "min": -100,
+      "max": 200,
+      "level": "warning"
+    },
+    {
+      "metric": "nim",
+      "min": -2,
+      "max": 8,
+      "level": "warning"
+    },
+    {
+      "metric": "feeAssetRatio",
+      "min": -1,
+      "max": 5,
+      "level": "warning"
+    },
+    {
+      "metric": "npl",
+      "min": 0,
+      "max": 20,
+      "level": "warning"
+    },
+    {
+      "metric": "overdueNplDeviation",
+      "min": 0,
+      "max": 10,
+      "level": "warning"
+    },
+    {
+      "metric": "hiddenNplExposure",
+      "min": 0,
+      "max": 30,
+      "level": "warning"
+    },
+    {
+      "metric": "provisionCoverage",
+      "min": 0,
+      "max": 1000,
+      "level": "warning"
+    },
+    {
+      "metric": "cet1Buffer",
+      "min": -500,
+      "max": 2000,
+      "level": "warning"
+    },
+    {
+      "metric": "carBuffer",
+      "min": -500,
+      "max": 3000,
+      "level": "warning"
+    },
+    {
+      "metric": "rwaDensity",
+      "min": 0,
+      "max": 200,
+      "level": "warning"
+    },
+    {
+      "metric": "liquidityRatio",
+      "min": 0,
+      "max": 500,
+      "level": "warning"
+    },
+    {
+      "metric": "liquidityCoverageRatio",
+      "min": 0,
+      "max": 1000,
+      "level": "warning"
+    },
+    {
+      "metric": "pb",
+      "min": 0,
+      "max": 5,
+      "level": "warning"
+    }
+  ],
+  "consistency_checks": [
+    {
+      "name": "资产负债平衡粗校验",
+      "rule": "abs(资产总计 - 负债合计 - 股东权益) / 资产总计 < 2%",
+      "level": "warning"
+    },
+    {
+      "name": "PB正数校验",
+      "rule": "PB(年末) > 0",
+      "level": "warning"
+    },
+    {
+      "name": "风险指标非负",
+      "rule": "不良率、关注率、逾期率、拨备覆盖率不得为负",
+      "level": "warning"
+    },
+    {
+      "name": "核心年份覆盖",
+      "rule": "目标银行和默认对标样本至少覆盖4个年份",
+      "level": "warning"
+    }
+  ],
+  "fallback_policy": {
+    "target_bank_missing": "目标银行指标缺失时不使用均值替代，图表提示口径不足",
+    "peer_missing": "对标均值仅使用非空样本，并披露样本数量",
+    "derived_missing": "派生字段缺失时切换到当年截面指标或显示口径不足"
+  }
+}

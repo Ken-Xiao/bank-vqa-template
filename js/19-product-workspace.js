@@ -1,0 +1,384 @@
+/* Bank VQA module: 19-product-workspace.js — V1/V2/V3 client workspace */
+
+var activeWorkspaceTab = "overview";
+
+function setWorkspaceTab(tab = activeWorkspaceTab) {
+  activeWorkspaceTab = tab;
+  document.body.dataset.activeTab = tab;
+  document.querySelectorAll("[data-workspace-tab]").forEach((el) => {
+    el.hidden = el.dataset.workspaceTab !== tab;
+  });
+  document.querySelectorAll("#workspaceTabs [data-tab-target]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.tabTarget === tab);
+  });
+  if (tab === "report" && typeof showDeckPage === "function") showDeckPage();
+  if (tab === "review" && typeof renderBoardReview === "function") renderBoardReview();
+}
+
+function commandCenterDiagnosis() {
+  const row = typeof targetRecord === "function" ? targetRecord() : null;
+  const peers = typeof peerRecords === "function" ? peerRecords() : [];
+  if (!row || typeof computeVqaDiagnosis !== "function") return null;
+  return computeVqaDiagnosis(row, peers);
+}
+
+function updateClientCommandCenter() {
+  const diagnosis = commandCenterDiagnosis();
+  const quality = typeof criticalMetricCompleteness === "function" ? criticalMetricCompleteness() : null;
+  const slides = typeof boardSlides === "function" ? boardSlides() : [];
+  const title = document.getElementById("commandVerdictTitle");
+  const text = document.getElementById("commandVerdictText");
+  const dataQuality = document.getElementById("commandDataQuality");
+  const weak = document.getElementById("commandWeakDimension");
+  const status = document.getElementById("commandDeliveryStatus");
+  if (!title || !text) return;
+  if (!state?.confirmed || !diagnosis) {
+    title.textContent = "确认样本后，先看本次价值质量总答案";
+    text.textContent = "这里将汇总 VQA 诊断、数据完整性、最弱维度和建议动作，帮助董办判断是否可以进入报告编排。";
+    if (dataQuality) dataQuality.textContent = "待生成";
+    if (weak) weak.textContent = "待生成";
+    if (status) status.textContent = "待复核";
+    return;
+  }
+  const weakest = diagnosis.labels?.[diagnosis.weakest] || "关键质量维度";
+  const action = diagnosis.dimensions?.[diagnosis.weakest]?.actionTitle || "形成专项修复动作";
+  title.textContent = `${displayBankName(state.target)}VQA ${diagnosis.score}分：${diagnosis.signal}`;
+  text.textContent = `当前最需要优先修复的是${weakest}。建议先围绕“${action}”形成 3-12 个月闭环，再进入董事会汇报稿编排。`;
+  if (dataQuality) {
+    dataQuality.textContent = quality == null ? "待复核" : `${(quality * 100).toFixed(1)}%`;
+    dataQuality.className = quality == null ? "" : quality >= 0.8 ? "good" : quality >= 0.6 ? "warn" : "bad";
+  }
+  if (weak) weak.textContent = weakest;
+  if (status) {
+    const ready = slides.length >= 6 && (quality == null || quality >= 0.8);
+    status.textContent = ready ? "可进入交付复核" : "需补充复核";
+    status.className = ready ? "good" : "warn";
+  }
+}
+
+function sparcDimensions() {
+  return [
+    {
+      id: "scale",
+      code: "S",
+      label: "规模与结构",
+      question: "业务体量和结构是否支撑同业位置？",
+      metrics: [
+        { key: "assetGrowth", label: "总资产增速", higher: true },
+        { key: "loanAssetRatio", label: "贷款/资产", higher: true },
+        { key: "depositLiabilityRatio", label: "存款/负债", higher: true }
+      ]
+    },
+    {
+      id: "profit",
+      code: "P",
+      label: "盈利能力",
+      question: "赚钱能力和盈利质量是否可持续？",
+      metrics: [
+        { key: "roe", label: "ROE", higher: true },
+        { key: "roa", label: "ROA", higher: true },
+        { key: "nim", label: "净息差", higher: true },
+        { key: "costIncomeRatio", label: "成本收入比", higher: false }
+      ]
+    },
+    {
+      id: "asset",
+      code: "A",
+      label: "资产质量",
+      question: "资产质量是否干净，风险确认是否充分？",
+      metrics: [
+        { key: "npl", label: "不良率", higher: false },
+        { key: "provisionCoverage", label: "拨备覆盖率", higher: true },
+        { key: "specialMentionRatio", label: "关注类贷款占比", higher: false },
+        { key: "overdueNplDeviation", label: "逾期偏离", higher: false }
+      ]
+    },
+    {
+      id: "risk",
+      code: "R",
+      label: "风险与资本",
+      question: "资本安全垫和扩表纪律是否足够？",
+      metrics: [
+        { key: "cet1", label: "核心一级资本充足率", higher: true },
+        { key: "cet1Buffer", label: "核心一级资本余量", higher: true },
+        { key: "carBuffer", label: "资本充足率余量", higher: true },
+        { key: "rwaDensity", label: "RWA 密度", higher: false }
+      ]
+    },
+    {
+      id: "capability",
+      code: "C",
+      label: "能力与效率",
+      question: "运营机器效率和轻资本能力是否领先？",
+      metrics: [
+        { key: "costIncomeRatio", label: "成本收入比", higher: false },
+        { key: "feeAssetRatio", label: "手续费资产比", higher: true },
+        { key: "adminAssetRatio", label: "管理费用/资产", higher: false },
+        { key: "cashProfitRatio", label: "经营现金流/净利润", higher: true }
+      ]
+    }
+  ];
+}
+
+function sparcPeerSet() {
+  const rows = [targetRecord(), ...peerRecords()].filter(Boolean);
+  const keyed = new Map(rows.map((row) => [row.bank, row]));
+  return [...keyed.values()];
+}
+
+function sparcMetricScore(row, key, higher = true, rows = sparcPeerSet()) {
+  const value = row?.[key];
+  const values = rows.map((item) => item?.[key]).filter((item) => typeof item === "number" && !Number.isNaN(item));
+  if (typeof value !== "number" || !values.length) return null;
+  const betterOrEqual = values.filter((item) => higher ? item <= value : item >= value).length;
+  const percentile = values.length <= 1 ? 50 : ((betterOrEqual - 1) / (values.length - 1)) * 100;
+  return Math.max(0, Math.min(100, percentile));
+}
+
+function sparcDimensionScores(row = targetRecord()) {
+  const rows = sparcPeerSet();
+  return sparcDimensions().map((dimension) => {
+    const metricScores = dimension.metrics.map((metric) => ({
+      ...metric,
+      value: row?.[metric.key],
+      score: sparcMetricScore(row, metric.key, metric.higher, rows),
+      peerAvg: avg(rows.filter((item) => item.bank !== row?.bank), metric.key)
+    }));
+    const valid = metricScores.map((metric) => metric.score).filter((score) => score != null);
+    const score = valid.length ? valid.reduce((sum, item) => sum + item, 0) / valid.length : null;
+    const weakestMetric = metricScores.filter((metric) => metric.score != null).sort((a, b) => a.score - b.score)[0];
+    return { ...dimension, score, metricScores, weakestMetric };
+  });
+}
+
+function sparcScoreLabel(score) {
+  if (score == null) return "待补";
+  if (score >= 70) return "样本前段";
+  if (score >= 45) return "接近中位";
+  return "需重点复核";
+}
+
+function sparcOverallScore(scores = sparcDimensionScores()) {
+  const valid = scores.map((item) => item.score).filter((score) => score != null);
+  return valid.length ? valid.reduce((sum, item) => sum + item, 0) / valid.length : null;
+}
+
+function updateSparcOverview() {
+  const host = document.getElementById("sparcScoreboard");
+  const radar = document.getElementById("sparcRadar");
+  const note = document.getElementById("sparcRadarNote");
+  const badge = document.getElementById("sparcOverallBadge");
+  if (!host || !radar) return;
+  const row = targetRecord();
+  if (!state?.confirmed || !row) {
+    host.innerHTML = sparcDimensions().map((item) => `
+      <div class="sparc-card">
+        <span>${item.code}</span>
+        <b>${item.label}</b>
+        <em>待生成</em>
+        <p>${item.question}</p>
+      </div>`).join("");
+    radar.innerHTML = "<div class=\"sparc-empty\">SPARC</div>";
+    if (note) note.textContent = "确认分析后展示五维相对位置。";
+    if (badge) badge.textContent = "待生成";
+    return;
+  }
+  const scores = sparcDimensionScores(row);
+  const overall = sparcOverallScore(scores);
+  if (badge) {
+    badge.textContent = overall == null ? "待补数据" : `${overall.toFixed(0)}分｜${sparcScoreLabel(overall)}`;
+    badge.className = `benchmark-v1-badge ${overall == null ? "" : overall >= 70 ? "good" : overall >= 45 ? "warn" : "bad"}`;
+  }
+  host.innerHTML = scores.map((dimension) => {
+    const score = dimension.score == null ? "--" : dimension.score.toFixed(0);
+    const metric = dimension.weakestMetric;
+    const valueText = metric ? metricDisplayValue(metric.key, metric.value) : "待补";
+    return `
+      <div class="sparc-card ${dimension.score == null ? "" : dimension.score >= 70 ? "is-good" : dimension.score >= 45 ? "is-warn" : "is-bad"}">
+        <span>${dimension.code}</span>
+        <b>${dimension.label}</b>
+        <em>${score}</em>
+        <p>${metric ? `关键复核：${metric.label} ${valueText}` : dimension.question}</p>
+      </div>`;
+  }).join("");
+  const center = 104;
+  const maxRadius = 76;
+  const points = scores.map((dimension, index) => {
+    const angle = (-90 + index * 72) * Math.PI / 180;
+    const radius = maxRadius * ((dimension.score || 0) / 100);
+    return `${center + Math.cos(angle) * radius},${center + Math.sin(angle) * radius}`;
+  }).join(" ");
+  const axes = scores.map((dimension, index) => {
+    const angle = (-90 + index * 72) * Math.PI / 180;
+    const x = center + Math.cos(angle) * maxRadius;
+    const y = center + Math.sin(angle) * maxRadius;
+    const lx = center + Math.cos(angle) * (maxRadius + 22);
+    const ly = center + Math.sin(angle) * (maxRadius + 22);
+    return `<line x1="${center}" y1="${center}" x2="${x}" y2="${y}"></line><text x="${lx}" y="${ly}">${dimension.code}</text>`;
+  }).join("");
+  radar.innerHTML = `
+    <svg viewBox="0 0 208 208" role="img" aria-label="SPARC 五维雷达">
+      <polygon class="sparc-grid" points="104,28 176,81 149,166 59,166 32,81"></polygon>
+      <polygon class="sparc-grid is-mid" points="104,58 148,90 132,142 76,142 60,90"></polygon>
+      ${axes}
+      <polygon class="sparc-shape" points="${points}"></polygon>
+      ${scores.map((dimension, index) => {
+        const angle = (-90 + index * 72) * Math.PI / 180;
+        const radius = maxRadius * ((dimension.score || 0) / 100);
+        return `<circle cx="${center + Math.cos(angle) * radius}" cy="${center + Math.sin(angle) * radius}" r="4"></circle>`;
+      }).join("")}
+    </svg>`;
+  const weakest = [...scores].filter((item) => item.score != null).sort((a, b) => a.score - b.score)[0];
+  if (note) note.textContent = weakest ? `${displayBankName(row.bank)}当前最需要补强的是${weakest.label}，建议进入专题页查看${weakest.weakestMetric?.label || "低分位指标"}。` : "当前可用指标不足，建议先进入数据页补充口径。";
+}
+
+function peerProfileRows() {
+  return [targetRecord(), ...peerRecords()].filter(Boolean).map((row) => ({
+    bank: row.bank,
+    type: row.type || bankMeta(row.bank)?.type || "未分类",
+    region: row.region || bankMeta(row.bank)?.region || "未标注",
+    assets: row.assets,
+    roe: row.roe,
+    nim: row.nim,
+    npl: row.npl,
+    car: row.carBuffer ?? row.cet1Buffer
+  }));
+}
+
+function updatePeerProfileCards() {
+  const host = document.getElementById("peerProfileGrid");
+  if (!host) return;
+  const rows = peerProfileRows();
+  if (!state?.confirmed || !rows.length) {
+    host.innerHTML = "<div class=\"empty-card\">确认分析后生成目标银行与对标组画像。</div>";
+    return;
+  }
+  host.innerHTML = rows.map((row, index) => `
+    <div class="peer-profile-card ${index === 0 ? "is-target" : ""}">
+      <span>${index === 0 ? "目标银行" : "对标银行"}</span>
+      <b>${displayBankName(row.bank)}</b>
+      <p>${row.type}｜${row.region}</p>
+      <div class="peer-profile-metrics">
+        <em>总资产 ${metricDisplayValue("assets", row.assets)}</em>
+        <em>ROE ${metricDisplayValue("roe", row.roe)}</em>
+        <em>NIM ${metricDisplayValue("nim", row.nim)}</em>
+        <em>不良 ${metricDisplayValue("npl", row.npl)}</em>
+      </div>
+    </div>`).join("");
+}
+
+function benchmarkWatchlistItems() {
+  const row = targetRecord();
+  if (!row) return [];
+  const scores = sparcDimensionScores(row).filter((item) => item.score != null);
+  const weakDims = scores.sort((a, b) => a.score - b.score).slice(0, 2).map((item) => ({
+    level: item.score < 45 ? "red" : "yellow",
+    title: `${item.label}低于参照中位`,
+    text: item.weakestMetric ? `${item.weakestMetric.label}当前为 ${metricDisplayValue(item.weakestMetric.key, item.weakestMetric.value)}，建议作为专题复核起点。` : item.question
+  }));
+  const riskItems = calibrationRiskItems().filter((item) => item.level !== "green").slice(0, 2).map((item) => ({
+    level: item.level === "red" ? "red" : "yellow",
+    title: `${item.label}需保留口径脚注`,
+    text: item.note
+  }));
+  return [...weakDims, ...riskItems].slice(0, 4);
+}
+
+function updateBenchmarkWatchlist() {
+  const host = document.getElementById("benchmarkWatchlist");
+  if (!host) return;
+  const items = state?.confirmed ? benchmarkWatchlistItems() : [];
+  host.innerHTML = items.length ? items.map((item) => `
+    <div class="watchlist-card tone-${item.level}">
+      <span>${item.level === "red" ? "重点" : "关注"}</span>
+      <b>${item.title}</b>
+      <p>${item.text}</p>
+    </div>`).join("") : "<div class=\"empty-card\">确认分析后，系统将自动汇总低分位、口径风险和待补指标。</div>";
+}
+
+function calibrationRiskItems() {
+  const selectedRows = selectedBankRecords();
+  const riskDefs = [
+    { key: "nim", label: "净息差", risk: "日均余额与期初期末均值可能不可比", high: true },
+    { key: "nonInterestShare", label: "非息收入占比", risk: "部分银行可能含汇兑损益和公允价值变动", high: true },
+    { key: "creditCostRatio", label: "信用成本", risk: "贷款减值与全部金融资产减值口径需区分", high: true },
+    { key: "overdueNplDeviation", label: "逾期偏离", risk: "逾期90天以上披露不完整时不宜强结论", high: true },
+    { key: "cet1", label: "核心一级资本充足率", risk: "监管资本口径可比性较强，但需确认报告期", high: false },
+    { key: "pb", label: "市净率", risk: "估值指标需与经营质量联读，不能单独定义低估", high: false }
+  ];
+  return riskDefs.map((item) => {
+    const rate = completeness(selectedRows, item.key);
+    const level = rate == null || rate < 0.55 ? "red" : item.high || rate < 0.85 ? "yellow" : "green";
+    const note = rate == null || rate < 0.55
+      ? `${item.risk}；当前样本覆盖不足，建议进入附录或待补清单。`
+      : level === "yellow"
+        ? `${item.risk}；可进入主报告，但需要脚注说明。`
+        : "当前样本覆盖较好，可作为主报告证据。";
+    return { ...item, rate, level, note };
+  });
+}
+
+function updateCalibrationRiskPanel() {
+  const host = document.getElementById("calibrationRiskGrid");
+  if (!host) return;
+  const items = state?.confirmed ? calibrationRiskItems() : [];
+  host.innerHTML = items.length ? items.map((item) => `
+    <div class="calibration-risk-card tone-${item.level}">
+      <span>${item.level === "green" ? "可比" : item.level === "yellow" ? "需脚注" : "待补"}</span>
+      <b>${item.label}</b>
+      <em>${item.rate == null ? "覆盖暂无" : `覆盖 ${(item.rate * 100).toFixed(0)}%`}</em>
+      <p>${item.note}</p>
+    </div>`).join("") : "<div class=\"empty-card\">确认分析后展示高风险指标可比性标签。</div>";
+}
+
+function updateBenchmarkV1() {
+  updateSparcOverview();
+  updatePeerProfileCards();
+  updateBenchmarkWatchlist();
+  updateCalibrationRiskPanel();
+}
+
+function bindClientActionBar() {
+  document.getElementById("clientRefreshAnalysis")?.addEventListener("click", () => {
+    document.getElementById("refreshAnalysis")?.click();
+    updateClientCommandCenter();
+  });
+  document.getElementById("clientSaveProject")?.addEventListener("click", () => {
+    document.getElementById("saveProject")?.click();
+  });
+  const toggle = document.getElementById("clientExportToggle");
+  const menu = document.getElementById("clientExportMenu");
+  toggle?.addEventListener("click", () => {
+    menu?.classList.toggle("is-open");
+  });
+  menu?.querySelectorAll("[data-export-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      menu.classList.remove("is-open");
+      document.getElementById(button.dataset.exportTarget)?.click();
+    });
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".export-menu")) menu?.classList.remove("is-open");
+  });
+}
+
+function initProductWorkspace() {
+  document.querySelectorAll("#workspaceTabs [data-tab-target]").forEach((button) => {
+    button.addEventListener("click", () => setWorkspaceTab(button.dataset.tabTarget));
+  });
+  bindClientActionBar();
+  setWorkspaceTab("overview");
+  updateClientCommandCenter();
+  updateBenchmarkV1();
+  const originalRenderAll = typeof renderAll === "function" ? renderAll : null;
+  if (originalRenderAll && !originalRenderAll.__productWorkspaceWrapped) {
+    renderAll = function renderAllWithProductWorkspace() {
+      const result = originalRenderAll.apply(this, arguments);
+      updateClientCommandCenter();
+      updateBenchmarkV1();
+      setWorkspaceTab(activeWorkspaceTab);
+      return result;
+    };
+    renderAll.__productWorkspaceWrapped = true;
+  }
+}
