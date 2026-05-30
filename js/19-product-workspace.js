@@ -1,6 +1,7 @@
 /* Bank VQA module: 19-product-workspace.js — V1/V2/V3 client workspace */
 
 var activeWorkspaceTab = "overview";
+var activeDataSubtab = "quality";
 
 function setWorkspaceTab(tab = activeWorkspaceTab) {
   activeWorkspaceTab = tab;
@@ -158,6 +159,13 @@ function sparcScoreLabel(score) {
   return "需重点复核";
 }
 
+function sparcSignalLevel(score) {
+  if (score == null) return { level: "neutral", label: "待补", lamp: "待补" };
+  if (score >= 70) return { level: "green", label: "样本前段", lamp: "绿灯" };
+  if (score >= 45) return { level: "yellow", label: "接近中位", lamp: "黄灯" };
+  return { level: "red", label: "需重点复核", lamp: "红灯" };
+}
+
 function sparcOverallScore(scores = sparcDimensionScores()) {
   const valid = scores.map((item) => item.score).filter((score) => score != null);
   return valid.length ? valid.reduce((sum, item) => sum + item, 0) / valid.length : null;
@@ -232,6 +240,30 @@ function updateSparcOverview() {
   if (note) note.textContent = weakest ? `${displayBankName(row.bank)}当前最需要补强的是${weakest.label}，建议进入专题页查看${weakest.weakestMetric?.label || "低分位指标"}。` : "当前可用指标不足，建议先进入数据页补充口径。";
 }
 
+function peerReasonTags(row, target = targetRecord()) {
+  if (!row || !target) return ["参照样本"];
+  if (row.bank === target.bank) return ["目标银行", "同业位置锚点"];
+  const tags = [];
+  if (row.type && target.type && row.type === target.type) tags.push(`同为${row.type}`);
+  if (row.region && target.region && row.region === target.region) tags.push(`同属${row.region}`);
+  if (typeof row.assets === "number" && typeof target.assets === "number" && target.assets > 0) {
+    const gap = Math.abs(row.assets - target.assets) / target.assets;
+    if (gap <= .3) tags.push("资产规模相近");
+    else if (gap <= .6) tags.push("规模可参照");
+  }
+  if (typeof row.roe === "number" && typeof target.roe === "number" && Math.abs(row.roe - target.roe) <= .5) tags.push("ROE接近");
+  if (typeof row.pb === "number" && typeof target.pb === "number" && Math.abs(row.pb - target.pb) <= .12) tags.push("估值锚相近");
+  return tags.length ? tags.slice(0, 3) : ["手动纳入参照"];
+}
+
+function peerGroupDispersion() {
+  const rows = peerRecords().filter((row) => typeof row.assets === "number");
+  if (rows.length < 2) return null;
+  const mean = rows.reduce((sum, row) => sum + row.assets, 0) / rows.length;
+  const variance = rows.reduce((sum, row) => sum + Math.pow(row.assets - mean, 2), 0) / rows.length;
+  return mean ? Math.sqrt(variance) / mean : null;
+}
+
 function peerProfileRows() {
   return [targetRecord(), ...peerRecords()].filter(Boolean).map((row) => ({
     bank: row.bank,
@@ -258,6 +290,7 @@ function updatePeerProfileCards() {
       <span>${index === 0 ? "目标银行" : "对标银行"}</span>
       <b>${displayBankName(row.bank)}</b>
       <p>${row.type}｜${row.region}</p>
+      <div class="peer-reason-tags">${peerReasonTags(row).map((tag) => `<em>${tag}</em>`).join("")}</div>
       <div class="peer-profile-metrics">
         <em>总资产 ${metricDisplayValue("assets", row.assets)}</em>
         <em>ROE ${metricDisplayValue("roe", row.roe)}</em>
@@ -308,13 +341,16 @@ function calibrationRiskItems() {
   ];
   return riskDefs.map((item) => {
     const rate = completeness(selectedRows, item.key);
-    const level = rate == null || rate < 0.55 ? "red" : item.high || rate < 0.85 ? "yellow" : "green";
+    const level = rate == null || rate < 0.5 ? "red" : rate < 0.75 ? "orange" : item.high || rate < 0.9 ? "yellow" : "green";
+    const riskLabel = level === "green" ? "可直接对比" : level === "yellow" ? "可对比，需注意口径" : level === "orange" ? "仅供参考" : "数据不足，暂不使用";
     const note = rate == null || rate < 0.55
-      ? `${item.risk}；当前样本覆盖不足，建议进入附录或待补清单。`
-      : level === "yellow"
+      ? `${item.risk}；当前样本覆盖不足，不进入主报告强结论。`
+      : level === "orange"
+        ? `${item.risk}；建议仅进入附录或辅助说明。`
+        : level === "yellow"
         ? `${item.risk}；可进入主报告，但需要脚注说明。`
         : "当前样本覆盖较好，可作为主报告证据。";
-    return { ...item, rate, level, note };
+    return { ...item, rate, level, riskLabel, note };
   });
 }
 
@@ -324,15 +360,71 @@ function updateCalibrationRiskPanel() {
   const items = state?.confirmed ? calibrationRiskItems() : [];
   host.innerHTML = items.length ? items.map((item) => `
     <div class="calibration-risk-card tone-${item.level}">
-      <span>${item.level === "green" ? "可比" : item.level === "yellow" ? "需脚注" : "待补"}</span>
+      <span>${item.riskLabel}</span>
       <b>${item.label}</b>
       <em>${item.rate == null ? "覆盖暂无" : `覆盖 ${(item.rate * 100).toFixed(0)}%`}</em>
       <p>${item.note}</p>
     </div>`).join("") : "<div class=\"empty-card\">确认分析后展示高风险指标可比性标签。</div>";
 }
 
+function presidentSummaryItems() {
+  const row = targetRecord();
+  if (!row || !state?.confirmed) return null;
+  const scores = sparcDimensionScores(row);
+  const overall = sparcOverallScore(scores);
+  const weak = [...scores].filter((item) => item.score != null).sort((a, b) => a.score - b.score)[0];
+  const strong = [...scores].filter((item) => item.score != null).sort((a, b) => b.score - a.score)[0];
+  const watch = benchmarkWatchlistItems();
+  const diagnosis = commandCenterDiagnosis();
+  const findings = [
+    `SPARC 综合位置为${overall == null ? "待补" : `${overall.toFixed(0)}分，${sparcScoreLabel(overall)}`}。`,
+    strong && weak ? `${strong.label}相对靠前，${weak.label}应优先进入专题归因。` : "五维指标覆盖仍需补足后再形成强结论。",
+    diagnosis ? `VQA 判断为${diagnosis.signal}，后续文字将按数据覆盖和口径风险调整语气。` : "VQA 诊断待生成。"
+  ];
+  return { scores, overall, weak, watch, findings };
+}
+
+function updatePresidentSummary() {
+  const title = document.getElementById("presidentSummaryTitle");
+  const lights = document.getElementById("sparcTrafficLights");
+  const findings = document.getElementById("presidentFindings");
+  const watch = document.getElementById("presidentWatchlist");
+  const items = presidentSummaryItems();
+  if (!title || !lights || !findings || !watch) return;
+  if (!items) {
+    title.textContent = "确认样本后，先用一页说明同业位置、关键发现和需关注指标";
+    lights.innerHTML = sparcDimensions().map((item) => `<div class="traffic-light-card neutral"><span>${item.code}</span><b>${item.label}</b><em>待补</em></div>`).join("");
+    findings.innerHTML = "<li>待生成。</li>";
+    watch.innerHTML = "<span>待生成。</span>";
+    return;
+  }
+  title.textContent = `${displayBankName(state.target)}行长版摘要：先看五维灯号，再看三条关键发现`;
+  lights.innerHTML = items.scores.map((item) => {
+    const signal = sparcSignalLevel(item.score);
+    return `<div class="traffic-light-card ${signal.level}">
+      <span>${item.code}</span><b>${item.label}</b><em>${signal.lamp}｜${signal.label}</em>
+      <p>${item.weakestMetric ? item.weakestMetric.label : item.question}</p>
+    </div>`;
+  }).join("");
+  findings.innerHTML = items.findings.map((item) => `<li>${item}</li>`).join("");
+  watch.innerHTML = items.watch.length
+    ? items.watch.map((item) => `<span class="tone-${item.level}">${item.title}</span>`).join("")
+    : "<span>暂无重点提示。</span>";
+}
+
+function setDataSubtab(tab = activeDataSubtab) {
+  activeDataSubtab = tab;
+  document.querySelectorAll("[data-data-subtab]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.dataSubtab === tab);
+  });
+  document.querySelectorAll("[data-data-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.dataPanel !== tab;
+  });
+}
+
 function updateBenchmarkV1() {
   updateSparcOverview();
+  updatePresidentSummary();
   updatePeerProfileCards();
   updateBenchmarkWatchlist();
   updateCalibrationRiskPanel();
@@ -366,8 +458,17 @@ function initProductWorkspace() {
   document.querySelectorAll("#workspaceTabs [data-tab-target]").forEach((button) => {
     button.addEventListener("click", () => setWorkspaceTab(button.dataset.tabTarget));
   });
+  document.querySelectorAll("[data-data-subtab]").forEach((button) => {
+    button.addEventListener("click", () => setDataSubtab(button.dataset.dataSubtab));
+  });
+  document.getElementById("jumpPresidentReport")?.addEventListener("click", () => {
+    setWorkspaceTab("report");
+    if (typeof showDeckPage === "function") showDeckPage(2);
+    document.getElementById("analysisDeckShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   bindClientActionBar();
   setWorkspaceTab("overview");
+  setDataSubtab("quality");
   updateClientCommandCenter();
   updateBenchmarkV1();
   const originalRenderAll = typeof renderAll === "function" ? renderAll : null;

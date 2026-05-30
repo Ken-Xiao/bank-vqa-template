@@ -22,9 +22,18 @@ function reportNeutralText(text = "") {
     .replace(/偏薄/g, "低于参照水平")
     .replace(/承压/g, "边际下行或低于参照水平")
     .replace(/优秀/g, "处于样本前段")
+    .replace(/良好/g, "位于参照区间")
     .replace(/糟糕/g, "处于样本后段")
+    .replace(/较差/g, "处于样本后段")
     .replace(/短板/g, "低分位指标")
-    .replace(/低估/g, "低于参照估值水平")
+    .replace(/落后/g, "位置后移")
+    .replace(/掉队/g, "排名下行")
+    .replace(/恶化/g, "趋势待观察")
+    .replace(/低估/g, "价值错配")
+    .replace(/高估/g, "估值溢价")
+    .replace(/原因是/g, "可能的关联因素包括")
+    .replace(/建议/g, "可关注")
+    .replace(/应该/g, "可考虑")
     .replace(/红利/g, "阶段性贡献")
     .replace(/含金量/g, "质量贡献");
 }
@@ -949,10 +958,13 @@ function rsm2PeerGroupProfileSlide() {
       <span>${index === 0 ? "目标银行" : "对标银行"}</span>
       <b>${displayBankName(item.bank)}</b>
       <p>${item.type || "未分类"}｜${item.region || "未标注"}</p>
+      <div class="rsm2-peer-tags">${typeof peerReasonTags === "function" ? peerReasonTags(item, row).map((tag) => `<i>${tag}</i>`).join("") : "<i>参照样本</i>"}</div>
       <em>总资产 ${metricDisplayValue("assets", item.assets)}</em>
       <em>ROE ${metricDisplayValue("roe", item.roe)}｜NIM ${metricDisplayValue("nim", item.nim)}｜不良 ${metricDisplayValue("npl", item.npl)}</em>
     </div>`).join("");
-  const main = `<div class="rsm2-peer-grid">${cards}</div>`;
+  const dispersion = typeof peerGroupDispersion === "function" ? peerGroupDispersion() : null;
+  const dispersionText = dispersion == null ? "当前样本规模离散度待计算。" : dispersion > .6 ? `当前对标组资产规模离散度 ${(dispersion * 100).toFixed(0)}%，部分规模敏感指标需保留样本边界说明。` : `当前对标组资产规模离散度 ${(dispersion * 100).toFixed(0)}%，整体可作为经营位置参照。`;
+  const main = `<div class="rsm2-peer-grid">${cards}</div><div class="rsm2-peer-footnote">${dispersionText}</div>`;
   const side = rsm2DecisionPanel(
     "本次报告为什么选这些银行作为参照？",
     "对标组用于限定结论边界；同业位置、均值、中位数和低分位判断均基于当前样本形成。",
@@ -970,16 +982,62 @@ function rsm2PeerGroupProfileSlide() {
   );
 }
 
+function rsm2PresidentOnePageSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const summary = typeof presidentSummaryItems === "function" ? presidentSummaryItems() : null;
+  const scores = summary?.scores || [];
+  const traffic = scores.map((item) => {
+    const signal = typeof sparcSignalLevel === "function" ? sparcSignalLevel(item.score) : { level: "neutral", lamp: "待补", label: "待补" };
+    return `
+      <div class="rsm2-traffic-card ${signal.level}">
+        <span>${item.code}</span>
+        <b>${item.label}</b>
+        <em>${signal.lamp}</em>
+        <p>${signal.label}</p>
+      </div>`;
+  }).join("");
+  const findings = (summary?.findings || ["待生成。"]).slice(0, 3).map((item, index) => `
+    <li><b>${String(index + 1).padStart(2, "0")}</b><span>${reportShortText(item, 68)}</span></li>
+  `).join("");
+  const watch = (summary?.watch || benchmarkWatchlistItems()).slice(0, 5).map((item) => `
+    <div class="rsm2-watch-pill ${item.level || "yellow"}">${reportShortText(item.title, 26)}</div>
+  `).join("");
+  const main = `
+    <div class="rsm2-president-layout">
+      <div class="rsm2-traffic-grid">${traffic}</div>
+      <div class="rsm2-president-bottom">
+        <ol class="rsm2-president-findings">${findings}</ol>
+        <div class="rsm2-president-watch">${watch || "<div class=\"rsm2-watch-pill\">暂无重点提示</div>"}</div>
+      </div>
+    </div>`;
+  const side = rsm2DecisionPanel(
+    "行长先看什么？",
+    "先看 SPARC 五维红黄绿位置，再看三条关键发现和本期需关注指标。",
+    "本页可单独用于会前阅读；完整报告继续展开 VQA 诊断、专题归因和口径复核。"
+  );
+  return rsm2Page(
+    "rsm2-president-slide",
+    "行长一页摘要",
+    "02A",
+    `${displayBankName(row.bank)}一页摘要先给同业位置，再给关注事项`,
+    "交通灯矩阵 + 三条关键发现 + 本期需关注指标",
+    main,
+    side,
+    ["本页服务 30 秒阅读。", "强结论必须回到后续专题和数据附录复核。"]
+  );
+}
+
 function rsm2SparcOverviewSlide() {
   const row = targetRecord();
   if (!row) return "";
   const scores = typeof sparcDimensionScores === "function" ? sparcDimensionScores(row) : [];
   const overall = typeof sparcOverallScore === "function" ? sparcOverallScore(scores) : null;
   const cards = scores.map((item) => `
-    <div class="rsm2-sparc-card">
+    <div class="rsm2-sparc-card ${typeof sparcSignalLevel === "function" ? sparcSignalLevel(item.score).level : ""}">
       <span>${item.code}</span>
       <b>${item.label}</b>
-      <em>${item.score == null ? "--" : item.score.toFixed(0)}</em>
+      <em>${item.score == null ? "--" : item.score.toFixed(0)}｜${typeof sparcSignalLevel === "function" ? sparcSignalLevel(item.score).lamp : ""}</em>
       <p>${item.weakestMetric ? `${item.weakestMetric.label}为本维度优先复核指标。` : item.question}</p>
     </div>`).join("");
   const weak = scores.filter((item) => item.score != null).sort((a, b) => a.score - b.score)[0];
@@ -1175,6 +1233,7 @@ function buildPrintDeck() {
     cover,
     rsm2AgendaSlide(),
     shouldIncludeDeckSection("executive") ? rsm2ExecutiveSlide() : "",
+    shouldIncludeDeckSection("executive") ? rsm2PresidentOnePageSlide() : "",
     shouldIncludeDeckSection("scope") || shouldIncludeDeckSection("methodology") ? rsm2ScopeMethodSlide() : "",
     shouldIncludeDeckSection("storyline") ? rsm2StorylineMapSlide() : "",
     rsm2PeerGroupProfileSlide(),

@@ -2242,6 +2242,33 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   color: var(--rsm-muted);
 }
 
+.rsm2-peer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1mm;
+  margin: 1.5mm 0;
+}
+
+.rsm2-peer-tags i {
+  display: inline-block;
+  background: #eef6fb;
+  color: var(--rsm-navy);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 800;
+  padding: .8mm 1.2mm;
+}
+
+.rsm2-peer-footnote {
+  margin-top: 3mm;
+  padding: 2.4mm 3mm;
+  border: 1px solid var(--rsm-line);
+  background: #f8fbfd;
+  color: var(--rsm-text);
+  font-size: 9px;
+  font-weight: 800;
+}
+
 .rsm2-sparc-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2278,6 +2305,10 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   min-height: 60mm;
 }
 
+.rsm2-sparc-card.green { border-top-color: #10b981; }
+.rsm2-sparc-card.yellow { border-top-color: #f59e0b; }
+.rsm2-sparc-card.red { border-top-color: #ef4444; }
+
 .rsm2-sparc-card span {
   display: inline-flex;
   width: 8mm;
@@ -2307,6 +2338,111 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   font-weight: 900;
   margin-bottom: 2mm;
 }
+
+.rsm2-president-layout {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 5mm;
+}
+
+.rsm2-traffic-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3mm;
+}
+
+.rsm2-traffic-card {
+  min-height: 34mm;
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-top: 4px solid #a6b0be;
+  padding: 3mm;
+  overflow: hidden;
+}
+
+.rsm2-traffic-card.green { border-top-color: #10b981; background: #f0fdf7; }
+.rsm2-traffic-card.yellow { border-top-color: #f59e0b; background: #fff8e8; }
+.rsm2-traffic-card.red { border-top-color: #ef4444; background: #fff1f1; }
+
+.rsm2-traffic-card span {
+  display: inline-flex;
+  width: 8mm;
+  height: 8mm;
+  align-items: center;
+  justify-content: center;
+  background: var(--rsm-navy);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.rsm2-traffic-card b,
+.rsm2-traffic-card em,
+.rsm2-traffic-card p {
+  display: block;
+  margin: 1mm 0 0;
+  color: var(--rsm-navy);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.rsm2-traffic-card b { font-size: 10.5px; }
+.rsm2-traffic-card em { font-size: 13px; }
+.rsm2-traffic-card p { color: var(--rsm-text); font-size: 8.5px; line-height: 1.35; }
+
+.rsm2-president-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: 4mm;
+}
+
+.rsm2-president-findings,
+.rsm2-president-watch {
+  margin: 0;
+  border: 1px solid var(--rsm-line);
+  background: #fff;
+  padding: 4mm;
+  min-height: 46mm;
+}
+
+.rsm2-president-findings {
+  display: grid;
+  gap: 2mm;
+  list-style: none;
+}
+
+.rsm2-president-findings li {
+  display: grid;
+  grid-template-columns: 10mm 1fr;
+  gap: 2mm;
+  color: var(--rsm-text);
+  font-size: 10px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.rsm2-president-findings b {
+  color: var(--rsm-secondary);
+}
+
+.rsm2-president-watch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2mm;
+  align-content: start;
+}
+
+.rsm2-watch-pill {
+  border: 1px solid var(--rsm-line);
+  background: #f8fbfd;
+  color: var(--rsm-navy);
+  padding: 1.4mm 2mm;
+  font-size: 8.5px;
+  font-weight: 900;
+}
+
+.rsm2-watch-pill.red { border-color: #fecaca; background: #fff1f1; color: #9f1b1b; }
+.rsm2-watch-pill.yellow { border-color: #fed7aa; background: #fff8e8; color: #8a5b00; }
 
 @media (min-width: 1500px) {
   body.analysis-ready .analysis-deck-shell .print-slide {

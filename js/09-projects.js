@@ -52,7 +52,7 @@ function listPeerGroups() {
 }
 
 function savePeerGroups(groups) {
-  writeJsonStorage(PEER_GROUPS_STORAGE_KEY, groups.slice(0, 30));
+  writeJsonStorage(PEER_GROUPS_STORAGE_KEY, groups.slice(0, 10));
 }
 
 function defaultProjectName() {
@@ -205,6 +205,10 @@ function peerRecommendationReasons(template = state.peerTemplate) {
   if (state.peers.length) {
     reasons.push(`当前对标组 ${state.peers.length} 家：${displayBankList(state.peers)}。`);
     if (peerPb != null || peerRoa != null) reasons.push(`对标组均值：PB ${peerPb == null ? "暂无" : `${peerPb.toFixed(2)}x`}，ROA ${fmt(peerRoa)}。`);
+    if (typeof peerGroupDispersion === "function") {
+      const cv = peerGroupDispersion();
+      if (cv != null) reasons.push(cv > .6 ? `规模离散度 ${(cv * 100).toFixed(0)}%，建议说明大中小样本混用边界。` : `规模离散度 ${(cv * 100).toFixed(0)}%，对标组整体可辩护性较好。`);
+    }
   }
   return reasons;
 }
@@ -235,6 +239,7 @@ function saveCurrentPeerGroup() {
     peers: state.peers,
     types: state.types,
     peerTemplate: state.peerTemplate,
+    isDefault: !groups.some((item) => item.isDefault),
     updatedAt: new Date().toISOString()
   };
   const idx = groups.findIndex((item) => item.name === name);
@@ -244,6 +249,18 @@ function saveCurrentPeerGroup() {
   if (input) input.value = name;
   renderPeerGroupManager();
   setProjectStatus(`已保存对标组：${name}。`);
+}
+
+function setDefaultPeerGroup(groupId) {
+  const groups = listPeerGroups().map((group) => ({
+    ...group,
+    isDefault: group.id === groupId,
+    updatedAt: group.id === groupId ? new Date().toISOString() : group.updatedAt
+  }));
+  savePeerGroups(groups);
+  renderPeerGroupManager();
+  renderPeerGroupQuickSelect();
+  setProjectStatus("已设置默认对标组。下次可在快捷选择中优先应用。");
 }
 
 function applyPeerGroup(groupId) {
@@ -355,8 +372,8 @@ function renderProjectManager() {
 function renderPeerGroupQuickSelect() {
   const select = document.getElementById("peerGroupQuickApply");
   if (!select) return;
-  const groups = listPeerGroups();
-  select.innerHTML = `<option value="">选择已保存对标组…</option>${groups.map((group) => `<option value="${group.id}">${group.name}（${(group.peers || []).length} 家）</option>`).join("")}`;
+  const groups = listPeerGroups().sort((a, b) => Number(!!b.isDefault) - Number(!!a.isDefault));
+  select.innerHTML = `<option value="">选择已保存对标组…</option>${groups.slice(0, 10).map((group) => `<option value="${group.id}">${group.isDefault ? "默认｜" : ""}${group.name}（${(group.peers || []).length} 家）</option>`).join("")}`;
 }
 
 function bindPeerGroupQuickSelect() {
@@ -383,10 +400,11 @@ function renderPeerGroupManager() {
     <div class="peer-group-item">
       <div>
         <b>${group.name}</b>
-        <span>${group.target ? displayBankName(group.target) : "通用"}｜${displayBankList(group.peers || [], "未设置")}<br/>模板：${peerTemplateLabel(group.peerTemplate)}｜更新：${group.updatedAt ? new Date(group.updatedAt).toLocaleString("zh-CN", { hour12: false }) : "未知"}</span>
+        <span>${group.isDefault ? "默认组｜" : ""}${group.target ? displayBankName(group.target) : "通用"}｜${displayBankList(group.peers || [], "未设置")}<br/>模板：${peerTemplateLabel(group.peerTemplate)}｜更新：${group.updatedAt ? new Date(group.updatedAt).toLocaleString("zh-CN", { hour12: false }) : "未知"}</span>
       </div>
       <div class="peer-group-actions">
         <button type="button" data-action="apply-peer-group" data-id="${group.id}">应用</button>
+        <button type="button" data-action="default-peer-group" data-id="${group.id}">设默认</button>
         <button type="button" data-action="edit-peer-group" data-id="${group.id}">编辑</button>
         <button type="button" data-action="delete-peer-group" data-id="${group.id}">删除</button>
       </div>
@@ -415,6 +433,7 @@ function bindProjectManagerEvents() {
     if (!button) return;
     const { action, id } = button.dataset;
     if (action === "apply-peer-group") applyPeerGroup(id);
+    if (action === "default-peer-group") setDefaultPeerGroup(id);
     if (action === "edit-peer-group") openPeerGroupEditor(id);
     if (action === "delete-peer-group") deletePeerGroup(id);
   });
