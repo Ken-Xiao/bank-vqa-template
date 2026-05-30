@@ -288,6 +288,7 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
         <ul class="formal-check-list">${checkCards}</ul>
       </section>
       ${formalWatchSection(row)}
+      ${typeof investmentEvidenceHtmlForFormal === "function" ? investmentEvidenceHtmlForFormal() : ""}
       ${formalWhatIfSection(row)}
       ${formalPeerMatrixSection(row)}
       ${formalConsistencySection(row)}

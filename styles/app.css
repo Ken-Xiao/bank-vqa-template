@@ -3918,6 +3918,275 @@
       border-left: 4px solid #10b981;
     }
 
+    .ib-evidence-panel {
+      margin-top: 18px;
+      background: #fff;
+      border: 1px solid #d9e4ef;
+      border-top: 4px solid #061b3a;
+      padding: 18px;
+      box-shadow: 0 18px 40px rgba(7, 30, 55, .08);
+    }
+
+    .ib-evidence-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .ib-evidence-head span,
+    .ib-card-title span {
+      color: #0099d8;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .ib-evidence-head h2 {
+      margin: 4px 0 6px;
+      color: #061b3a;
+      font-size: 24px;
+      line-height: 1.25;
+    }
+
+    .ib-evidence-head p {
+      margin: 0;
+      color: #54677b;
+      font-size: 14px;
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .ib-evidence-badge {
+      min-width: 150px;
+      text-align: center;
+      padding: 12px 16px;
+      background: #f4f8fb;
+      border: 1px solid #d9e4ef;
+      color: #061b3a;
+      font-weight: 900;
+    }
+
+    .ib-evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .ib-evidence-card {
+      border: 1px solid #d9e4ef;
+      background: #fff;
+      padding: 14px;
+      min-height: 260px;
+      overflow: hidden;
+    }
+
+    .ib-evidence-card.ib-wide {
+      grid-column: 1 / -1;
+    }
+
+    .ib-card-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .ib-card-title b {
+      color: #061b3a;
+      font-size: 16px;
+    }
+
+    .ib-empty,
+    .ib-card-note {
+      color: #53677b;
+      font-size: 12px;
+      line-height: 1.55;
+      font-weight: 800;
+    }
+
+    .ib-harvey-table,
+    .ib-spark-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+
+    .ib-harvey-table th,
+    .ib-harvey-table td,
+    .ib-spark-table th,
+    .ib-spark-table td {
+      border: 1px solid #d9e4ef;
+      padding: 8px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .ib-harvey-table th:first-child,
+    .ib-spark-table th:first-child {
+      text-align: left;
+      width: 150px;
+      color: #061b3a;
+    }
+
+    .ib-harvey-table tr.is-target th,
+    .ib-spark-table tr.is-target th {
+      border-left: 4px solid #0099d8;
+      background: #f0f8fc;
+    }
+
+    .ib-harvey-table thead span {
+      display: block;
+      color: #718096;
+      font-size: 10px;
+      letter-spacing: 0;
+      margin-top: 2px;
+    }
+
+    .ib-harvey-table i {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #061b3a;
+      background: conic-gradient(#061b3a 0deg, #061b3a 0deg, #fff 0deg);
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .ib-harvey-table .harvey-fill-1 { background: conic-gradient(#061b3a 0deg 90deg, #fff 90deg); }
+    .ib-harvey-table .harvey-fill-2 { background: conic-gradient(#061b3a 0deg 180deg, #fff 180deg); }
+    .ib-harvey-table .harvey-fill-3 { background: conic-gradient(#061b3a 0deg 270deg, #fff 270deg); }
+    .ib-harvey-table .harvey-fill-4 { background: #061b3a; }
+
+    .ib-harvey-table em {
+      color: #53677b;
+      font-style: normal;
+      font-weight: 900;
+    }
+
+    .ib-waterfall-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ib-waterfall-summary div {
+      background: #f4f8fb;
+      border-left: 3px solid #0099d8;
+      padding: 10px;
+    }
+
+    .ib-waterfall-summary span,
+    .ib-tornado-row span,
+    .ib-waterfall-row span {
+      color: #53677b;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .ib-waterfall-summary b {
+      display: block;
+      color: #061b3a;
+      font-size: 22px;
+      margin-top: 3px;
+    }
+
+    .ib-waterfall-list,
+    .ib-tornado-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .ib-waterfall-row,
+    .ib-tornado-row {
+      display: grid;
+      grid-template-columns: 94px minmax(0, 1fr) 74px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ib-waterfall-row div,
+    .ib-tornado-row div {
+      height: 12px;
+      background: #edf2f7;
+      overflow: hidden;
+    }
+
+    .ib-waterfall-row i,
+    .ib-tornado-row i {
+      display: block;
+      height: 100%;
+      background: #10b981;
+    }
+
+    .ib-waterfall-row.neg i,
+    .ib-tornado-row.neg i {
+      background: #ef4444;
+    }
+
+    .ib-waterfall-row b,
+    .ib-tornado-row b {
+      color: #061b3a;
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .ib-spark-table svg {
+      width: 88px;
+      height: 26px;
+      display: block;
+      margin: 0 auto 4px;
+    }
+
+    .ib-spark-table polyline {
+      fill: none;
+      stroke: #9aa8b8;
+      stroke-width: 2.2;
+    }
+
+    .ib-spark-table tr.is-target polyline {
+      stroke: #0099d8;
+      stroke-width: 3;
+    }
+
+    .ib-spark-table span {
+      color: #061b3a;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .formal-ib-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .formal-ib-grid div {
+      border: 1px solid #d9e4ef;
+      border-left: 4px solid #0099d8;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .formal-ib-grid span {
+      color: #0099d8;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .formal-ib-grid b {
+      display: block;
+      margin: 6px 0;
+      color: #061b3a;
+      font-size: 20px;
+    }
+
     @media (max-width: 980px) {
       .client-action-bar,
       .client-command-center,
@@ -3925,6 +4194,7 @@
       .sparc-overview,
       .benchmark-v1-grid,
       .president-summary-grid,
+      .ib-evidence-grid,
       .calibration-risk-panel {
         grid-template-columns: 1fr;
       }

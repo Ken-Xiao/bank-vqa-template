@@ -253,6 +253,34 @@
           </div>
         </div>
       </section>
+      <section class="ib-evidence-panel analysis-content" id="ibEvidencePanel" data-workspace-tab="overview" aria-label="投行级证据页">
+        <div class="ib-evidence-head">
+          <div>
+            <span>Investment Banking Evidence Pack</span>
+            <h2>把“指标对标”升级为可放进投行/咨询 Deck 的证据页</h2>
+            <p>本区域按 PRD 的 Phase 0/P1 输出 Harvey Ball 矩阵、ROA 因子桥、Tornado 敏感性和同业 Sparkline，全都与当前目标银行和对标组同步。</p>
+          </div>
+          <div class="ib-evidence-badge" id="ibEvidenceBadge">待生成</div>
+        </div>
+        <div class="ib-evidence-grid">
+          <div class="ib-evidence-card ib-wide">
+            <div class="ib-card-title"><span>Executive Dashboard</span><b>Harvey Ball 总览矩阵</b></div>
+            <div id="harveyMatrix"></div>
+          </div>
+          <div class="ib-evidence-card">
+            <div class="ib-card-title"><span>Factor Attribution</span><b>ROA 七因子桥</b></div>
+            <div id="roaWaterfallPanel"></div>
+          </div>
+          <div class="ib-evidence-card">
+            <div class="ib-card-title"><span>Scenario Impact</span><b>Tornado 敏感性排序</b></div>
+            <div id="tornadoPanel"></div>
+          </div>
+          <div class="ib-evidence-card ib-wide">
+            <div class="ib-card-title"><span>Peer Landscape</span><b>核心指标 Sparkline 全景</b></div>
+            <div id="peerSparklineMatrix"></div>
+          </div>
+        </div>
+      </section>
       <nav class="workspace-tabs analysis-content" id="workspaceTabs" aria-label="工作区导航">
         <button class="is-active" type="button" data-tab-target="overview"><span>1</span>总览</button>
         <button type="button" data-tab-target="topics"><span>2</span>专题</button>
@@ -1067,6 +1095,7 @@
   <script src="js/21-portal-workflows.js?v=20260530-benchmarkiq-v4"></script>
   <script src="js/08-report.js?v=20260530-rsm-v7"></script>
   <script src="js/22-formal-report.js?v=20260530-report-v1"></script>
+  <script src="js/23-investment-evidence.js?v=20260531-prd-v2"></script>
   <script src="js/09-projects.js?v=20260530-benchmarkiq-v2"></script>
   <script src="js/11-fact-pack.js"></script>
   <script src="js/12-ai-narrative.js?v=20260530-client-language"></script>

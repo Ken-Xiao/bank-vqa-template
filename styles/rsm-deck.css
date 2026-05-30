@@ -4000,6 +4000,43 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   margin: 10px 0 0;
 }
 
+.formal-ib-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.formal-ib-grid div {
+  border: 1px solid #d9e2ea;
+  border-left: 5px solid #0099d8;
+  background: #fff;
+  padding: 16px;
+}
+
+.formal-ib-grid span {
+  color: #0099d8;
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.formal-ib-grid b {
+  color: #061b3a;
+  display: block;
+  font-size: 24px;
+  line-height: 1.15;
+  margin: 8px 0;
+}
+
+.formal-ib-grid p {
+  color: #3d4b5c;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .formal-check-list {
   list-style: none;
   margin: 0;
@@ -4066,6 +4103,7 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   .formal-metric-grid,
   .formal-action-grid,
   .formal-whatif-strip,
+  .formal-ib-grid,
   .formal-roadmap {
     grid-template-columns: 1fr;
   }
