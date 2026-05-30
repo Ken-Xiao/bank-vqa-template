@@ -156,7 +156,16 @@ async function loadReportExportCss() {
       /* ignore missing stylesheet */
     }
   }
-  return chunks.join("\n");
+  if (chunks.length) return chunks.join("\n");
+  const liveCss = [];
+  [...document.styleSheets].forEach((sheet) => {
+    try {
+      [...sheet.cssRules].forEach((rule) => liveCss.push(rule.cssText));
+    } catch (error) {
+      /* file:// and cross-origin stylesheets may be unreadable */
+    }
+  });
+  return liveCss.join("\n");
 }
 
 function exportClientText(text = "") {

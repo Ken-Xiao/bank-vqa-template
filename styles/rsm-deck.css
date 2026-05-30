@@ -2554,6 +2554,509 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   line-height: 1.1;
 }
 
+.rsm2-lens-grid,
+.rsm2-anchor-grid,
+.rsm2-scenario-grid,
+.rsm2-contradiction-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5mm;
+}
+
+.rsm2-northstar {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 5mm;
+  min-height: 0;
+}
+
+.rsm2-northstar-answer {
+  background: #fff;
+  border-left: 5px solid #1A3A5C;
+  padding: 5mm 6mm;
+}
+
+.rsm2-northstar-answer span,
+.rsm2-topic-verdict span,
+.rsm2-lens-card span,
+.rsm2-anchor-card span,
+.rsm2-diagnostic-evidence span,
+.rsm2-target-card span,
+.rsm2-scenario-card span,
+.rsm2-contradiction-card span,
+.rsm2-framework-row span,
+.rsm2-application-row span {
+  color: var(--rsm-secondary);
+  display: block;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.rsm2-northstar-answer h3 {
+  color: var(--rsm-navy);
+  font-size: 21px;
+  line-height: 1.28;
+  margin: 1.5mm 0 2mm;
+}
+
+.rsm2-northstar-answer p,
+.rsm2-lens-card p,
+.rsm2-topic-verdict p,
+.rsm2-mechanism-copy p,
+.rsm2-action-step p,
+.rsm2-scenario-card p,
+.rsm2-contradiction-card p,
+.rsm2-contradiction-card em {
+  color: var(--rsm-text);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.52;
+  margin: 0;
+}
+
+.rsm2-lens-card,
+.rsm2-scenario-card,
+.rsm2-contradiction-card {
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-top: 4px solid var(--rsm-secondary);
+  min-height: 58mm;
+  padding: 4mm;
+}
+
+.rsm2-lens-card.tone-amber,
+.rsm2-scenario-card.tone-amber { border-top-color: #f59e0b; }
+.rsm2-lens-card.tone-red,
+.rsm2-scenario-card.tone-red { border-top-color: #ef4444; }
+.rsm2-scenario-card.tone-green { border-top-color: #10b981; }
+
+.rsm2-lens-card b,
+.rsm2-scenario-card b,
+.rsm2-contradiction-card span {
+  color: var(--rsm-navy);
+  display: block;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.32;
+  margin: 2mm 0;
+}
+
+.rsm2-framework-map,
+.rsm2-application-stack {
+  display: grid;
+  gap: 3mm;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  min-height: 0;
+}
+
+.rsm2-framework-row,
+.rsm2-application-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-left: 4px solid var(--rsm-secondary);
+  display: grid;
+  gap: 3mm;
+  grid-template-columns: 13mm 34mm minmax(0, 1fr) 42mm;
+  padding: 3mm 4mm;
+}
+
+.rsm2-framework-row b,
+.rsm2-application-row b {
+  align-items: center;
+  background: var(--rsm-navy);
+  color: #fff;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 900;
+  height: 9mm;
+  justify-content: center;
+  width: 9mm;
+}
+
+.rsm2-framework-row p,
+.rsm2-framework-row em,
+.rsm2-application-row p,
+.rsm2-application-row em {
+  color: var(--rsm-text);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 750;
+  line-height: 1.42;
+  margin: 0;
+}
+
+.rsm2-application-row.tone-green { border-left-color: #10b981; }
+.rsm2-application-row.tone-yellow { border-left-color: #f59e0b; }
+.rsm2-application-row.tone-red { border-left-color: #ef4444; }
+
+.rsm2-anchor-grid,
+.rsm2-target-grid {
+  display: grid;
+  gap: 5mm;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rsm2-anchor-card,
+.rsm2-target-card {
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-top: 4px solid var(--rsm-secondary);
+  min-height: 74mm;
+  padding: 5mm;
+}
+
+.rsm2-anchor-card b,
+.rsm2-target-card b,
+.rsm2-diagnostic-evidence b {
+  color: var(--rsm-navy);
+  display: block;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  margin: 3mm 0 2mm;
+}
+
+.rsm2-anchor-card em,
+.rsm2-target-card em {
+  color: var(--rsm-secondary);
+  display: block;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.rsm2-anchor-card p,
+.rsm2-target-card p,
+.rsm2-diagnostic-evidence p {
+  color: var(--rsm-text);
+  font-size: 9.5px;
+  font-weight: 750;
+  line-height: 1.45;
+  margin: 3mm 0 0;
+}
+
+.rsm2-topic-diagnostic {
+  display: grid;
+  gap: 5mm;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.rsm2-topic-verdict,
+.rsm2-mechanism-copy {
+  background: #fff;
+  border-left: 4px solid var(--rsm-secondary);
+  padding: 4mm 5mm;
+}
+
+.rsm2-topic-verdict h3 {
+  color: var(--rsm-navy);
+  font-size: 18px;
+  line-height: 1.32;
+  margin: 1.4mm 0 2mm;
+}
+
+.rsm2-diagnostic-grid {
+  display: grid;
+  gap: 4mm;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rsm2-diagnostic-evidence {
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-top: 4px solid var(--rsm-secondary);
+  min-height: 54mm;
+  padding: 4mm;
+}
+
+.rsm2-mechanism-copy b {
+  color: var(--rsm-navy);
+  display: block;
+  font-size: 14px;
+  margin-bottom: 1.5mm;
+}
+
+.rsm2-action-step-grid {
+  display: grid;
+  gap: 4mm;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rsm2-action-step {
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-left: 4px solid var(--rsm-secondary);
+  min-height: 78mm;
+  padding: 5mm;
+}
+
+.rsm2-action-step b,
+.rsm2-contradiction-card b {
+  color: var(--rsm-secondary);
+  display: block;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rsm2-action-step span {
+  color: var(--rsm-navy);
+  display: block;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.35;
+  margin: 3mm 0;
+}
+
+.rsm2-contradiction-card em {
+  border-top: 1px solid var(--rsm-line);
+  display: block;
+  font-style: normal;
+  margin-top: 4mm;
+  padding-top: 3mm;
+}
+
+.rsm2-dupont-grid {
+  display: grid;
+  gap: 3mm;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rsm2-pro-node {
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-left: 4px solid var(--rsm-secondary);
+  min-height: 29mm;
+  padding: 3.4mm 4mm;
+}
+
+.rsm2-pro-node.level-2 { border-left-color: #2f80ed; }
+.rsm2-pro-node.level-3 { border-left-color: #10b981; }
+
+.rsm2-pro-node span,
+.rsm2-driver-panel span,
+.rsm2-waterfall-head span,
+.rsm2-momentum-card span,
+.rsm2-structure-card span,
+.rsm2-priority-row span,
+.rsm2-whatif-card span {
+  color: var(--rsm-muted);
+  display: block;
+  font-size: 8.8px;
+  font-weight: 850;
+  letter-spacing: .02em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.rsm2-pro-node b,
+.rsm2-waterfall-head b,
+.rsm2-momentum-card b,
+.rsm2-structure-card b,
+.rsm2-priority-row em,
+.rsm2-whatif-card b {
+  color: var(--rsm-navy);
+  display: block;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 1.5mm 0;
+}
+
+.rsm2-pro-node em,
+.rsm2-pro-node p {
+  color: var(--rsm-text);
+  display: block;
+  font-size: 8.7px;
+  font-style: normal;
+  font-weight: 750;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.rsm2-driver-panel {
+  background: #f8fafc;
+  border: 1px solid var(--rsm-line);
+  display: grid;
+  gap: 2mm;
+  margin-top: 4mm;
+  padding: 4mm;
+}
+
+.rsm2-driver-row {
+  align-items: center;
+  background: #fff;
+  border-left: 4px solid var(--rsm-secondary);
+  display: grid;
+  gap: 3mm;
+  grid-template-columns: minmax(0, 1fr) 25mm 16mm;
+  min-height: 10mm;
+  padding: 2mm 3mm;
+}
+
+.rsm2-driver-row b,
+.rsm2-driver-row span,
+.rsm2-driver-row em {
+  color: var(--rsm-text);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.rsm2-driver-row span,
+.rsm2-driver-row em {
+  color: var(--rsm-navy);
+  text-align: right;
+}
+
+.rsm2-waterfall-head {
+  display: grid;
+  gap: 4mm;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 4mm;
+}
+
+.rsm2-waterfall-head > div {
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-top: 4px solid var(--rsm-secondary);
+  padding: 4mm;
+}
+
+.rsm2-waterfall {
+  display: grid;
+  gap: 2.5mm;
+}
+
+.rsm2-waterfall-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  display: grid;
+  gap: 4mm;
+  grid-template-columns: 32mm minmax(0, 1fr) 28mm;
+  min-height: 11mm;
+  padding: 2.2mm 3mm;
+}
+
+.rsm2-waterfall-row span,
+.rsm2-waterfall-row b {
+  color: var(--rsm-text);
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.rsm2-waterfall-row b {
+  color: var(--rsm-navy);
+  text-align: right;
+}
+
+.rsm2-waterfall-row div {
+  background: #edf2f7;
+  height: 6mm;
+  overflow: hidden;
+}
+
+.rsm2-waterfall-row i {
+  background: #10b981;
+  display: block;
+  height: 100%;
+}
+
+.rsm2-waterfall-row.tone-neg i { background: #ef4444; }
+
+.rsm2-momentum-grid,
+.rsm2-structure-grid,
+.rsm2-whatif-grid {
+  display: grid;
+  gap: 4mm;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rsm2-momentum-card,
+.rsm2-structure-card,
+.rsm2-whatif-card {
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-top: 4px solid var(--rsm-secondary);
+  min-height: 38mm;
+  padding: 4mm;
+}
+
+.rsm2-momentum-card.tone-green,
+.rsm2-structure-card.tone-green,
+.rsm2-whatif-card.tone-green { border-top-color: #10b981; }
+
+.rsm2-momentum-card.tone-red,
+.rsm2-structure-card.tone-red,
+.rsm2-whatif-card.tone-red { border-top-color: #ef4444; }
+
+.rsm2-momentum-card.tone-amber,
+.rsm2-structure-card.tone-amber,
+.rsm2-whatif-card.tone-amber { border-top-color: #f59e0b; }
+
+.rsm2-structure-card.tone-blue { border-top-color: #2f80ed; }
+
+.rsm2-momentum-card p,
+.rsm2-structure-card p,
+.rsm2-whatif-card p {
+  color: var(--rsm-text);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.42;
+  margin: 2mm 0 0;
+}
+
+.rsm2-priority-list {
+  display: grid;
+  gap: 2.8mm;
+}
+
+.rsm2-priority-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--rsm-line);
+  border-left: 4px solid var(--rsm-secondary);
+  display: grid;
+  gap: 4mm;
+  grid-template-columns: 15mm 36mm 16mm minmax(0, 1fr);
+  min-height: 13mm;
+  padding: 2.6mm 4mm;
+}
+
+.rsm2-priority-row b {
+  align-items: center;
+  background: var(--rsm-navy);
+  color: #fff;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 900;
+  height: 9mm;
+  justify-content: center;
+  width: 9mm;
+}
+
+.rsm2-priority-row em {
+  color: var(--rsm-secondary);
+  font-size: 18px;
+  margin: 0;
+  text-align: right;
+}
+
+.rsm2-priority-row p {
+  color: var(--rsm-text);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.35;
+  margin: 0;
+}
+
 @media (min-width: 1500px) {
   body.analysis-ready .analysis-deck-shell .print-slide {
     zoom: .67;
@@ -2578,4 +3081,136 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
     max-height: 285.75mm;
     zoom: .34;
   }
+}
+
+/* RSM client-readability pass: fewer, stronger pages with larger editable text. */
+.print-slide.rsm2-page {
+  grid-template-rows: 15mm 26mm minmax(0, 1fr) 13mm;
+}
+
+.print-slide.rsm2-page .rsm-slide-body {
+  min-height: 0;
+}
+
+.print-slide.rsm2-page .rsm-slide-story {
+  font-size: 17px !important;
+  min-height: 0;
+  padding: 4mm 6mm;
+}
+
+.rsm2-layout {
+  gap: 7mm;
+  grid-template-columns: minmax(0, 1fr) 132mm;
+}
+
+.rsm2-decision-panel {
+  gap: 3mm;
+  grid-template-rows: repeat(4, auto);
+  padding: 5mm;
+}
+
+.rsm2-decision-panel span,
+.rsm2-pro-node span,
+.rsm2-driver-panel span,
+.rsm2-waterfall-head span,
+.rsm2-momentum-card span,
+.rsm2-structure-card span,
+.rsm2-priority-row span,
+.rsm2-whatif-card span,
+.rsm2-metric-card span,
+.rsm2-topic-verdict span,
+.rsm2-diagnostic-evidence span,
+.rsm2-anchor-card span,
+.rsm2-target-card span,
+.rsm2-sparc-card span,
+.rsm2-traffic-card span {
+  font-size: 13px !important;
+  letter-spacing: 0;
+}
+
+.rsm2-decision-panel p,
+.rsm2-topic-verdict p,
+.rsm2-mechanism-copy p,
+.rsm2-action-step p,
+.rsm2-momentum-card p,
+.rsm2-structure-card p,
+.rsm2-whatif-card p,
+.rsm2-priority-row p,
+.rsm2-anchor-card p,
+.rsm2-target-card p,
+.rsm2-diagnostic-evidence p,
+.rsm2-sparc-card p,
+.rsm2-traffic-card p,
+.rsm2-framework-row p,
+.rsm2-application-row p,
+.rsm2-driver-row b,
+.rsm2-driver-row span,
+.rsm2-driver-row em,
+.rsm2-waterfall-row span,
+.rsm2-waterfall-row b {
+  font-size: 15px !important;
+  line-height: 1.42;
+}
+
+.rsm2-metric-card b,
+.rsm2-pro-node b,
+.rsm2-waterfall-head b,
+.rsm2-momentum-card b,
+.rsm2-structure-card b,
+.rsm2-whatif-card b,
+.rsm2-anchor-card b,
+.rsm2-target-card b,
+.rsm2-diagnostic-evidence b,
+.rsm2-sparc-summary b {
+  font-size: 34px !important;
+}
+
+.rsm2-pro-node em,
+.rsm2-pro-node p,
+.rsm2-metric-card em,
+.rsm2-anchor-card em,
+.rsm2-target-card em,
+.rsm2-peer-footnote {
+  font-size: 13px !important;
+  line-height: 1.35;
+}
+
+.rsm2-evidence-table {
+  font-size: 14px !important;
+}
+
+.rsm2-evidence-table th,
+.rsm2-evidence-table td {
+  padding: 3.2mm 3mm;
+}
+
+.rsm2-topic-verdict h3 {
+  font-size: 28px !important;
+}
+
+.rsm2-lens-card b,
+.rsm2-scenario-card b,
+.rsm2-contradiction-card span,
+.rsm2-action-step span {
+  font-size: 22px !important;
+}
+
+.rsm2-action-step b,
+.rsm2-contradiction-card b {
+  font-size: 40px !important;
+}
+
+.rsm2-priority-row {
+  grid-template-columns: 18mm 48mm 24mm minmax(0, 1fr);
+  min-height: 18mm;
+}
+
+.rsm2-priority-row em {
+  font-size: 28px !important;
+}
+
+.rsm2-momentum-card,
+.rsm2-structure-card,
+.rsm2-whatif-card {
+  min-height: 50mm;
 }

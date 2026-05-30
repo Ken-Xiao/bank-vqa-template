@@ -1109,7 +1109,7 @@ function rsm2TopicConfig(topicKey) {
     valuation: {
       module: "估值验证",
       num: "08A",
-      title: "估值验证不直接讨论低估，而是验证经营质量是否支撑价值错配判断",
+      title: "估值验证不直接讨论单点折价，而是验证经营质量是否支撑价值错配判断",
       question: "PB 折价是价值错配，还是经营质量折价？",
       finding: byNeedle("估值").logic || "PB 需要与 ROA、核心营收、风险确认和资本余量联读。",
       action: byNeedle("估值").action || "将估值沟通从单一 PB 切换为经营质量证据链。",
@@ -1117,6 +1117,174 @@ function rsm2TopicConfig(topicKey) {
     }
   };
   return configs[topicKey];
+}
+
+function rsm2Tone(score) {
+  if (score == null) return "neutral";
+  if (score >= 70) return "green";
+  if (score >= 45) return "amber";
+  return "red";
+}
+
+function rsm2MetricRankText(key, row = targetRecord()) {
+  if (!row) return "分位待补";
+  return rankPercentile(row[key], currentRecords(), key, metricDirection(key));
+}
+
+function rsm2TopicFacts(topicKey) {
+  const topic = topicDefinitions().find((item) => item.id === topicKey);
+  if (!topic) return [];
+  return topicFactPackRows(topic.id).filter((fact) => fact && fact.目标值 !== "暂无");
+}
+
+function rsm2SignalFromTopic(topicKey) {
+  const topic = topicDefinitions().find((item) => item.id === topicKey);
+  if (!topic) return null;
+  return topicJudgement(topic.id, topicFactPackRows(topic.id));
+}
+
+function rsm2LensBlock(label, title, text, tone = "blue") {
+  return `
+    <div class="rsm2-lens-card tone-${tone}">
+      <span>${label}</span>
+      <b>${reportTitleSentence(title, 34)}</b>
+      <p>${reportShortText(text, 92)}</p>
+    </div>`;
+}
+
+function rsm2NorthStarSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const story = consultingStoryline(row);
+  const diagnosis = computeVqaDiagnosis(row, peerRecords());
+  const explainers = topicExplainerRows(row, peerRecords(), diagnosis);
+  const tensions = [
+    ["矛盾 01", "账面回报与主业修复不同步", explainers.find((item) => item.topic.includes("盈利"))?.logic || "回报水平需要由核心营收、轻资本收入和拨备前利润共同验证。", "blue"],
+    ["矛盾 02", "息差压力与负债结构再定价错位", explainers.find((item) => item.topic.includes("息差"))?.logic || "净息差判断需要同时观察资产收益率、计息负债成本和存款结构。", "amber"],
+    ["矛盾 03", "风险确认与资本市场定价相互验证", explainers.find((item) => item.topic.includes("资本"))?.logic || "市净率需要与回报、风险确认、资本消耗和轻资本能力联读。", "red"]
+  ].map(([label, title, text, tone]) => rsm2LensBlock(label, title, text, tone)).join("");
+  const main = `
+    <div class="rsm2-northstar">
+      <div class="rsm2-northstar-answer">
+        <span>北极星结论</span>
+        <h3>${reportTitleSentence(story.client_answer, 52)}</h3>
+        <p>${reportShortText(story.deck_answer, 150)}</p>
+      </div>
+      <div class="rsm2-lens-grid">${tensions}</div>
+    </div>`;
+  const side = rsm2DecisionPanel(
+    "董事会为什么需要继续读后续页面？",
+    `VQA 总分 ${diagnosis.score}，最弱维度为${diagnosis.labels[diagnosis.weakest]}，单看利润或市净率都不足以解释价值质量。`,
+    "后续页面按三类矛盾逐层验证，并在末尾转成 12 个月行动地图。"
+  );
+  return rsm2Page(
+    "rsm2-northstar-slide",
+    "核心转折结论",
+    "03A",
+    `${displayBankName(row.bank)}本轮报告的核心问题不是单项指标高低，而是质量差异能否被证据链解释`,
+    "情境、复杂化、问题、答案（SCQA）转折页｜先给出需要被后续页面证明的核心判断",
+    main,
+    side,
+    ["本页定义全篇张力。", "后续专题和图表只服务于证明或修正本页判断。"]
+  );
+}
+
+function rsm2FrameworkVisualSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const mapping = sparcDimensions().map((item) => {
+    const vqa = (item.vqaDimensions || []).map((key) => vqaEngine().dimensions?.[key]?.label || key).join(" / ") || "VQA 子维度";
+    return `
+      <div class="rsm2-framework-row">
+        <b>${item.code}</b>
+        <span>${item.label}</span>
+        <p>${reportShortText(item.question, 42)}</p>
+        <em>${vqa}</em>
+      </div>`;
+  }).join("");
+  const main = `<div class="rsm2-framework-map">${mapping}</div>`;
+  const side = rsm2DecisionPanel(
+    "SPARC 与 VQA 如何共同使用？",
+    "SPARC 用客户语言呈现五维体检，VQA 在后台负责价值质量评分、证据权重和行动优先级。",
+    "报告正文使用 SPARC 组织阅读，附录保留 VQA 方法和指标口径。"
+  );
+  return rsm2Page(
+    "rsm2-framework-slide",
+    "方法论主图",
+    "03B",
+    "SPARC 负责客户可读的五维位置，VQA 负责价值质量证据链",
+    `${displayBankName(row.bank)}｜配置化映射：维度、指标、权重和子维度均来自规则库`,
+    main,
+    side,
+    ["方法论页必须说明前台语言和后台评分的关系。", "客户可读性和可审计性在同一页建立。"]
+  );
+}
+
+function rsm2FrameworkApplicationSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const scores = sparcDimensionScores(row);
+  const diagnosis = computeVqaDiagnosis(row, peerRecords());
+  const rows = scores.map((item) => {
+    const signal = sparcSignalLevel(item.score);
+    return `
+      <div class="rsm2-application-row tone-${signal.level}">
+        <b>${item.code}</b>
+        <span>${item.label}</span>
+        <em>${item.score == null ? "待补" : item.score.toFixed(0)}｜${signal.lamp}</em>
+        <p>${item.weakestMetric ? `${item.weakestMetric.label}为优先复核指标，当前值 ${metricDisplayValue(item.weakestMetric.key, item.weakestMetric.value)}。` : item.question}</p>
+      </div>`;
+  }).join("");
+  const main = `<div class="rsm2-application-stack">${rows}</div>`;
+  const side = rsm2DecisionPanel(
+    "本方法在目标银行上读出了什么？",
+    `${displayBankName(row.bank)}VQA 总分 ${diagnosis.score}，最强维度为${diagnosis.labels[diagnosis.strongest]}，最弱维度为${diagnosis.labels[diagnosis.weakest]}。`,
+    `后续专题优先解释${diagnosis.labels[diagnosis.weakest]}及其传导到回报、风险和估值的路径。`
+  );
+  return rsm2Page(
+    "rsm2-framework-application-slide",
+    "方法论应用",
+    "03C",
+    `${displayBankName(row.bank)}的五维读数显示，报告应优先解释低分位维度的形成机制`,
+    "Framework Application｜把方法论转成目标银行的第一页读数",
+    main,
+    side,
+    ["每个维度必须落到可复核指标。", "分数只是入口，后续页面承担证明职责。"]
+  );
+}
+
+function rsm2IndustryAnchorSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const typeRows = currentRecords().filter((item) => state.types.includes(item.type));
+  const anchors = [
+    ["总资产收益率（ROA）", rsm2Value("roa", row), metricDisplayValue("roa", avg(typeRows, "roa")), rsm2MetricRankText("roa", row)],
+    ["净息差（NIM）", rsm2Value("nim", row), metricDisplayValue("nim", avg(typeRows, "nim")), rsm2MetricRankText("nim", row)],
+    ["不良率", rsm2Value("npl", row), metricDisplayValue("npl", avg(typeRows, "npl")), rsm2MetricRankText("npl", row)],
+    ["市净率（PB）", rsm2Value("pb", row), metricDisplayValue("pb", avg(typeRows, "pb")), rsm2MetricRankText("pb", row)]
+  ].map(([label, target, typeAvg, rank]) => `
+    <div class="rsm2-anchor-card">
+      <span>${label}</span>
+      <b>${target}</b>
+      <em>类型均值 ${typeAvg}</em>
+      <p>${rank}</p>
+    </div>`).join("");
+  const main = `<div class="rsm2-anchor-grid">${anchors}</div>`;
+  const side = rsm2DecisionPanel(
+    "行业坐标段回答什么？",
+    "先判断目标银行偏离是否来自类型共性，再判断是否来自自身经营结构。",
+    "若目标银行与类型均值方向一致，后续结论应保留行业边界；若偏离明显，进入专题归因。"
+  );
+  return rsm2Page(
+    "rsm2-industry-anchor-slide",
+    "行业坐标",
+    "04C",
+    `${displayBankName(row.bank)}的行业坐标应先用类型均值校准，再进入对标组比较`,
+    `${state.year} 年截面｜${state.types.join("、") || "所选类型银行"}｜目标银行、对标组与类型均值三层参照`,
+    main,
+    side,
+    ["行业坐标段防止把行业共同压力误判为个体问题。", "后续专题页只讨论经过类型均值校准后的关键偏离。"]
+  );
 }
 
 function rsm2TopicSlide(topicKey) {
@@ -1141,6 +1309,111 @@ function rsm2TopicSlide(topicKey) {
     main,
     side,
     ["本页一个专题只证明一个管理判断。", "证据表保留目标值、参照值和解释口径。"]
+  );
+}
+
+function rsm2TopicDiagnosticSlide(topicKey, index) {
+  const row = targetRecord();
+  if (!row) return "";
+  const config = rsm2TopicConfig(topicKey);
+  const judgement = rsm2SignalFromTopic(topicKey);
+  const facts = rsm2TopicFacts(topicKey);
+  const evidence = (judgement?.evidence || facts).slice(0, 4).map((fact) => `
+    <div class="rsm2-diagnostic-evidence">
+      <span>${fact.指标名称}</span>
+      <b>${fact.目标值}</b>
+      <p>${fact.分位}｜对标均值 ${fact.对标均值}｜一年变化 ${fact.一年变化}</p>
+    </div>`).join("");
+  const main = `
+    <div class="rsm2-topic-diagnostic">
+      <div class="rsm2-topic-verdict">
+        <span>专题判断</span>
+        <h3>${reportTitleSentence(judgement?.headline || config.finding, 48)}</h3>
+        <p>${reportShortText(config.finding, 132)}</p>
+      </div>
+      <div class="rsm2-diagnostic-grid">${evidence}</div>
+    </div>`;
+  const side = rsm2DecisionPanel(
+    config.question,
+    judgement?.signal || config.finding,
+    config.action,
+    "本页只使用事实包中可用指标；口径风险为 L3/L4 的指标不进入强判断。"
+  );
+  return rsm2Page(
+    `rsm2-topic-diagnostic-slide rsm2-topic-${topicKey}`,
+    config.module,
+    `${config.num}-${index + 1}`,
+    `${config.module}先给判断强度，再列出进入主报告的证据指标`,
+    `${displayBankName(row.bank)}｜专题诊断页｜${config.question}`,
+    main,
+    side,
+    ["专题诊断页回答是否值得董事会讨论。", "证据必须同时显示目标值、对标均值、分位和变化。"]
+  );
+}
+
+function rsm2TopicMechanismSlide(topicKey, index) {
+  const row = targetRecord();
+  if (!row) return "";
+  const config = rsm2TopicConfig(topicKey);
+  const topic = topicDefinitions().find((item) => item.id === topicKey);
+  const facts = rsm2TopicFacts(topicKey).slice(0, 5);
+  const rows = facts.map((fact) => ({
+    label: fact.指标名称,
+    target: fact.目标值,
+    peer: fact.对标均值,
+    readout: `${fact.分位}；类型均值 ${fact.类型均值}；该指标用于验证${config.module}的结论强度。`
+  }));
+  const main = `
+    <div class="rsm2-mechanism-copy">
+      <b>形成机制</b>
+      <p>${reportShortText(topic?.mechanism || config.finding, 150)}</p>
+    </div>
+    ${rsm2EvidenceTable(rows)}`;
+  const side = rsm2DecisionPanel(
+    "差异是如何形成的？",
+    topic?.mechanism || config.finding,
+    config.action
+  );
+  return rsm2Page(
+    `rsm2-topic-mechanism-slide rsm2-topic-${topicKey}`,
+    config.module,
+    `${config.num}-${index + 2}`,
+    `${config.module}需要从单点指标转为形成机制解释`,
+    `${displayBankName(row.bank)}｜经营视角 + 对标视角的同向验证`,
+    main,
+    side,
+    ["机制页用于回答为什么。", "表格保留目标值、参照值和解释口径。"]
+  );
+}
+
+function rsm2TopicActionSlide(topicKey, index) {
+  const row = targetRecord();
+  if (!row) return "";
+  const config = rsm2TopicConfig(topicKey);
+  const topic = topicDefinitions().find((item) => item.id === topicKey);
+  const actions = (topic?.actions || [config.action]).slice(0, 3).map((item, i) => `
+    <div class="rsm2-action-step">
+      <b>${String(i + 1).padStart(2, "0")}</b>
+      <span>${reportTitleSentence(item, 38)}</span>
+      <p>${reportShortText(item, 90)}</p>
+    </div>`).join("");
+  const facts = rsm2TopicFacts(topicKey).slice(0, 3).map((fact) => rsm2MetricCard(fact.指标名称, fact.目标值, `${fact.分位}｜对标 ${fact.对标均值}`)).join("");
+  const main = `<div class="rsm2-metric-strip">${facts}</div><div class="rsm2-action-step-grid">${actions}</div>`;
+  const side = rsm2DecisionPanel(
+    "管理层应承接什么？",
+    config.finding,
+    config.action,
+    "每项动作需要在下一季度复盘时回到指标变化和数据口径。"
+  );
+  return rsm2Page(
+    `rsm2-topic-action-slide rsm2-topic-${topicKey}`,
+    config.module,
+    `${config.num}-${index + 3}`,
+    `${config.module}应从指标差距转成可复盘的管理动作`,
+    `${displayBankName(row.bank)}｜行动承接页｜指标、动作和复核周期绑定`,
+    main,
+    side,
+    ["行动页不使用泛化口号。", "每项动作必须可被指标验证。"]
   );
 }
 
@@ -1212,10 +1485,316 @@ function rsm2TopicTakeawaySlide(topicKey, index) {
 
 function rsm2TopicSequenceSlides(topicKeys = []) {
   return topicKeys.map((key, index) => [
-    rsm2TopicDividerSlide(key, index),
-    rsm2TopicSlide(key),
-    rsm2TopicTakeawaySlide(key, index)
+    rsm2TopicDiagnosticSlide(key, index)
   ].join("")).join("");
+}
+
+function rsm2MainReportTopics() {
+  const fallback = ["profit", "nim", "risk"];
+  const included = fallback.filter((key) => typeof isTopicIncluded === "function" ? isTopicIncluded(key) : true);
+  const candidates = included.length ? included : fallback;
+  return candidates.slice(0, 3);
+}
+
+function rsm2ChartProofSlides() {
+  if (typeof collectChartSlides !== "function") return "";
+  const slides = collectChartSlides();
+  if (!slides.length) return "";
+  const groups = groupedChartSlides(slides);
+  let chartIndex = 0;
+  return groups.map((group, groupIndex) => {
+    const prioritySlides = group.slides.slice(0, 1);
+    return prioritySlides.map((slide, slideIndex) => buildChartSlide(slide, group.kicker, chartIndex++, group.slides, slideIndex)).join("");
+  }).join("");
+}
+
+function rsm2DupontSlide() {
+  const row = targetRecord();
+  const pack = typeof dupontBreakdown === "function" ? dupontBreakdown(row) : null;
+  if (!row || !pack) return "";
+  const nodes = pack.nodes.slice(0, 9).map((node) => `
+    <div class="rsm2-pro-node level-${node.level}">
+      <span>${node.label}</span>
+      <b>${node.value == null ? "暂无" : node.id === "leverage" ? `${node.value.toFixed(2)}x` : `${node.value.toFixed(2)}%`}</b>
+      <em>对标中位 ${node.peer == null ? "暂无" : node.id === "leverage" ? `${node.peer.toFixed(2)}x` : `${node.peer.toFixed(2)}%`}</em>
+      <p>差距 ${node.gap == null ? "暂无" : node.gap.toFixed(2)}</p>
+    </div>`).join("");
+  const drivers = pack.contributions.slice(0, 4).map((item) => `
+    <div class="rsm2-driver-row">
+      <b>${item.label}</b>
+      <span>${item.goodGap == null ? "暂无" : item.goodGap.toFixed(2)}</span>
+      <em>${(item.contributionShare * 100).toFixed(0)}%</em>
+    </div>`).join("");
+  const main = `
+    <div class="rsm2-dupont-grid">${nodes}</div>
+    <div class="rsm2-driver-panel"><span>ROE 差距主要贡献项</span>${drivers}</div>`;
+  const side = rsm2DecisionPanel(
+    "ROE 差距由哪些因子构成？",
+    pack.mainDriver ? `${pack.mainDriver.label}是当前 ROE 差距中权重最高的可解释因子，贡献占比约 ${(pack.mainDriver.contributionShare * 100).toFixed(0)}%。` : "当前数据不足以形成完整分解。",
+    "后续专题应优先验证主驱动因子是否来自结构性问题，而不是只看 ROE 终值。"
+  );
+  return rsm2Page(
+    "rsm2-pro-dupont-slide",
+    "分解引擎",
+    "08B",
+    `${displayBankName(row.bank)}的 ROE 差距需要拆到 ROA、杠杆和收入成本因子`,
+    "DuPont 三级分解｜目标银行 vs 对标组中位数｜差距贡献度用于确定后续专题优先级",
+    main,
+    side,
+    ["Position 只说明位置，Decomposition 解释结构。", "本页把 ROE 从单点指标转成可归因证据链。"]
+  );
+}
+
+function rsm2ProfitAttributionSlide() {
+  const row = targetRecord();
+  const pack = typeof netProfitAttribution === "function" ? netProfitAttribution(row) : null;
+  if (!row || !pack) return "";
+  const maxAbs = Math.max(...pack.items.map((item) => Math.abs(item.value)), 1);
+  const bars = pack.items.map((item) => {
+    const width = Math.max(8, Math.abs(item.value) / maxAbs * 100);
+    const tone = item.value >= 0 ? "pos" : "neg";
+    return `
+      <div class="rsm2-waterfall-row tone-${tone}">
+        <span>${item.label}</span>
+        <div><i style="width:${width}%"></i></div>
+        <b>${metricDisplayValue("netProfit", item.value)}</b>
+      </div>`;
+  }).join("");
+  const main = `
+    <div class="rsm2-waterfall-head">
+      <div><span>${pack.yearFrom} 净利润</span><b>${metricDisplayValue("netProfit", pack.from)}</b></div>
+      <div><span>净变化</span><b>${metricDisplayValue("netProfit", pack.total)}</b></div>
+      <div><span>${pack.yearTo} 净利润</span><b>${metricDisplayValue("netProfit", pack.to)}</b></div>
+    </div>
+    <div class="rsm2-waterfall">${bars}</div>`;
+  const side = rsm2DecisionPanel(
+    "今年净利润变化由什么驱动？",
+    `最大正向贡献为${pack.positive?.label || "暂无"}，最大负向贡献为${pack.negative?.label || "暂无"}。`,
+    "利润归因用于区分主业扩张、息差变化、成本约束和拨备税费因素，避免只看净利润增速。"
+  );
+  return rsm2Page(
+    "rsm2-pro-attribution-slide",
+    "归因引擎",
+    "08C",
+    `${displayBankName(row.bank)}的净利润变化需要拆成规模、息差、中收、成本和拨备税费贡献`,
+    `${pack.yearFrom} → ${pack.yearTo}｜瀑布归因以公开报表字段和 RSM 测算为边界`,
+    main,
+    side,
+    ["Attribution 解释变化来源。", "最大正负贡献项决定下一轮管理复盘的先后顺序。"]
+  );
+}
+
+function rsm2MomentumSlide() {
+  const row = targetRecord();
+  if (!row || typeof sparcMomentumScores !== "function") return "";
+  const cards = sparcMomentumScores().map((item) => `
+    <div class="rsm2-momentum-card tone-${item.momentumScore >= 20 ? "green" : item.momentumScore <= -20 ? "red" : "amber"}">
+      <span>${item.code} ${item.label}</span>
+      <b>${item.momentumScore}</b>
+      <p>${item.metricMomentum.slice(0, 2).map((metric) => `${metric.label}：${metric.direction}`).join("；")}</p>
+    </div>`).join("");
+  const main = `<div class="rsm2-momentum-grid">${cards}</div>`;
+  const side = rsm2DecisionPanel(
+    "哪些指标的位置和趋势不一致？",
+    "动量分用于区分“位置靠前但在下行”和“位置靠后但在改善”，比单一年份分位更适合管理复盘。",
+    "动量为负且静态分位靠后的维度，应进入下一季度优先议题。"
+  );
+  return rsm2Page(
+    "rsm2-pro-momentum-slide",
+    "趋势动量",
+    "08D",
+    `${displayBankName(row.bank)}需要同时看静态位置和趋势动量`,
+    "Trajectory Engine｜基于六年面板识别方向、加速度和拐点",
+    main,
+    side,
+    ["Trajectory 判断趋势是否正在改变。", "动量标签用于校准行动紧迫性。"]
+  );
+}
+
+function rsm2StructuralCycleSlide() {
+  const row = targetRecord();
+  if (!row || typeof structuralCycleTag !== "function") return "";
+  const keys = ["nim", "coreRevenueGrowth", "feeAssetRatio", "npl", "rwaDensity", "pb"];
+  const cards = keys.map((key) => {
+    const tag = structuralCycleTag(key, row);
+    return `
+      <div class="rsm2-structure-card tone-${tag.tag === "结构性" ? "red" : tag.tag === "混合" ? "amber" : "blue"}">
+        <span>${tag.label}</span>
+        <b>${tag.tag}</b>
+        <p>${reportShortText(tag.note, 88)}</p>
+      </div>`;
+  }).join("");
+  const main = `<div class="rsm2-structure-grid">${cards}</div>`;
+  const side = rsm2DecisionPanel(
+    "差距是行业共性还是自身结构问题？",
+    "结构性标签用于判断是否需要主动干预；周期性标签用于判断是否更多来自行业共同压力。",
+    "被识别为结构性或混合的指标，应进入专题机制解释和行动优先矩阵。"
+  );
+  return rsm2Page(
+    "rsm2-pro-structure-slide",
+    "结构归因",
+    "08E",
+    `${displayBankName(row.bank)}的指标偏离需要区分结构性、周期性和混合因素`,
+    "Structural vs Cyclical｜用同类型均值趋势和标准差偏离识别差距性质",
+    main,
+    side,
+    ["结构性问题需要主动管理动作。", "周期性问题需要在报告中保留行业边界。"]
+  );
+}
+
+function rsm2ActionPrioritySlide() {
+  const row = targetRecord();
+  if (!row || typeof actionPriorityMatrix !== "function") return "";
+  const actions = actionPriorityMatrix(row).slice(0, 6).map((item, index) => `
+    <div class="rsm2-priority-row">
+      <b>${String(index + 1).padStart(2, "0")}</b>
+      <span>${item.label}</span>
+      <em>${item.total}</em>
+      <p>影响度 ${item.impact.toFixed(0)}｜可改善性 ${item.feasibility.toFixed(0)}｜紧迫性 ${item.urgency.toFixed(0)}</p>
+    </div>`).join("");
+  const main = `<div class="rsm2-priority-list">${actions}</div>`;
+  const side = rsm2DecisionPanel(
+    "管理动作先做哪三件？",
+    "行动优先级由影响度、可改善性和紧迫性三项加权形成，避免只按分数低高排序。",
+    "Top 3 指标应进入 0-3 个月工作包，并在后续 KPI 目标页设定复盘口径。"
+  );
+  return rsm2Page(
+    "rsm2-pro-priority-slide",
+    "行动优先级",
+    "09B",
+    `${displayBankName(row.bank)}的行动排序应由影响度、可改善性和紧迫性共同决定`,
+    "Action Prioritization｜从低分位指标升级为管理动作优先矩阵",
+    main,
+    side,
+    ["行动排序需要量化理由。", "优先级不是结论，而是下一季度资源配置依据。"]
+  );
+}
+
+function rsm2WhatIfSlide() {
+  const row = targetRecord();
+  if (!row || typeof defaultScenarioSet !== "function") return "";
+  const scenarios = defaultScenarioSet(row).map((item) => `
+    <div class="rsm2-whatif-card tone-${item.result?.delta < -3 ? "red" : item.result?.delta < 0 ? "amber" : "green"}">
+      <span>${item.label}</span>
+      <b>${item.result ? `${item.result.delta > 0 ? "+" : ""}${item.result.delta} 分` : "暂无"}</b>
+      <p>${item.description}｜VQA ${item.result?.base?.score ?? "暂无"} → ${item.result?.after?.score ?? "暂无"}</p>
+    </div>`).join("");
+  const main = `<div class="rsm2-whatif-grid">${scenarios}</div>`;
+  const side = rsm2DecisionPanel(
+    "如果关键假设变化，VQA 结果会怎样？",
+    "What-if 引擎用临时情景重算 VQA 分数，帮助董事会理解息差、风险和资本约束的敏感性。",
+    "正式汇报时可把本页作为压力测试页，不替代预算预测。"
+  );
+  return rsm2Page(
+    "rsm2-pro-whatif-slide",
+    "情景模拟",
+    "10C",
+    `${displayBankName(row.bank)}的 VQA 评分对息差、风险和资本假设存在不同敏感性`,
+    "What-if Engine｜前端即时重算，不改变基础数据，只用于压力情景讨论",
+    main,
+    side,
+    ["Scenario 解释未来变化。", "本页把静态诊断转为可讨论的压力测试。"]
+  );
+}
+
+function rsm2ThreeContradictionsSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const diagnosis = computeVqaDiagnosis(row, peerRecords());
+  const explainers = topicExplainerRows(row, peerRecords(), diagnosis);
+  const cards = [
+    ["01", "资本约束矛盾", "规模扩张与资本内生增速之间需要重新校准。", explainers.find((item) => item.topic.includes("资本"))?.action || "以风险调整回报约束新增资产。"],
+    ["02", "资产质量矛盾", "账面风险指标与前移风险指标需要同步观察。", explainers.find((item) => item.topic.includes("风险"))?.action || "建立逾期、关注和隐性不良的月度看板。"],
+    ["03", "战略转化矛盾", "资产规模未完全转化为轻资本收入和估值支撑。", explainers.find((item) => item.topic.includes("盈利"))?.action || "拆分核心营收和手续费资产比的改善路径。"]
+  ].map(([num, title, text, action]) => `
+    <div class="rsm2-contradiction-card">
+      <b>${num}</b>
+      <span>${title}</span>
+      <p>${reportShortText(text, 80)}</p>
+      <em>${reportShortText(action, 76)}</em>
+    </div>`).join("");
+  const main = `<div class="rsm2-contradiction-grid">${cards}</div>`;
+  const side = rsm2DecisionPanel(
+    "专题证据最后收敛到什么？",
+    `${displayBankName(row.bank)}的管理问题可收敛为资本约束、资产质量和战略转化三类矛盾。`,
+    "董事会应围绕三类矛盾设定季度复盘议题，而不是逐项讨论所有指标。"
+  );
+  return rsm2Page(
+    "rsm2-contradictions-slide",
+    "三大矛盾",
+    "09A",
+    `${displayBankName(row.bank)}的专题证据最终收敛为三类董事会议题`,
+    "Answer 起点｜从分散证据回到可批准、可追踪的管理议题",
+    main,
+    side,
+    ["三大矛盾是全篇证据的收束。", "行动地图必须逐项对应这三类矛盾。"]
+  );
+}
+
+function rsm2KpiTargetSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const keys = ["roa", "nim", "npl", "feeAssetRatio"];
+  const cards = keys.map((key) => {
+    const peer = avg(peerRecords(), key);
+    const direction = metricDirection(key);
+    const current = row[key];
+    const target = current == null || peer == null ? null : direction ? Math.max(current, peer) : Math.min(current, peer);
+    return `
+      <div class="rsm2-target-card">
+        <span>${fieldName(key)}</span>
+        <b>${metricDisplayValue(key, current)}</b>
+        <em>12 个月参照目标 ${metricDisplayValue(key, target)}</em>
+        <p>对标均值 ${metricDisplayValue(key, peer)}｜${rsm2MetricRankText(key, row)}</p>
+      </div>`;
+  }).join("");
+  const main = `<div class="rsm2-target-grid">${cards}</div>`;
+  const side = rsm2DecisionPanel(
+    "12 个月后如何判断动作是否有效？",
+    "用 ROA、NIM、不良率和手续费资产比四类指标同时复核，避免单项指标改善掩盖结构问题。",
+    "目标值采用对标均值作为参照锚点，正式汇报前可由管理层调整为年度预算口径。"
+  );
+  return rsm2Page(
+    "rsm2-kpi-target-slide",
+    "指标目标",
+    "10A",
+    `${displayBankName(row.bank)}的行动成效应通过四类指标同步验证`,
+    "当前值 → 12 个月参照目标｜目标值先采用对标均值锚定，后续可替换为预算指标",
+    main,
+    side,
+    ["目标页把行动建议转成复盘口径。", "每项目标都可追溯到当前值和对标均值。"]
+  );
+}
+
+function rsm2PressureScenarioSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const scenarios = [
+    ["基线情景", "资产收益率与负债成本按当前趋势延续", "维持季度复盘，优先修复低分位指标。", "blue"],
+    ["压力情景", "净息差再下行、核心营收低于对标均值", "收紧低收益扩表，前移负债成本和风险迁徙复核。", "amber"],
+    ["修复情景", "轻资本收入改善并带动核心营收回到对标均值", "将客户经营、结算沉淀和财富管理纳入专项项目。", "green"]
+  ].map(([title, trigger, action, tone]) => `
+    <div class="rsm2-scenario-card tone-${tone}">
+      <span>${title}</span>
+      <b>${reportTitleSentence(trigger, 36)}</b>
+      <p>${reportShortText(action, 84)}</p>
+    </div>`).join("");
+  const main = `<div class="rsm2-scenario-grid">${scenarios}</div>`;
+  const side = rsm2DecisionPanel(
+    "如果外部环境继续变化，报告结论如何使用？",
+    "压力情景不改变当前证据链，只改变行动优先级和复盘频率。",
+    "董事会可将三套情景作为下一季度经营复盘的议程模板。"
+  );
+  return rsm2Page(
+    "rsm2-pressure-slide",
+    "压力情景",
+    "10B",
+    `${displayBankName(row.bank)}应把当前诊断转为三套经营复盘情景`,
+    "Scenario Planning｜基线、压力、修复三套情景对应不同管理动作",
+    main,
+    side,
+    ["情景页帮助董事会在不确定环境下使用报告。", "情景触发条件必须回到指标。"]
+  );
 }
 
 function rsm2ActionRoadmapSlide() {
@@ -1315,15 +1894,27 @@ function buildPrintDeck() {
   const deckParts = [
     cover,
     rsm2AgendaSlide(),
+    shouldIncludeDeckSection("scope") || shouldIncludeDeckSection("methodology") ? rsm2ScopeMethodSlide() : "",
     shouldIncludeDeckSection("executive") ? rsm2ExecutiveSlide() : "",
     shouldIncludeDeckSection("executive") ? rsm2PresidentOnePageSlide() : "",
     shouldIncludeDeckSection("executive") ? rsm2KeyFigureSlide() : "",
-    shouldIncludeDeckSection("scope") || shouldIncludeDeckSection("methodology") ? rsm2ScopeMethodSlide() : "",
+    shouldIncludeDeckSection("methodology") ? rsm2NorthStarSlide() : "",
+    shouldIncludeDeckSection("methodology") ? rsm2FrameworkApplicationSlide() : "",
     shouldIncludeDeckSection("storyline") ? rsm2StorylineMapSlide() : "",
-    rsm2PeerGroupProfileSlide(),
+    rsm2IndustryAnchorSlide(),
     rsm2SparcOverviewSlide(),
-    shouldIncludeDeckSection("topics") ? rsm2TopicSequenceSlides(["profit", "nim", "risk", "capital", "valuation"].filter((key) => typeof isTopicIncluded === "function" ? isTopicIncluded(key) : true)) : "",
+    shouldIncludeDeckSection("charts") || shouldIncludeDeckSection("topics") ? rsm2DupontSlide() : "",
+    shouldIncludeDeckSection("charts") || shouldIncludeDeckSection("topics") ? rsm2ProfitAttributionSlide() : "",
+    shouldIncludeDeckSection("charts") || shouldIncludeDeckSection("topics") ? rsm2MomentumSlide() : "",
+    shouldIncludeDeckSection("charts") || shouldIncludeDeckSection("topics") ? rsm2StructuralCycleSlide() : "",
+    shouldIncludeDeckSection("charts") && state.reportVersion === "专项分析版" ? rsm2ChartProofSlides() : "",
+    shouldIncludeDeckSection("topics") ? rsm2TopicSequenceSlides(rsm2MainReportTopics()) : "",
+    shouldIncludeDeckSection("action") ? rsm2ThreeContradictionsSlide() : "",
+    shouldIncludeDeckSection("action") ? rsm2ActionPrioritySlide() : "",
     shouldIncludeDeckSection("action") ? rsm2ActionRoadmapSlide() : "",
+    shouldIncludeDeckSection("action") ? rsm2KpiTargetSlide() : "",
+    shouldIncludeDeckSection("action") ? rsm2PressureScenarioSlide() : "",
+    shouldIncludeDeckSection("action") ? rsm2WhatIfSlide() : "",
     rsm2QualityGateSlide(),
     shouldIncludeDeckSection("appendix") ? rsm2AppendixSlide() : ""
   ];

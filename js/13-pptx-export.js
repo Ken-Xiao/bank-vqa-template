@@ -20,7 +20,12 @@ function loadScript(url) {
 
 async function ensurePptxLoaded() {
   if (ensurePptxLib()) return;
-  await loadScript("https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js");
+  try {
+    await loadScript("vendor/pptxgen.bundle.js");
+  } catch (localError) {
+    await loadScript("https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js");
+  }
+  if (!ensurePptxLib()) throw new Error("PptxGenJS loaded but window.PptxGenJS is unavailable");
 }
 
 function rsmPptxTheme() {
@@ -255,6 +260,33 @@ function slideTextBlocks(slideEl) {
   const methodCards = [...slideEl.querySelectorAll(".print-method-card")].map((el) => `${el.querySelector("b")?.textContent || ""}：${el.querySelector("p")?.textContent || ""}`);
   const topics = [...slideEl.querySelectorAll(".print-topic")].map((el) => `${el.querySelector("b")?.textContent || ""}：${[...el.querySelectorAll("p")].map((p) => p.textContent.trim()).join(" ")}`);
   const actionCards = [...slideEl.querySelectorAll(".print-action-card")].map((el) => `${el.querySelector("b")?.textContent || ""}：${[...el.querySelectorAll("li")].map((li) => li.textContent.trim()).join("；")}`);
+  const rsm2ProofCards = [...slideEl.querySelectorAll([
+    ".rsm2-pro-node",
+    ".rsm2-driver-row",
+    ".rsm2-waterfall-head > div",
+    ".rsm2-waterfall-row",
+    ".rsm2-momentum-card",
+    ".rsm2-structure-card",
+    ".rsm2-priority-row",
+    ".rsm2-whatif-card",
+    ".rsm2-diagnostic-evidence",
+    ".rsm2-topic-takeaway-card",
+    ".rsm2-anchor-card",
+    ".rsm2-target-card",
+    ".rsm2-key-figure-card",
+    ".rsm2-sparc-card",
+    ".rsm2-traffic-card"
+  ].join(","))].map((el) => {
+    const label = el.querySelector("span")?.textContent?.trim() || el.querySelector("b")?.textContent?.trim() || "";
+    const value = el.querySelector("b, em")?.textContent?.trim() || "";
+    const note = [...el.querySelectorAll("p, em")].map((item) => item.textContent?.trim()).filter(Boolean).join("；");
+    return `${label}：${value}${note ? `｜${note}` : ""}`;
+  });
+  const rsm2DecisionLines = [...slideEl.querySelectorAll(".rsm2-decision-panel div")].map((el) => {
+    const label = el.querySelector("span")?.textContent?.trim() || "";
+    const note = el.querySelector("p")?.textContent?.trim() || "";
+    return `${label}：${note}`;
+  });
   const consultingCards = [...slideEl.querySelectorAll(".consulting-question-card, .consulting-answer-card, .consulting-pyramid-row")].map((el) => {
     const label = el.querySelector("span, b")?.textContent?.trim() || "";
     const title = el.querySelector("h3")?.textContent?.trim() || "";
@@ -291,7 +323,7 @@ function slideTextBlocks(slideEl) {
     methodCards: pptxKeyLines(methodCards, 8, 70),
     topics: pptxKeyLines(topics, 8, 68),
     actionCards: pptxKeyLines(actionCards, 6, 68),
-    consultingCards: pptxKeyLines([...consultingCards, ...executiveCards], 8, 76),
+    consultingCards: pptxKeyLines([...rsm2ProofCards, ...rsm2DecisionLines, ...consultingCards, ...executiveCards], 8, 76),
     coverTitle,
     coverSub,
     coverVqa: pptxShortText(coverVqa, 120),
@@ -1028,7 +1060,9 @@ async function downloadPptxReport() {
     if (typeof recordExportHistory === "function") recordExportHistory("PPTX");
     setProjectStatus(`PPTX 已导出：${filename}，版式对齐苏农汇报材料（${theme.slideW}×${theme.slideH} in）。`);
   } catch (error) {
-    setProjectStatus("PPTX 导出失败，请确认已通过本地 HTTP 服务打开并允许加载 PptxGenJS。");
+    console.error("PPTX export failed", error);
+    const message = error?.message ? `（${error.message}）` : "";
+    setProjectStatus(`PPTX 导出失败${message}。已内置本地 PPTX 引擎；如仍失败，请先导出 HTML 汇报稿或查看控制台错误。`);
   }
 }
 
