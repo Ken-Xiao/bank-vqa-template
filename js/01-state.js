@@ -24,6 +24,7 @@ var records = data.records || [];
 var banks = data.banks || [];
 var analysisRules = null;
 var metricDictionary = {};
+var languageDiscipline = null;
 
 var metricLabel = {
   roa: "总资产收益率",

@@ -3,7 +3,102 @@
     "name": "银行董办对标分析工具",
     "audience": ["董事会办公室", "战略管理部", "财务管理部", "资本市场沟通团队"],
     "defaultOutput": "董事会汇报版",
-    "rulesVersion": "2026.05.3"
+    "rulesVersion": "2026.05.4-v3"
+  },
+  "sparc_vqa_mapping": {
+    "scale": {
+      "code": "S",
+      "label": "规模与结构",
+      "question": "业务体量和结构是否支撑同业位置？",
+      "vqaDimensions": ["profit", "capital"],
+      "metrics": [
+        { "key": "assetGrowth", "label": "总资产增速", "higher": true, "weight": 0.3 },
+        { "key": "loanAssetRatio", "label": "贷款/资产", "higher": true, "weight": 0.35 },
+        { "key": "depositLiabilityRatio", "label": "存款/负债", "higher": true, "weight": 0.35 }
+      ]
+    },
+    "profit": {
+      "code": "P",
+      "label": "盈利能力",
+      "question": "赚钱能力和盈利质量是否可持续？",
+      "vqaDimensions": ["profit", "nim"],
+      "metrics": [
+        { "key": "roe", "label": "ROE", "higher": true, "weight": 0.25 },
+        { "key": "roa", "label": "ROA", "higher": true, "weight": 0.3 },
+        { "key": "nim", "label": "净息差", "higher": true, "weight": 0.25 },
+        { "key": "costIncomeRatio", "label": "成本收入比", "higher": false, "weight": 0.2 }
+      ]
+    },
+    "asset": {
+      "code": "A",
+      "label": "资产质量",
+      "question": "资产质量是否干净，风险确认是否充分？",
+      "vqaDimensions": ["risk"],
+      "metrics": [
+        { "key": "npl", "label": "不良率", "higher": false, "weight": 0.25 },
+        { "key": "provisionCoverage", "label": "拨备覆盖率", "higher": true, "weight": 0.25 },
+        { "key": "specialMentionRatio", "label": "关注类贷款占比", "higher": false, "weight": 0.2 },
+        { "key": "overdueNplDeviation", "label": "逾期偏离", "higher": false, "weight": 0.3 }
+      ]
+    },
+    "risk": {
+      "code": "R",
+      "label": "风险与资本",
+      "question": "资本安全垫和扩表纪律是否足够？",
+      "vqaDimensions": ["risk", "capital"],
+      "metrics": [
+        { "key": "cet1", "label": "核心一级资本充足率", "higher": true, "weight": 0.2 },
+        { "key": "cet1Buffer", "label": "核心一级资本余量", "higher": true, "weight": 0.3 },
+        { "key": "carBuffer", "label": "资本充足率余量", "higher": true, "weight": 0.25 },
+        { "key": "rwaDensity", "label": "RWA 密度", "higher": false, "weight": 0.25 }
+      ]
+    },
+    "capability": {
+      "code": "C",
+      "label": "能力与效率",
+      "question": "运营机器效率和轻资本能力是否领先？",
+      "vqaDimensions": ["profit", "valuation"],
+      "metrics": [
+        { "key": "costIncomeRatio", "label": "成本收入比", "higher": false, "weight": 0.25 },
+        { "key": "feeAssetRatio", "label": "手续费资产比", "higher": true, "weight": 0.3 },
+        { "key": "adminAssetRatio", "label": "管理费用/资产", "higher": false, "weight": 0.2 },
+        { "key": "cashProfitRatio", "label": "经营现金流/净利润", "higher": true, "weight": 0.25 }
+      ]
+    }
+  },
+  "analysis_templates": {
+    "city_commercial_bank": {
+      "label": "城商行分析方案",
+      "bankTypeIncludes": "城市商业银行",
+      "peerTemplate": "sameRegion",
+      "defaultTopics": ["profit", "nim", "risk"],
+      "reportVersion": "管理层行动版",
+      "rationale": "优先选择同区域城商行，先看盈利、息差和资产质量。"
+    },
+    "rural_commercial_bank": {
+      "label": "农商行分析方案",
+      "bankTypeIncludes": "农村商业银行",
+      "peerTemplate": "sameRegion",
+      "defaultTopics": ["profit", "risk", "capital"],
+      "reportVersion": "董事会完整汇报版",
+      "rationale": "优先选择同省与邻近区域农商行，先看盈利、风险和资本安全垫。"
+    },
+    "joint_stock_bank": {
+      "label": "股份行分析方案",
+      "bankTypeIncludes": "股份行",
+      "peerTemplate": "sameType",
+      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation"],
+      "reportVersion": "资本市场沟通版",
+      "rationale": "以全部股份行作为对标组，完整展开五类专题。"
+    },
+    "state_owned_bank": {
+      "label": "国有大行分析方案",
+      "bankTypeIncludes": "国有大行",
+      "peerTemplate": "sameType",
+      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation"],
+      "reportVersion": "董事会完整汇报版",
+      "rationale": "以其余国有大行作为参照，重点验证资本效率和经营质量。"
+    }
   },
   "inputs": {
     "targetBank": {

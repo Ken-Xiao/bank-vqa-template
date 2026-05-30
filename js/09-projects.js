@@ -195,6 +195,8 @@ function peerRecommendationReasons(template = state.peerTemplate) {
   const target = targetRecord() || latest(state.target);
   if (!target) return ["请先选择目标银行。"];
   const reasons = [];
+  const analysisTemplate = typeof recommendedAnalysisTemplate === "function" ? recommendedAnalysisTemplate(target) : null;
+  if (analysisTemplate) reasons.push(`推荐分析方案：${analysisTemplate.label}。${analysisTemplate.rationale || "已按银行类型预设对标组、专题和报告口径。"}`);
   if (template === "sameType") reasons.push(`同银行类型：优先匹配 ${target.type || "同类型"} 样本，便于解释类型共性下的个体偏离。`);
   if (template === "sameRegion") reasons.push(`同区域或相近经营模式：优先匹配 ${target.region || "同区域"} 样本，便于区分区域因素与个体能力。`);
   if (template === "sameScale") reasons.push(`资产规模相近：以总资产 ${target.assets == null ? "暂无" : `${Math.round(target.assets / 10000)} 亿元级`} 为锚，避免大小行差异掩盖经营质量。`);

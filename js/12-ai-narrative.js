@@ -114,6 +114,46 @@ function saveTopicNarrativeEdit(topicId, channel, text) {
   buildPrintDeck();
 }
 
+function narrativeRiskForFact(fact) {
+  if (!fact || typeof calibrationRiskItems !== "function") return null;
+  const risks = calibrationRiskItems();
+  return risks.find((item) => item.key === fact.指标代码) || null;
+}
+
+function narrativeRiskSuffix(facts = []) {
+  const ranked = facts
+    .map((fact) => narrativeRiskForFact(fact))
+    .filter(Boolean)
+    .sort((a, b) => {
+      const rank = { red: 4, orange: 3, yellow: 2, green: 1 };
+      return (rank[b.level] || 0) - (rank[a.level] || 0);
+    });
+  const risk = ranked[0];
+  if (!risk || risk.level === "green") return "";
+  const riskLanguage = languageDiscipline?.riskLanguage?.[risk.level] || {};
+  if (risk.level === "red") return `${risk.label}当前口径不足以支撑对标结论，相关段落已降级为待补数据事项。`;
+  if (risk.level === "orange") return `${risk.label}数据显示存在偏高或偏低信号，但因${risk.risk}，不宜形成强结论。`;
+  return `${risk.label}需保留口径脚注：${risk.risk}。${riskLanguage.suffix || ""}`;
+}
+
+function downgradeNarrativeByRisk(text, facts = []) {
+  const levels = facts.map((fact) => narrativeRiskForFact(fact)?.level).filter(Boolean);
+  let result = String(text || "");
+  if (levels.includes("red")) {
+    result = result
+      .replace(/高于对标均值|低于对标均值|高于对标组参照水平|低于对标组参照水平/g, "暂不形成强对标判断")
+      .replace(/形成连续改善证据/g, "先补齐口径后再形成连续证据");
+  } else if (levels.includes("orange")) {
+    result = result
+      .replace(/高于对标均值/g, "数据显示偏高")
+      .replace(/低于对标均值/g, "数据显示偏低")
+      .replace(/高于对标组参照水平/g, "数据显示偏高")
+      .replace(/低于对标组参照水平/g, "数据显示偏低");
+  }
+  const suffix = narrativeRiskSuffix(facts);
+  return suffix ? `${result} ${suffix}` : result;
+}
+
 function generateTopicNarrativeDraft(topic, facts, channel) {
   const base = topicAiDraft(topic, facts);
   const pack = buildTopicFactPackObject(topic.id);
@@ -137,7 +177,7 @@ function generateTopicNarrativeDraft(topic, facts, channel) {
   const next = channel === "action"
     ? `${topic.actions.slice(0, 2).join("；")}。优先跟踪：${citations.map((f) => f.指标名称).join("、")}。`
     : `建议围绕${citations.map((f) => f.指标名称).join("、")}形成连续改善证据，并回到事实包复核。`;
-  const text = sanitizeComplianceText(`${why} ${meaning} ${next} 依据指标：${evidenceText}。`, topic.forbiddenPhrases);
+  const text = sanitizeComplianceText(downgradeNarrativeByRisk(`${why} ${meaning} ${next} 依据指标：${evidenceText}。`, citations), topic.forbiddenPhrases);
   if (channel === "board") return text || base.board;
   if (channel === "market") return text || base.market;
   return text || base.action;

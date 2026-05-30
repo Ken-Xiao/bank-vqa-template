@@ -58,6 +58,29 @@ async function loadMetricDictionary() {
   }
 }
 
+async function loadLanguageDiscipline() {
+  try {
+    const response = await fetch("config/language_discipline.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("language discipline unavailable");
+    languageDiscipline = await response.json();
+  } catch (error) {
+    languageDiscipline = { narrativeReplacements: {}, uiReplacements: {}, errorReplacements: {}, riskLanguage: {} };
+  }
+}
+
+function applyLanguageReplacements(text, scope = "narrative") {
+  const maps = [];
+  if (scope === "ui") maps.push(languageDiscipline?.uiReplacements || {});
+  if (scope === "error") maps.push(languageDiscipline?.errorReplacements || {});
+  maps.push(languageDiscipline?.narrativeReplacements || {});
+  return maps.reduce((result, replacements) => {
+    Object.entries(replacements || {}).forEach(([from, to]) => {
+      if (from) result = result.split(from).join(to);
+    });
+    return result;
+  }, String(text || ""));
+}
+
 function metricDictionaryEntry(key) {
   return metricDictionary[key] || null;
 }
@@ -221,7 +244,7 @@ function openMetricDetail(key) {
 
 function sanitizeComplianceText(text, extraForbidden = []) {
   const forbidden = [...new Set([...(analysisRules?.complianceLanguage?.forbidden || []), ...extraForbidden])];
-  let result = String(text || "");
+  let result = applyLanguageReplacements(text, "narrative");
   forbidden.forEach((phrase) => {
     if (!phrase) return;
     result = result.split(phrase).join("需要进一步验证");

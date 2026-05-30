@@ -1,5 +1,11 @@
 {
-  "version": "2026.05.1",
+  "version": "2026.05.2-v3",
+  "templateLibrary": {
+    "structure": "topic × signal × channel",
+    "outputOrder": ["结论", "证据", "机制", "管理含义"],
+    "riskInstruction": "当事实包指标口径风险为L2时追加脚注；L3时使用偏高/偏低但不宜形成强结论；L4时隐藏强对标段落并提示口径不足。",
+    "languageInstruction": "统一使用同业位置、可比边界、结论强度、行动优先级四层语言，禁止投资建议式表达。"
+  },
   "channels": {
     "board": {
       "label": "董事会版解读",

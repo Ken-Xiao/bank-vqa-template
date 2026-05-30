@@ -58,6 +58,27 @@ function updateClientCommandCenter() {
 }
 
 function sparcDimensions() {
+  const configured = analysisRules?.sparc_vqa_mapping;
+  if (configured && typeof configured === "object") {
+    const order = ["scale", "profit", "asset", "risk", "capability"];
+    return order.map((id) => {
+      const item = configured[id];
+      if (!item) return null;
+      return {
+        id,
+        code: item.code,
+        label: item.label,
+        question: item.question,
+        vqaDimensions: item.vqaDimensions || [],
+        metrics: (item.metrics || []).map((metric) => ({
+          key: metric.key,
+          label: metric.label || fieldName(metric.key),
+          higher: metric.higher !== false,
+          weight: metric.weight ?? 1
+        }))
+      };
+    }).filter(Boolean);
+  }
   return [
     {
       id: "scale",
@@ -145,8 +166,9 @@ function sparcDimensionScores(row = targetRecord()) {
       score: sparcMetricScore(row, metric.key, metric.higher, rows),
       peerAvg: avg(rows.filter((item) => item.bank !== row?.bank), metric.key)
     }));
-    const valid = metricScores.map((metric) => metric.score).filter((score) => score != null);
-    const score = valid.length ? valid.reduce((sum, item) => sum + item, 0) / valid.length : null;
+    const valid = metricScores.filter((metric) => metric.score != null);
+    const weightSum = valid.reduce((sum, item) => sum + (item.weight || 1), 0) || valid.length;
+    const score = valid.length ? valid.reduce((sum, item) => sum + item.score * (item.weight || 1), 0) / weightSum : null;
     const weakestMetric = metricScores.filter((metric) => metric.score != null).sort((a, b) => a.score - b.score)[0];
     return { ...dimension, score, metricScores, weakestMetric };
   });

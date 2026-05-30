@@ -331,16 +331,40 @@ function peerTemplateBanks(template = state.peerTemplate) {
 function defaultPeerTemplateForTarget() {
   const target = targetRecord() || latest(state.target);
   if (!target) return "manual";
+  const productTemplate = recommendedAnalysisTemplate(target);
+  if (productTemplate?.peerTemplate) return productTemplate.peerTemplate;
   if ((target.type || "").includes("国有") || (target.type || "").includes("股份")) return "sameType";
   if ((target.type || "").includes("城市商业")) return "sameRegion";
   if ((target.type || "").includes("农村商业")) return "sameRegion";
   return "sameType";
 }
 
+function recommendedAnalysisTemplate(target = targetRecord() || latest(state.target)) {
+  if (!target) return null;
+  const templates = analysisRules?.analysis_templates || {};
+  return Object.values(templates).find((template) => {
+    const needle = template.bankTypeIncludes;
+    return needle && String(target.type || "").includes(needle);
+  }) || null;
+}
+
+function applyRecommendedAnalysisTemplate(target = targetRecord() || latest(state.target)) {
+  const template = recommendedAnalysisTemplate(target);
+  if (!template) return;
+  state.reportVersion = template.reportVersion || state.reportVersion;
+  if (template.defaultTopics?.length && typeof ensureIncludedTopics === "function") {
+    ensureIncludedTopics();
+    topicDefinitions().forEach((topic) => {
+      state.includedTopics[topic.id] = template.defaultTopics.includes(topic.id);
+    });
+  }
+}
+
 function refreshDefaultPeersForTarget() {
   const template = defaultPeerTemplateForTarget();
   state.peerTemplate = template;
   state.peers = peerTemplateBanks(template);
+  applyRecommendedAnalysisTemplate();
 }
 
 function applyPeerTemplate(template) {

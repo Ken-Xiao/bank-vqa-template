@@ -1105,6 +1105,15 @@ function rsm2TopicConfig(topicKey) {
       finding: byNeedle("资本").logic || "资本市场定价需要由 ROA、资本余量、RWA 密度和风险确认共同解释。",
       action: byNeedle("资本").action || "用 ROA、资本余量、RWA 密度和 PB 建立季度价值质量复盘。",
       keys: [["pb", "PB"], ["roa", "ROA"], ["cet1Buffer", "核心一级资本缓冲"], ["rwaDensity", "RWA 密度"]]
+    },
+    valuation: {
+      module: "估值验证",
+      num: "08A",
+      title: "估值验证不直接讨论低估，而是验证经营质量是否支撑价值错配判断",
+      question: "PB 折价是价值错配，还是经营质量折价？",
+      finding: byNeedle("估值").logic || "PB 需要与 ROA、核心营收、风险确认和资本余量联读。",
+      action: byNeedle("估值").action || "将估值沟通从单一 PB 切换为经营质量证据链。",
+      keys: [["pb", "PB"], ["pbMid", "年中 PB"], ["roa", "ROA"], ["coreRevenueGrowth", "核心营收增速"]]
     }
   };
   return configs[topicKey];
@@ -1133,6 +1142,80 @@ function rsm2TopicSlide(topicKey) {
     side,
     ["本页一个专题只证明一个管理判断。", "证据表保留目标值、参照值和解释口径。"]
   );
+}
+
+function rsm2KeyFigureSlide() {
+  const row = targetRecord();
+  if (!row) return "";
+  const story = consultingStoryline(row);
+  const figures = [
+    ["ROA", "roa", "回报底盘"],
+    ["NIM", "nim", "息差防守"],
+    ["不良率", "npl", "风险结果"],
+    ["核心一级资本余量", "cet1Buffer", "资本安全垫"]
+  ].map(([label, key, note]) => `
+    <div class="rsm2-key-figure-card">
+      <span>${label}</span>
+      <b>${rsm2Value(key, row)}</b>
+      <em>对标均值 ${rsm2PeerValue(key)}</em>
+      <p>${note}</p>
+    </div>`).join("");
+  return rsmContentSlide(
+    "rsm2-key-figure-slide",
+    "关键数字锚定",
+    "02B",
+    `${displayBankName(row.bank)}本轮先用四个数字锚定经营质量位置`,
+    `${story.client_question}｜数字只用于锚定，结论仍回到后续证据链`,
+    `<div class="rsm2-key-figure-grid">${figures}</div>`,
+    reportStoryNote("数字阅读方式", ["先看目标值与对标均值的差距", "再看该指标属于回报、息差、风险还是资本", "最后进入专题页解释形成机制"])
+  );
+}
+
+function rsm2TopicDividerSlide(topicKey, index) {
+  const config = rsm2TopicConfig(topicKey);
+  const topic = topicDefinitions().find((item) => item.id === topicKey);
+  const facts = topic ? topicFactPackRows(topic.id) : [];
+  const judgement = topic ? topicJudgement(topic.id, facts) : null;
+  return `
+    <section class="print-slide rsm2-divider-slide" data-deck-type="section">
+      <div class="rsm2-divider-inner">
+        <span>SPARC / VQA 专题 ${String(index + 1).padStart(2, "0")}</span>
+        <h2>${config.module}</h2>
+        <p>${reportShortText(config.question, 96)}</p>
+        <div class="rsm2-divider-signal">${judgement?.signal || "专题判断待形成"}</div>
+      </div>
+    </section>`;
+}
+
+function rsm2TopicTakeawaySlide(topicKey, index) {
+  const config = rsm2TopicConfig(topicKey);
+  const topic = topicDefinitions().find((item) => item.id === topicKey);
+  const facts = topic ? topicFactPackRows(topic.id) : [];
+  const judgement = topic ? topicJudgement(topic.id, facts) : null;
+  const evidence = (judgement?.evidence || facts).slice(0, 3).map((fact) => `
+    <div class="rsm2-topic-takeaway-card">
+      <span>${fact.指标名称}</span>
+      <b>${fact.目标值}</b>
+      <p>${fact.分位 || "分位待补"}｜对标均值 ${fact.对标均值}</p>
+    </div>`).join("");
+  return rsm2Page(
+    "rsm2-topic-takeaway-slide",
+    `${config.module}小结`,
+    `${config.num}-S`,
+    `${config.module}小结应收束为三条证据和一个管理动作`,
+    `${displayBankName(targetRecord()?.bank || state.target)}｜专题 ${String(index + 1).padStart(2, "0")}`,
+    `<div class="rsm2-topic-takeaway-grid">${evidence}</div>`,
+    rsm2DecisionPanel(config.question, judgement?.headline || config.finding, config.action),
+    ["章节小结用于降低报告阅读负荷。", "小结页只保留已可复核的证据和管理含义。"]
+  );
+}
+
+function rsm2TopicSequenceSlides(topicKeys = []) {
+  return topicKeys.map((key, index) => [
+    rsm2TopicDividerSlide(key, index),
+    rsm2TopicSlide(key),
+    rsm2TopicTakeawaySlide(key, index)
+  ].join("")).join("");
 }
 
 function rsm2ActionRoadmapSlide() {
@@ -1234,14 +1317,12 @@ function buildPrintDeck() {
     rsm2AgendaSlide(),
     shouldIncludeDeckSection("executive") ? rsm2ExecutiveSlide() : "",
     shouldIncludeDeckSection("executive") ? rsm2PresidentOnePageSlide() : "",
+    shouldIncludeDeckSection("executive") ? rsm2KeyFigureSlide() : "",
     shouldIncludeDeckSection("scope") || shouldIncludeDeckSection("methodology") ? rsm2ScopeMethodSlide() : "",
     shouldIncludeDeckSection("storyline") ? rsm2StorylineMapSlide() : "",
     rsm2PeerGroupProfileSlide(),
     rsm2SparcOverviewSlide(),
-    shouldIncludeDeckSection("topics") ? rsm2TopicSlide("profit") : "",
-    shouldIncludeDeckSection("topics") ? rsm2TopicSlide("nim") : "",
-    shouldIncludeDeckSection("topics") ? rsm2TopicSlide("risk") : "",
-    shouldIncludeDeckSection("topics") ? rsm2TopicSlide("capital") : "",
+    shouldIncludeDeckSection("topics") ? rsm2TopicSequenceSlides(["profit", "nim", "risk", "capital", "valuation"].filter((key) => typeof isTopicIncluded === "function" ? isTopicIncluded(key) : true)) : "",
     shouldIncludeDeckSection("action") ? rsm2ActionRoadmapSlide() : "",
     rsm2QualityGateSlide(),
     shouldIncludeDeckSection("appendix") ? rsm2AppendixSlide() : ""
