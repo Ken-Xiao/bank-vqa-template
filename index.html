@@ -7,7 +7,7 @@
   <title>BenchmarkIQ 银行经营对标分析平台</title>
   <link rel="stylesheet" href="styles/app.css?v=20260530-benchmarkiq-v3" />
   <link rel="stylesheet" href="styles/rsm-consulting-ppt.css?v=20260530-client-spine" />
-  <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-v6" />
+  <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-v7" />
 
 </head>
 <body>
@@ -160,9 +160,9 @@
             <div class="export-menu">
               <button class="btn" id="clientExportToggle" type="button">导出交付物</button>
               <div class="export-menu-list" id="clientExportMenu">
-                <button type="button" data-export-target="exportReportPptx">可编辑 PPT</button>
-                <button type="button" data-export-target="exportReport">PDF / 打印</button>
-                <button type="button" data-export-target="exportReportHtml">HTML 汇报稿</button>
+                <button type="button" data-export-target="exportReportHtml">正式报告 HTML</button>
+                <button type="button" data-export-target="exportReport">报告 PDF / 打印</button>
+                <button type="button" data-export-target="exportReportPptx">备用演示 PPT</button>
                 <button type="button" data-export-target="exportSelectedData">选定数据底稿</button>
                 <button type="button" data-export-target="exportAllData">全量数据底稿</button>
               </div>
@@ -274,10 +274,10 @@
           <div class="board-flow-step"><b>04</b><span>形成交付</span><em>汇报稿、数据附录、指标底稿</em></div>
         </div>
         <div class="analysis-jump-grid">
-          <a class="analysis-jump-card" href="#analysisDeckShell">
+          <a class="analysis-jump-card" href="#formalReportShell">
             <span>报告工作区</span>
-            <b>逐页审阅董事会汇报稿</b>
-            <em>按页序查看标题、图表和讲解</em>
+            <b>审阅正式经营诊断报告</b>
+            <em>按章节查看完整论述和证据</em>
           </a>
           <a class="analysis-jump-card" href="#dataCoverageSection">
             <span>数据工作区</span>
@@ -309,6 +309,21 @@
             <button class="btn secondary" id="savePeerGroupBtn" type="button">保存对标组</button>
           </div>
           <div class="peer-group-list" id="peerGroupList"></div>
+        </div>
+        <div class="project-panel portal-workflow-panel">
+          <h3>关注指标看板</h3>
+          <p>默认提取 VQA 低分位和行动优先级最高的 5-8 个指标，进入报告执行摘要和行动页。</p>
+          <div class="portal-watch-grid" id="portalWatchMetrics"></div>
+        </div>
+        <div class="project-panel portal-workflow-panel">
+          <h3>同业敏感性测试</h3>
+          <p>逐一移除对标银行后重算 VQA，识别结论是否依赖单一同业样本。</p>
+          <div class="peer-sensitivity-list" id="peerSensitivityList"></div>
+        </div>
+        <div class="project-panel portal-workflow-panel">
+          <h3>分析路径回溯</h3>
+          <p>记录本轮确认、渲染、导出和专题切换动作，作为报告附录审计线索。</p>
+          <div class="session-log-list" id="sessionLogList"></div>
         </div>
         <div class="project-panel">
           <h3 id="projectSummaryTitle">当前分析项目</h3>
@@ -544,7 +559,7 @@
       </section>
 
       <div class="report-tools analysis-content" data-workspace-tab="report">
-        <h2>报告页面预览</h2>
+        <h2>正式报告结构</h2>
         <div class="checks">
           <label><input type="checkbox" class="report-section-check" value="01 / 06" checked /> 价值质量总览</label>
           <label><input type="checkbox" class="report-section-check" value="02 / 06" checked /> 盈利质量</label>
@@ -554,14 +569,26 @@
           <label><input type="checkbox" class="report-section-check" value="06 / 06" checked /> 行动建议</label>
         </div>
       </div>
-      <p class="analysis-content client-internal" style="margin:0 0 14px;color:#667789;font-size:13px;font-weight:700;">导出时将隐藏筛选器与勾选区，仅保留已纳入报告的正式页面。</p>
+      <p class="analysis-content client-internal" style="margin:0 0 14px;color:#667789;font-size:13px;font-weight:700;">导出时将隐藏筛选器与勾选区，默认输出 RSM 风格正式报告；PPT 作为备用演示稿保留。</p>
+
+      <section class="formal-report-shell analysis-content" id="formalReportShell" data-workspace-tab="report" aria-label="正式报告阅读版">
+        <div class="formal-report-head">
+          <div>
+            <span>正式报告阅读版</span>
+            <h2>董事会经营诊断报告</h2>
+            <p>本区域按正式咨询报告结构呈现完整论述：先回答董事会问题，再逐章展开证据、归因、交叉验证和管理建议。</p>
+          </div>
+          <div class="formal-report-meta">RSM · Report format · HTML/PDF</div>
+        </div>
+        <article class="formal-report" id="formalReport">确认分析后生成正式报告。</article>
+      </section>
 
       <section class="analysis-deck-shell analysis-content" id="analysisDeckShell" data-workspace-tab="report" aria-label="PPT版式报告预览">
         <div class="deck-shell-head">
           <div>
-            <span>正式报告预览</span>
-            <h2>董事会汇报稿预览</h2>
-            <p>本区域按正式汇报页序呈现核心标题、图表证据、讲解逻辑和数据来源，便于逐页审阅。</p>
+            <span>备用演示版</span>
+            <h2>PPT 版式预览</h2>
+            <p>本区域保留 16:9 演示稿结构，适用于会议现场翻页展示；正式交付以长文报告版为准。</p>
           </div>
           <div class="deck-shell-meta">16:9 · 一页一主题 · 右侧导航</div>
         </div>
@@ -1018,7 +1045,9 @@
   <script src="js/06-charts.js?v=20260529-deck-ui"></script>
   <script src="js/07-export.js?v=20260530-rsm-v5"></script>
   <script src="js/20-pro-engine.js?v=20260530-benchmarkiq-v4"></script>
-  <script src="js/08-report.js?v=20260530-rsm-v6"></script>
+  <script src="js/21-portal-workflows.js?v=20260530-benchmarkiq-v4"></script>
+  <script src="js/08-report.js?v=20260530-rsm-v7"></script>
+  <script src="js/22-formal-report.js?v=20260530-report-v1"></script>
   <script src="js/09-projects.js?v=20260530-benchmarkiq-v2"></script>
   <script src="js/11-fact-pack.js"></script>
   <script src="js/12-ai-narrative.js?v=20260530-client-language"></script>

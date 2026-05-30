@@ -172,12 +172,17 @@ function generateTopicNarrativeDraft(topic, facts, channel) {
   Object.entries(replacements).forEach(([token, value]) => {
     opening = opening.split(token).join(value);
   });
-  const why = `${opening}${citations[0] ? ` ${citations[0].指标名称}为${citations[0].目标值}，对标均值${citations[0].对标均值}。` : ""}`;
-  const meaning = `${topic.mechanism} 当前专题平均分位约 ${judgement.avgScore}，一句话结论：${judgement.headline}`;
-  const next = channel === "action"
-    ? `${topic.actions.slice(0, 2).join("；")}。优先跟踪：${citations.map((f) => f.指标名称).join("、")}。`
-    : `建议围绕${citations.map((f) => f.指标名称).join("、")}形成连续改善证据，并回到事实包复核。`;
-  const text = sanitizeComplianceText(downgradeNarrativeByRisk(`${why} ${meaning} ${next} 依据指标：${evidenceText}。`, citations), topic.forbiddenPhrases);
+  const metricKey = citations[0]?.指标代码 || facts[0]?.指标代码 || "roa";
+  const confidence = typeof confidenceLevel === "function" ? confidenceLevel(metricKey, row, peerRecords()) : { level: "中", prefix: "现有数据倾向于显示", suffix: "建议保留口径提示。" };
+  const attribution = typeof gapAttributionEngine === "function" ? gapAttributionEngine(metricKey, row, peerRecords()) : null;
+  const claim = `${confidence.prefix}，${judgement.headline}（置信度：${confidence.level}）。`;
+  const evidence = citations.length ? `证据包括：${citations.slice(0, 3).map((f) => `${f.指标名称}${f.目标值}、对标均值${f.对标均值}`).join("；")}。` : "因数据覆盖不足，暂不形成该层判断。";
+  const attributionText = `${attribution?.headline || topic.mechanism || opening} ${typeof buildMechanismExplanation === "function" ? buildMechanismExplanation(topic.id) : ""}`;
+  const meaning = channel === "action"
+    ? `${topic.actions.slice(0, 2).join("；")}。建议3个月内完成责任部门和指标阈值确认，优先跟踪：${citations.map((f) => f.指标名称).join("、") || "核心指标"}。`
+    : `对董事会意味着，本专题不应停留在单项指标说明，而应围绕${citations.map((f) => f.指标名称).join("、") || topic.title}形成连续改善证据。${confidence.suffix}`;
+  const ceam = `C｜${claim}\nE｜${evidence}\nA｜${reportShortText(attributionText, 180)}\nM｜${meaning} 依据指标：${evidenceText || "待补充"}。`;
+  const text = sanitizeComplianceText(downgradeNarrativeByRisk(ceam, citations), topic.forbiddenPhrases);
   if (channel === "board") return text || base.board;
   if (channel === "market") return text || base.market;
   return text || base.action;

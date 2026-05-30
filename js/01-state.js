@@ -16,7 +16,11 @@ var state = {
   currentProjectId: null,
   editedNarratives: {},
   includedTopics: {},
-  editedChartStories: {}
+  editedChartStories: {},
+  sessionLog: [],
+  watchMetrics: [],
+  reportStructure: [],
+  customReportPages: []
 };
 
 var data = window.VQA_DATA || { banks: [], records: [], aliases: {} };

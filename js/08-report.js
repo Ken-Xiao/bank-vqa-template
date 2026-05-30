@@ -581,17 +581,25 @@ function buildChartTransitionSlide(kicker, row, peerText) {
 function chartClaimTitle(title = "", kicker = "") {
   const target = displayBankName(targetRecord()?.bank || state.target);
   const text = `${title} ${kicker}`;
+  const row = targetRecord();
+  const claim = (key, label, theme) => {
+    const peer = avg(peerRecords(), key);
+    if (row?.[key] == null || peer == null) return `${target}${theme}`;
+    const gap = row[key] - peer;
+    const direction = (typeof metricDirection === "function" ? metricDirection(key) : true) ? gap >= 0 : gap <= 0;
+    return `${target}${label}${direction ? "相对对标形成支撑" : "相对对标形成约束"}，差距${metricDisplayValue(key, Math.abs(gap))}`;
+  };
   if (/息差|净息|负债|存款|利差|收益成色|票面/.test(text)) {
-    return `${target}息差判断需要同时验证资产收益和负债成本`;
+    return claim("nim", "净息差", "息差判断需要同时验证资产收益和负债成本");
   }
   if (/盈利|核心|非核心|手续费|轻资本|收入|ROA|总资产收益率|现金利润/.test(text)) {
-    return `${target}盈利质量需回到核心营收、轻资本收入和拨备前修复`;
+    return claim("roa", "ROA", "盈利质量需回到核心营收、轻资本收入和拨备前修复");
   }
   if (/风险|不良|偏离|拨备|逾期|关注|零售|利润质量/.test(text)) {
-    return `${target}风险确认节奏决定利润质量能否被持续验证`;
+    return claim("npl", "不良率", "风险确认节奏决定利润质量能否被持续验证");
   }
   if (/资本|RWA|市净率|PB|成本|估值|投资资产/.test(text)) {
-    return `${target}资本市场定价需要由经营质量和资本消耗共同解释`;
+    return claim("pb", "市净率", "资本市场定价需要由经营质量和资本消耗共同解释");
   }
   if (/LPR|经营压力|资产收益率|压力/.test(text)) {
     return `${target}经营压力应从资产收益率和收入结构同步拆解`;
@@ -1318,6 +1326,11 @@ function rsm2TopicDiagnosticSlide(topicKey, index) {
   const config = rsm2TopicConfig(topicKey);
   const judgement = rsm2SignalFromTopic(topicKey);
   const facts = rsm2TopicFacts(topicKey);
+  const primaryMetric = facts[0]?.指标代码 || config.keys?.[0]?.[0] || "roa";
+  const confidence = typeof confidenceLevel === "function" ? confidenceLevel(primaryMetric, row, peerRecords()) : { level: "中", prefix: "现有数据倾向于显示", suffix: "建议保留口径提示。" };
+  const attribution = typeof gapAttributionEngine === "function" ? gapAttributionEngine(primaryMetric, row, peerRecords()) : null;
+  const temporal = typeof buildTemporalNarrative === "function" ? buildTemporalNarrative(primaryMetric, row.bank) : "";
+  const mechanism = typeof buildMechanismExplanation === "function" ? buildMechanismExplanation(topicKey) : config.finding;
   const evidence = (judgement?.evidence || facts).slice(0, 4).map((fact) => `
     <div class="rsm2-diagnostic-evidence">
       <span>${fact.指标名称}</span>
@@ -1327,9 +1340,14 @@ function rsm2TopicDiagnosticSlide(topicKey, index) {
   const main = `
     <div class="rsm2-topic-diagnostic">
       <div class="rsm2-topic-verdict">
-        <span>专题判断</span>
-        <h3>${reportTitleSentence(judgement?.headline || config.finding, 48)}</h3>
-        <p>${reportShortText(config.finding, 132)}</p>
+        <span>专题判断｜置信度 ${confidence.level}</span>
+        <h3>${reportTitleSentence(judgement?.headline || config.finding, 52)}</h3>
+        <div class="rsm2-ceam-block">
+          <p><b>C 断言</b>${confidence.prefix}，${reportShortText(judgement?.headline || config.finding, 96)} ${confidence.suffix}</p>
+          <p><b>E 证据</b>${reportShortText(facts.slice(0, 3).map((fact) => `${fact.指标名称}${fact.目标值}、对标${fact.对标均值}`).join("；") || "因数据覆盖不足，暂不形成该层判断。", 150)}</p>
+          <p><b>A 归因</b>${reportShortText(attribution?.headline || mechanism, 150)}</p>
+          <p><b>M 含义</b>${reportShortText(`${config.action} ${temporal}`, 150)}</p>
+        </div>
       </div>
       <div class="rsm2-diagnostic-grid">${evidence}</div>
     </div>`;
@@ -1357,21 +1375,32 @@ function rsm2TopicMechanismSlide(topicKey, index) {
   const config = rsm2TopicConfig(topicKey);
   const topic = topicDefinitions().find((item) => item.id === topicKey);
   const facts = rsm2TopicFacts(topicKey).slice(0, 5);
+  const primaryMetric = facts[0]?.指标代码 || config.keys?.[0]?.[0] || "roa";
+  const attribution = typeof gapAttributionEngine === "function" ? gapAttributionEngine(primaryMetric, row, peerRecords()) : null;
+  const drillRows = typeof drillDownRows === "function" ? drillDownRows(topicKey, row).slice(0, 4) : [];
   const rows = facts.map((fact) => ({
     label: fact.指标名称,
     target: fact.目标值,
     peer: fact.对标均值,
     readout: `${fact.分位}；类型均值 ${fact.类型均值}；该指标用于验证${config.module}的结论强度。`
   }));
+  const drill = drillRows.map((item) => `
+    <div class="rsm2-drill-row">
+      <b>${item.label}</b>
+      <span>目标 ${item.target}</span>
+      <em>对标 ${item.peer}</em>
+      <p>${item.finding}</p>
+    </div>`).join("");
   const main = `
     <div class="rsm2-mechanism-copy">
       <b>形成机制</b>
-      <p>${reportShortText(topic?.mechanism || config.finding, 150)}</p>
+      <p>${reportShortText(typeof buildMechanismExplanation === "function" ? buildMechanismExplanation(topicKey) : topic?.mechanism || config.finding, 170)}</p>
     </div>
+    <div class="rsm2-drill-stack">${drill}</div>
     ${rsm2EvidenceTable(rows)}`;
   const side = rsm2DecisionPanel(
     "差异是如何形成的？",
-    topic?.mechanism || config.finding,
+    attribution?.headline || topic?.mechanism || config.finding,
     config.action
   );
   return rsm2Page(
@@ -1842,6 +1871,114 @@ function rsm2ActionRoadmapSlide() {
   );
 }
 
+function rsm2WatchMetricsSlide() {
+  const row = targetRecord();
+  if (!row || typeof watchMetricRows !== "function") return "";
+  const cards = watchMetricRows(row).slice(0, 6).map((item) => `
+    <div class="rsm2-number-hero">
+      <span>${item.label}</span>
+      <b>${item.value}</b>
+      <em>对标 ${item.peer}｜${item.percentile}</em>
+      <p>${item.gapText}；动量${item.momentum}${item.priority == null ? "" : `；优先级 ${item.priority}`}</p>
+    </div>`).join("");
+  const side = rsm2DecisionPanel(
+    "为什么要建立关注指标看板？",
+    "董事会阅读报告时不应追踪所有指标，而应固定 5-8 个可以解释价值质量变化的锚定指标。",
+    "这些指标进入执行摘要、行动目标和季度复盘，后续报告优先解释其变化原因。"
+  );
+  return rsm2Page(
+    "rsm2-watch-metrics-slide",
+    "关注指标",
+    "04D",
+    `${displayBankName(row.bank)}本轮需用少数关键指标持续复核价值质量变化`,
+    "Watch Metrics｜从低分位、敏感性和行动优先级自动筛选",
+    `<div class="rsm2-number-hero-grid">${cards}</div>`,
+    side,
+    ["关键数字必须在 30 秒内可读。", "关注指标决定后续专题和行动页的证据权重。"]
+  );
+}
+
+function rsm2PeerSensitivitySlide() {
+  const row = targetRecord();
+  if (!row || typeof peerSensitivityRows !== "function") return "";
+  const rows = peerSensitivityRows(row).slice(0, 8);
+  const table = rows.map((item) => `
+    <div class="rsm2-sensitivity-row${item.flip ? " is-flip" : ""}">
+      <b>${displayBankName(item.peer)}</b>
+      <span>${item.base} → ${item.after}</span>
+      <em>${item.delta >= 0 ? "+" : ""}${item.delta} 分</em>
+      <p>${item.flip ? "移除后信号翻转，需在正文标注样本敏感性。" : `信号稳定；最弱维度仍指向${item.weakest}。`}</p>
+    </div>`).join("");
+  const flipCount = rows.filter((item) => item.flip).length;
+  const side = rsm2DecisionPanel(
+    "对标组是否影响结论稳定性？",
+    flipCount ? `存在 ${flipCount} 个移除样本会导致信号翻转，强结论应降级并补充样本解释。` : "逐一移除同业后 VQA 信号保持稳定，当前对标结论具备进入主报告基础。",
+    "正式交付时保留该页作为对标组治理和置信度校准依据。"
+  );
+  return rsm2Page(
+    "rsm2-peer-sensitivity-slide",
+    "样本敏感性",
+    "04E",
+    `${displayBankName(row.bank)}的 VQA 结论需要先通过对标组敏感性测试`,
+    "Peer Sensitivity｜逐一移除同业样本，重算 VQA 分数与信号",
+    `<div class="rsm2-sensitivity-table">${table}</div>`,
+    side,
+    ["敏感性页防止强结论依赖单一对标样本。", "信号翻转会自动影响置信度表达。"]
+  );
+}
+
+function rsm2IndustryContextSlide() {
+  const row = targetRecord();
+  if (!row || typeof buildIndustryContextParagraph !== "function") return "";
+  const checks = typeof crossValidationNarratives === "function" ? crossValidationNarratives(row) : [];
+  const context = buildIndustryContextParagraph(row);
+  const checkCards = checks.slice(0, 4).map((item, index) => `
+    <div class="rsm2-cross-check-card">
+      <b>${String(index + 1).padStart(2, "0")}</b>
+      <p>${reportShortText(item, 98)}</p>
+    </div>`).join("");
+  const side = rsm2DecisionPanel(
+    "行业锚定后还要检查什么？",
+    "结论不仅要看单项指标位置，还要检查指标之间是否存在方向背离。",
+    "若出现强背离，报告标题和正文应自动降级为待验证判断。"
+  );
+  return rsm2Page(
+    "rsm2-industry-context-slide",
+    "行业与交叉验证",
+    "04F",
+    `${displayBankName(row.bank)}的个体差异需要同时经过行业锚定和交叉验证`,
+    "Industry Context + Cross Validation｜防止把周期压力或指标背离误读为单点结论",
+    `<div class="rsm2-context-block"><b>行业锚定</b><p>${reportShortText(context, 230)}</p></div><div class="rsm2-cross-check-grid">${checkCards}</div>`,
+    side,
+    ["行业锚定回答是否为共性压力。", "交叉验证回答单项指标是否能独立支撑判断。"]
+  );
+}
+
+function rsm2SessionLogSlide() {
+  const logs = (state.sessionLog || []).slice(0, 8);
+  const rows = logs.map((item) => `
+    <div class="rsm2-session-row">
+      <span>${item.timestamp}</span>
+      <b>${item.action}</b>
+      <p>${item.finding}</p>
+    </div>`).join("");
+  const side = rsm2DecisionPanel(
+    "为什么附上分析路径？",
+    "董事会交付物需要说明结论如何形成，尤其是样本边界、报告版本和导出动作。",
+    "该页作为内部审阅和版本回溯，不替代数据附录。"
+  );
+  return rsm2Page(
+    "rsm2-session-log-slide",
+    "分析路径回溯",
+    "10D",
+    "本轮报告保留从口径确认到导出的关键分析路径",
+    "Session Log｜用于内部审阅、版本追踪和交付复盘",
+    `<div class="rsm2-session-list">${rows || "<p>当前暂无记录；确认分析或导出后自动写入。</p>"}</div>`,
+    side,
+    ["路径回溯保证报告链路可解释。", "导出文件与页面预览共享同一套状态。"]
+  );
+}
+
 function rsm2QualityGateSlide() {
   const row = targetRecord();
   const selectedRows = selectedBankRecords();
@@ -1902,7 +2039,10 @@ function buildPrintDeck() {
     shouldIncludeDeckSection("methodology") ? rsm2FrameworkApplicationSlide() : "",
     shouldIncludeDeckSection("storyline") ? rsm2StorylineMapSlide() : "",
     rsm2IndustryAnchorSlide(),
+    rsm2IndustryContextSlide(),
     rsm2SparcOverviewSlide(),
+    rsm2WatchMetricsSlide(),
+    rsm2PeerSensitivitySlide(),
     shouldIncludeDeckSection("charts") || shouldIncludeDeckSection("topics") ? rsm2DupontSlide() : "",
     shouldIncludeDeckSection("charts") || shouldIncludeDeckSection("topics") ? rsm2ProfitAttributionSlide() : "",
     shouldIncludeDeckSection("charts") || shouldIncludeDeckSection("topics") ? rsm2MomentumSlide() : "",
@@ -1915,6 +2055,7 @@ function buildPrintDeck() {
     shouldIncludeDeckSection("action") ? rsm2KpiTargetSlide() : "",
     shouldIncludeDeckSection("action") ? rsm2PressureScenarioSlide() : "",
     shouldIncludeDeckSection("action") ? rsm2WhatIfSlide() : "",
+    rsm2SessionLogSlide(),
     rsm2QualityGateSlide(),
     shouldIncludeDeckSection("appendix") ? rsm2AppendixSlide() : ""
   ];
@@ -1937,14 +2078,20 @@ function chapterStory(kicker) {
 function buildSideNav() {
   const nav = document.getElementById("sideNavContent");
   if (!nav) return;
-  const slides = [...document.querySelectorAll("#printDeck .print-slide")];
   const utilityLinks = [
-    ["#analysisDeckShell", "正式报告预览"],
+    ["#formalReportShell", "正式报告阅读版"],
     ["#topicWorkbenchSection", "专题事实包"],
     ["#dataCoverageSection", "数据覆盖与底稿"]
   ].filter(([href]) => document.querySelector(href))
     .map(([href, title]) => `<a href="${href}" title="${title}">${title}</a>`);
-  const links = slides.map((slide, idx) => {
+  const formalSections = [...document.querySelectorAll("#formalReport header, #formalReport section")];
+  const formalLinks = formalSections.map((section, idx) => {
+    if (!section.id) section.id = `formal-section-${idx + 1}`;
+    const title = section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`;
+    return `<a href="#${section.id}" title="${title}">${title}</a>`;
+  });
+  const slides = [...document.querySelectorAll("#printDeck .print-slide")];
+  const deckLinks = formalLinks.length ? [] : slides.map((slide, idx) => {
     if (!slide.id) slide.id = `deck-slide-${idx + 1}`;
     const title = slide.querySelector(".rsm-slide-head h2")?.textContent?.trim()
       || slide.querySelector(".rsm-cover-title-panel h1")?.textContent?.trim()
@@ -1952,7 +2099,7 @@ function buildSideNav() {
       || `第 ${idx + 1} 页`;
     return `<a href="#${slide.id}" title="${title}">${title}</a>`;
   });
-  nav.innerHTML = [...utilityLinks, ...links].length ? [...utilityLinks, ...links].join("") : `<a href="#analysisDeckShell">报告生成后显示页导航</a>`;
+  nav.innerHTML = [...utilityLinks, ...formalLinks, ...deckLinks].length ? [...utilityLinks, ...formalLinks, ...deckLinks].join("") : `<a href="#formalReportShell">报告生成后显示页导航</a>`;
   updateActiveNav();
 }
 
@@ -1981,5 +2128,7 @@ function renderAll() {
   if (typeof updateAiProductPanel === "function") updateAiProductPanel();
   updateReportSectionVisibility();
   buildPrintDeck();
+  if (typeof renderFormalReport === "function") renderFormalReport();
   buildSideNav();
+  if (typeof renderPortalWorkflowPanels === "function") renderPortalWorkflowPanels();
 }

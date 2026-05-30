@@ -149,7 +149,7 @@ function refreshBoardWorkbench() {
       if (index >= 0) {
         event.preventDefault();
         showDeckPage(index);
-        document.getElementById("analysisDeckShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById("formalReportShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
   });

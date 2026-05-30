@@ -56,13 +56,13 @@ function chartExplanationHtml(title) {
   const story = getChartStory(title);
   const facts = chartFactPack(title);
   const blocks = [
-    ["question", "本图判断"],
-    ["target", "目标银行解读"],
-    ["peers", "对标银行解读"],
-    ["type", "类型均值参照"],
-    ["mechanism", "机制解释"],
-    ["action", "管理建议"],
-    ["validation", "验证指标"]
+    ["question", "C 断言"],
+    ["target", "E 目标证据"],
+    ["peers", "E 对标证据"],
+    ["type", "E 类型参照"],
+    ["mechanism", "A 归因机制"],
+    ["action", "M 管理含义"],
+    ["validation", "M 验证指标"]
   ];
   const fields = blocks.map(([field, label]) => `
     <div class="chart-story-block" data-chart-title="${encodeURIComponent(title)}" data-chart-field="${field}">

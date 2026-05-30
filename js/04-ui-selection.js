@@ -147,6 +147,14 @@ function populateSelectors() {
       syncHiddenSelects();
       updateSelectionSummary();
       renderAll();
+      if (typeof recordAnalysisSession === "function") {
+        recordAnalysisSession("确认分析口径", {
+          target: state.target,
+          peers: state.peers,
+          year: state.year,
+          version: state.reportVersion
+        }, `${displayBankName(state.target)}已确认 ${state.year} 年分析边界，对标组 ${displayBankList(state.peers)}。`);
+      }
       applyReportVersion(state.reportVersion);
       if (typeof setWorkspaceTab === "function") setWorkspaceTab("overview");
       document.getElementById("clientCommandCenter")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -163,7 +171,10 @@ function populateSelectors() {
     });
   }
   if (refresh) {
-    refresh.addEventListener("click", renderAll);
+    refresh.addEventListener("click", () => {
+      renderAll();
+      if (typeof recordAnalysisSession === "function") recordAnalysisSession("刷新诊断与报告", { target: state.target, year: state.year });
+    });
   }
   if (saveProjectBtn) {
     saveProjectBtn.addEventListener("click", saveCurrentProject);
@@ -177,6 +188,7 @@ function populateSelectors() {
     exportHtml.addEventListener("click", () => {
       if (typeof preflightExport === "function" && !preflightExport("HTML")) return;
       if (typeof preflightExport !== "function" && !state.confirmed) return;
+      if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出 HTML 汇报稿", { version: state.reportVersion });
       void downloadReportHtml();
       if (typeof recordExportHistory === "function") recordExportHistory("HTML");
     });
@@ -186,6 +198,7 @@ function populateSelectors() {
       if (typeof preflightExport === "function" && !preflightExport("PDF")) return;
       if (typeof preflightExport !== "function" && !state.confirmed) return;
       if (typeof recordExportHistory === "function") recordExportHistory("PDF");
+      if (typeof recordAnalysisSession === "function") recordAnalysisSession("打印/导出 PDF", { version: state.reportVersion });
       window.print();
     });
   }
@@ -193,6 +206,7 @@ function populateSelectors() {
     button.addEventListener("click", () => {
       if (!state.confirmed) return;
       updateDataCoverage();
+      if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出选定数据底稿", { mode: "selected" });
       void exportDataWorkbook("selected");
       if (typeof recordExportHistory === "function") recordExportHistory("选定数据底稿");
     });
@@ -201,6 +215,7 @@ function populateSelectors() {
     button.addEventListener("click", () => {
       if (!state.confirmed) return;
       updateDataCoverage();
+      if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出全量数据底稿", { mode: "all" });
       void exportDataWorkbook("all");
       if (typeof recordExportHistory === "function") recordExportHistory("全量数据底稿");
     });

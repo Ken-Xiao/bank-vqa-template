@@ -243,21 +243,23 @@ function exportDeckQualitySummary(deck) {
 async function reportHtmlDocument() {
   if (typeof renderAll === "function") renderAll();
   else if (typeof buildPrintDeck === "function") buildPrintDeck();
-  const deck = cloneClientDeckForExport(document.getElementById("printDeck"));
   const style = await loadReportExportCss();
   const title = `${state.target}_${state.year}_价值质量诊断与经营对标分析`;
   const reportTitle = `${displayBankName(state.target)}${state.year}年价值质量诊断与经营对标分析`;
   const exportedAt = new Date().toLocaleString("zh-CN", { hour12: false });
-  const quality = exportDeckQualitySummary(deck);
-  const exportNav = [...deck.querySelectorAll(".print-slide")].map((slide, idx) => {
-    const id = slide.id || `export-slide-${idx + 1}`;
-    slide.id = id;
-    const label = slide.querySelector(".rsm-slide-head h2")?.textContent?.trim()
-      || slide.querySelector(".rsm-cover-title-panel h1")?.textContent?.trim()
-      || slide.querySelector(".rsm-toc-sidebar h3")?.textContent?.trim()
-      || `第 ${idx + 1} 页`;
+  const reportHtml = typeof buildFormalReportHtml === "function"
+    ? buildFormalReportHtml({ exportMode: true })
+    : cloneClientDeckForExport(document.getElementById("printDeck")).outerHTML;
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = reportHtml;
+  const sections = [...wrapper.querySelectorAll("header, section")];
+  const exportNav = sections.map((section, idx) => {
+    const id = section.id || `formal-export-section-${idx + 1}`;
+    section.id = id;
+    const label = section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`;
     return `<a href="#${xmlEscape(id)}"><span>${String(idx + 1).padStart(2, "0")}</span>${xmlEscape(exportClientText(label))}</a>`;
   }).join("");
+  const sectionCount = sections.length || wrapper.querySelectorAll(".print-slide").length;
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -266,10 +268,12 @@ async function reportHtmlDocument() {
   <title>${xmlEscape(title)}</title>
   <style>
 ${style}
-body { background: #F7F8FA; color: #2F3A4A; }
+body { background: #F7F8FA; color: #2F3A4A; margin: 0; }
 .app, .side-nav { display: none !important; }
-.print-deck { display: grid; gap: 20px; padding: 22px 292px 24px 22px; }
-.print-slide { margin: 0 auto; box-shadow: 0 14px 45px rgba(6, 27, 58, .14); }
+.formal-report { max-width: 1160px; margin: 22px 292px 24px 22px; box-shadow: 0 14px 45px rgba(6, 27, 58, .10); }
+.formal-report-shell, .formal-report-head { display: block; }
+.formal-report-head { display: none; }
+.print-deck { display: none !important; }
 .html-report-nav {
   position: fixed;
   right: 18px;
@@ -329,22 +333,21 @@ body { background: #F7F8FA; color: #2F3A4A; }
 .client-internal { display: none !important; }
 @media print {
   body { background: #fff; }
-  .print-deck { padding: 0; }
-  .print-slide { margin: 0; box-shadow: none; }
+  .formal-report { margin: 0; max-width: none; box-shadow: none; }
   .html-export-note, .html-report-nav { display: none; }
 }
   </style>
 </head>
 <body>
   <nav class="html-report-nav"><h3>汇报页导航</h3>${exportNav}</nav>
-  <div class="html-export-note"><b>${xmlEscape(reportTitle)}</b>报告版本：${xmlEscape(state.reportVersion)}｜对标银行：${xmlEscape(displayBankList(state.peers))}｜类型参照：${xmlEscape(state.types.join("、") || "所选类型银行")}｜页面结构：${quality.slides} 页，其中图表证明页 ${quality.chartSlides} 页、章节小结 ${quality.synthesisSlides} 页｜形成时间：${xmlEscape(exportedAt)}｜数据来源：iFinD · 上市公司年报 · RSM 整理</div>
-  ${deck.outerHTML}
+  <div class="html-export-note"><b>${xmlEscape(reportTitle)}</b>报告版本：${xmlEscape(state.reportVersion)}｜对标银行：${xmlEscape(displayBankList(state.peers))}｜类型参照：${xmlEscape(state.types.join("、") || "所选类型银行")}｜报告结构：${sectionCount} 个章节｜形成时间：${xmlEscape(exportedAt)}｜数据来源：iFinD · 上市公司年报 · RSM 整理</div>
+  ${wrapper.innerHTML}
 </body>
 </html>`;
 }
 
 async function downloadReportHtml() {
-  const filename = `${safeFilename(state.target)}_${state.year}_董事会汇报材料.html`;
+  const filename = `${safeFilename(state.target)}_${state.year}_正式诊断报告.html`;
   downloadTextFile(filename, await reportHtmlDocument());
 }
 

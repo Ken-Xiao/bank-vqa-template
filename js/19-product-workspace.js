@@ -485,8 +485,7 @@ function initProductWorkspace() {
   });
   document.getElementById("jumpPresidentReport")?.addEventListener("click", () => {
     setWorkspaceTab("report");
-    if (typeof showDeckPage === "function") showDeckPage(2);
-    document.getElementById("analysisDeckShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("formalReportShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   bindClientActionBar();
   setWorkspaceTab("overview");

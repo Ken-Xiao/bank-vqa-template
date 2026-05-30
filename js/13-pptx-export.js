@@ -1069,6 +1069,7 @@ async function downloadPptxReport() {
 function initPptxExport() {
   document.getElementById("exportReportPptx")?.addEventListener("click", () => {
     renderAll();
+    if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出可编辑 PPT", { version: state.reportVersion });
     downloadPptxReport();
   });
 }
