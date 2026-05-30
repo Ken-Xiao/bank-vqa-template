@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>银行董事会价值质量诊断报告</title>
+  <title>BenchmarkIQ 银行经营对标分析平台</title>
   <link rel="stylesheet" href="styles/app.css?v=20260530-selector-layout" />
   <link rel="stylesheet" href="styles/rsm-consulting-ppt.css?v=20260530-client-spine" />
   <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-rhythm" />
@@ -22,12 +22,12 @@
       </div>
       <div class="hero-main">
         <div>
-          <h1>银行价值质量诊断与经营对标分析</h1>
-          <p class="hero-subtitle">经营视角与资本市场视角的双重穿透分析</p>
+          <h1>银行经营对标总览</h1>
+          <p class="hero-subtitle">BenchmarkIQ：先定位同业位置，再解释价值质量差异</p>
           <p class="hero-copy">
-            本报告采用 <b>RSM 银行价值质量评估体系</b>，围绕盈利真实性、息差防守、
-            风险确认、资本效率与估值验证五条主线，帮助董事会识别当前经营质量、
-            对标差距和后续管理优先级。
+            本产品以前台 <b>SPARC 五维对标</b> 回答“我行在同业中处于什么位置”，
+            以后端 <b>VQA 价值质量引擎</b> 解释“为什么处在这里”。结论、图表、
+            报告和底稿共享同一套样本边界、指标口径和语言规范。
           </p>
         </div>
         <div class="meta-panel">
@@ -39,7 +39,7 @@
           <div class="meta-row"><span>数据来源</span><b>上市公司年报、iFinD、RSM 研究汇总</b></div>
         </div>
       </div>
-      <div class="route">阅读路径 · 分析口径 → 核心判断 → 盈利 / 息差 / 风险 / 资本 → 估值验证 → 行动建议</div>
+      <div class="route">阅读路径 · 对标位置 → 行长摘要 → 价值质量诊断 → 专题归因 → 口径复核 → 行动建议</div>
     </section>
 
     <section class="workspace">
@@ -47,8 +47,8 @@
         <div class="selection-intro">
           <div>
             <span>分析口径设置</span>
-            <h2>先确定分析对象与参照样本，再形成董事会可讨论的经营判断</h2>
-            <p>本页用于确认本次汇报的分析边界：目标银行决定主线，对标银行决定横向参照，分类型银行均值用于识别行业位置。确认后，后续页面将围绕经营质量、风险确认、资本效率和估值反馈展开。</p>
+          <h2>先确定分析对象与参照样本，再形成可辩护的同业位置判断</h2>
+          <p>本页用于确认本次汇报的分析边界：目标银行决定主线，对标银行决定横向参照，分类型银行均值用于识别行业位置。确认后，系统先输出 SPARC 位置和行长一页摘要，再进入 VQA 诊断、专题归因、口径复核和报告编排。</p>
           </div>
           <div class="iteration-strip">
             <div><b>01 明确样本</b><span>锁定目标银行、对标组、类型均值和报告版本，形成一致参照。</span></div>
@@ -186,12 +186,32 @@
           <div class="command-card"><span>交付状态</span><b id="commandDeliveryStatus">待复核</b><p>通过复核后再导出正式材料。</p></div>
         </div>
       </section>
+      <section class="president-summary-panel analysis-content" id="presidentSummaryPanel" data-workspace-tab="overview" aria-label="行长版一页摘要">
+        <div class="president-summary-head">
+          <div>
+            <span>行长版一页摘要</span>
+            <h2 id="presidentSummaryTitle">确认样本后，先用一页说明同业位置、关键发现和需关注指标</h2>
+          </div>
+          <button class="btn secondary" id="jumpPresidentReport" type="button">查看报告页</button>
+        </div>
+        <div class="traffic-light-grid" id="sparcTrafficLights"></div>
+        <div class="president-summary-grid">
+          <div>
+            <b>关键发现三条</b>
+            <ol id="presidentFindings"><li>待生成。</li></ol>
+          </div>
+          <div>
+            <b>本期需关注指标</b>
+            <div class="president-watchlist" id="presidentWatchlist"><span>待生成。</span></div>
+          </div>
+        </div>
+      </section>
       <section class="benchmark-v1-panel analysis-content" id="benchmarkV1Panel" data-workspace-tab="overview" aria-label="BenchmarkIQ V1 总览">
         <div class="benchmark-v1-head">
           <div>
-            <span>BenchmarkIQ V1</span>
-            <h2>SPARC 总览把价值质量诊断升级为五维同业对标体检</h2>
-            <p>本模块将 PRD 中的规模结构、盈利能力、资产质量、风险资本和能力效率接入当前 VQA 工作流，用于回答“我行在同业中到底强在哪里、弱在哪里、下一步先看什么”。</p>
+            <span>BenchmarkIQ V2</span>
+            <h2>SPARC 是客户界面层，VQA 是内部评分引擎</h2>
+            <p>本模块用规模结构、盈利能力、资产质量、风险资本和能力效率五维展示同业位置；VQA 继续在后台负责价值质量、权重和指标证据链。</p>
           </div>
           <div class="benchmark-v1-badge" id="sparcOverallBadge">待生成</div>
         </div>
@@ -471,15 +491,19 @@
             <span>待补指标：待生成</span>
           </div>
         </div>
-        <div class="calibration-risk-panel" id="calibrationRiskPanel">
+        <div class="data-subtabs" role="tablist" aria-label="数据页子视图">
+          <button class="is-active" type="button" data-data-subtab="quality">数据覆盖与质量</button>
+          <button type="button" data-data-subtab="calibration">口径统一与可比性</button>
+        </div>
+        <div class="calibration-risk-panel" id="calibrationRiskPanel" data-data-panel="calibration">
           <div>
-            <span>口径统一 V1</span>
-            <h3>高风险指标先标记可比性，再决定是否进入强结论</h3>
-            <p>净息差、非息收入、信用成本、逾期偏离和资本口径属于董事会报告中的高风险指标。V1 先做可比性标签和脚注建议，后续再接入完整口径统一引擎。</p>
+            <span>口径统一 V2</span>
+            <h3>四级可比性标签决定指标进入主报告、附录还是待补清单</h3>
+            <p>净息差、非息收入、信用成本、逾期偏离和资本口径属于董事会报告中的高风险指标。系统按“可直接对比 / 可对比，需注意口径 / 仅供参考 / 数据不足，暂不使用”处理结论强度。</p>
           </div>
           <div class="calibration-risk-grid" id="calibrationRiskGrid"></div>
         </div>
-        <div class="coverage-grid">
+        <div class="coverage-grid" data-data-panel="quality">
           <div>
             <h3 style="color:#1A3A5C;margin-bottom:10px;">数据字典与时间变化</h3>
             <div class="data-browser" id="dataBrowser" data-step="type">
