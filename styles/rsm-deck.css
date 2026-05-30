@@ -3223,6 +3223,176 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   margin-top: 12px;
 }
 
+.guided-path-panel {
+  background: #f8fbfd;
+  border: 1px solid #d9e2ea;
+  border-left: 5px solid #0099d8;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+.guided-path-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.guided-path-head span {
+  color: #0099d8;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.guided-path-head b {
+  color: #25364a;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.guided-path-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.guided-path-step {
+  background: #fff;
+  border: 1px solid #dbe7f1;
+  color: inherit;
+  display: block;
+  min-height: 132px;
+  padding: 12px;
+  text-decoration: none;
+}
+
+.guided-path-step span {
+  color: #0099d8;
+  display: block;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.guided-path-step b {
+  color: #061b3a;
+  display: block;
+  font-size: 15px;
+  line-height: 1.3;
+  margin-top: 6px;
+}
+
+.guided-path-step p {
+  color: #526174;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 7px 0 0;
+}
+
+.whatif-control-panel {
+  background: #fff;
+  border: 1px solid #d9e2ea;
+  border-top: 4px solid #78be20;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+.whatif-control-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.whatif-control-head span {
+  color: #078047;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.whatif-control-head b {
+  color: #25364a;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.whatif-control-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.whatif-control-grid label {
+  background: #f8fbfd;
+  border: 1px solid #dbe7f1;
+  color: #25364a;
+  display: grid;
+  font-size: 13px;
+  font-weight: 850;
+  gap: 8px;
+  padding: 12px;
+}
+
+.whatif-control-grid label b {
+  color: #061b3a;
+  font-size: 22px;
+}
+
+.whatif-control-grid input[type="range"] {
+  accent-color: #0099d8;
+  width: 100%;
+}
+
+.whatif-result-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 12px;
+}
+
+.whatif-result-card {
+  background: #fff;
+  border: 1px solid #d9e2ea;
+  border-left: 4px solid #0099d8;
+  min-height: 116px;
+  padding: 12px;
+}
+
+.whatif-result-card.tone-good {
+  background: #f4fbf6;
+  border-left-color: #078047;
+}
+
+.whatif-result-card.tone-bad {
+  background: #fff8ef;
+  border-left-color: #c77827;
+}
+
+.whatif-result-card span {
+  color: #607084;
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.whatif-result-card b {
+  color: #061b3a;
+  display: block;
+  font-size: 24px;
+  line-height: 1.05;
+  margin-top: 6px;
+}
+
+.whatif-result-card p {
+  color: #3d4b5c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 7px 0 0;
+}
+
 .portal-watch-card,
 .peer-sensitivity-row,
 .session-log-row {
@@ -3676,9 +3846,158 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
 
 .formal-drill-grid,
 .formal-action-grid,
-.formal-check-list {
+.formal-check-list,
+.formal-guided-grid,
+.formal-consistency-grid {
   display: grid;
   gap: 12px;
+}
+
+.formal-guided-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.formal-guided-step,
+.formal-consistency-card {
+  background: #fff;
+  border: 1px solid #dbe7f1;
+  border-top: 5px solid #0099d8;
+  box-shadow: 0 8px 24px rgba(6,27,58,.06);
+  color: inherit;
+  display: block;
+  padding: 16px;
+  text-decoration: none;
+}
+
+.formal-guided-step span,
+.formal-consistency-card span {
+  color: #0099d8;
+  display: block;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.formal-guided-step b {
+  color: #061b3a;
+  display: block;
+  font-size: 17px;
+  line-height: 1.35;
+  margin-top: 10px;
+}
+
+.formal-guided-step p,
+.formal-consistency-card p {
+  color: #3d4b5c;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 9px 0 0;
+}
+
+.formal-peer-matrix-wrap {
+  overflow-x: auto;
+}
+
+.formal-peer-matrix {
+  border-collapse: collapse;
+  min-width: 980px;
+  width: 100%;
+}
+
+.formal-peer-matrix th {
+  background: #061b3a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 11px 10px;
+  text-align: left;
+}
+
+.formal-peer-matrix tbody th {
+  background: #f3f6f9;
+  color: #061b3a;
+  min-width: 150px;
+}
+
+.formal-peer-matrix tr.is-target th {
+  background: #ddf2ff;
+  border-left: 5px solid #0099d8;
+}
+
+.formal-peer-matrix td {
+  border: 1px solid #e2e8ef;
+  min-width: 92px;
+  padding: 10px;
+}
+
+.formal-peer-matrix td b,
+.formal-peer-matrix td span {
+  display: block;
+}
+
+.formal-peer-matrix td b {
+  color: #061b3a;
+  font-size: 14px;
+}
+
+.formal-peer-matrix td span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 900;
+  margin-top: 3px;
+}
+
+.formal-peer-matrix td.tone-good {
+  background: #e7f8f1;
+}
+
+.formal-peer-matrix td.tone-mid {
+  background: #fff;
+}
+
+.formal-peer-matrix td.tone-bad {
+  background: #fff1f1;
+}
+
+.formal-peer-matrix td.tone-neutral {
+  background: #f3f6f9;
+}
+
+.formal-whatif-strip {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.formal-whatif-strip div {
+  background: #f8fbfd;
+  border: 1px solid #d9e2ea;
+  border-top: 4px solid #0099d8;
+  padding: 18px;
+}
+
+.formal-whatif-strip span {
+  color: #607084;
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.formal-whatif-strip b {
+  color: #061b3a;
+  display: block;
+  font-size: 34px;
+  line-height: 1.05;
+  margin-top: 8px;
+}
+
+.formal-whatif-strip p {
+  color: #3d4b5c;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.45;
+  margin: 10px 0 0;
 }
 
 .formal-check-list {
@@ -3746,7 +4065,15 @@ body.analysis-ready .analysis-deck-shell .print-slide + .print-slide {
   .formal-two-column,
   .formal-metric-grid,
   .formal-action-grid,
+  .formal-whatif-strip,
   .formal-roadmap {
+    grid-template-columns: 1fr;
+  }
+
+  .guided-path-list,
+  .whatif-control-grid,
+  .whatif-result-grid,
+  .formal-guided-grid {
     grid-template-columns: 1fr;
   }
 

@@ -38,6 +38,65 @@ function formalFactTable(facts = []) {
     </table>`;
 }
 
+function formalGuidedPathSection(row = targetRecord()) {
+  const rows = typeof guidedPathRows === "function" ? guidedPathRows(row) : [];
+  const cards = rows.map((item) => `
+    <a class="formal-guided-step" href="${formalEscape(item.target)}">
+      <span>${formalEscape(item.step)}</span>
+      <b>${formalEscape(item.title)}</b>
+      <p>${formalParagraph(item.reason, 160)}</p>
+    </a>`).join("");
+  return `
+    <section class="formal-section" id="formal-guided-path">
+      <div class="formal-section-kicker">推荐下钻路径</div>
+      <h2>报告阅读顺序应由诊断结果驱动，而不是由页面顺序驱动</h2>
+      <p class="formal-lead">本轮报告根据 VQA 最弱维度、行动优先级、跨专题一致性和对标组敏感性生成推荐路径。董办可先按此路径审阅，再回到完整报告逐章复核。</p>
+      <div class="formal-guided-grid">${cards}</div>
+    </section>`;
+}
+
+function formalConsistencySection(row = targetRecord()) {
+  const checks = typeof crossValidationNarratives === "function" ? crossValidationNarratives(row).slice(0, 5) : [];
+  const cards = checks.map((item, index) => `
+    <div class="formal-consistency-card">
+      <span>${String(index + 1).padStart(2, "0")}</span>
+      <p>${formalParagraph(item, 180)}</p>
+    </div>`).join("");
+  return `
+    <section class="formal-section" id="formal-consistency">
+      <div class="formal-section-kicker">跨专题一致性检查</div>
+      <h2>强结论必须先通过盈利、风险、资本和现金流之间的一致性复核</h2>
+      <p class="formal-lead">正式报告不应把单项指标改善直接解释为经营质量改善。系统会检查 NIM 与 ROA、净利润与现金流、不良率与逾期偏离、ROE 与 ROA 等信号是否存在方向背离，并据此调整结论语气。</p>
+      <div class="formal-consistency-grid">${cards}</div>
+    </section>`;
+}
+
+function formalPeerMatrixSection(row = targetRecord()) {
+  const matrix = typeof peerHeatmapRows === "function" ? peerHeatmapRows(row) : { keys: [], rows: [] };
+  const head = matrix.keys.map((key) => `<th>${formalEscape(fieldName(key))}</th>`).join("");
+  const body = matrix.rows.map((bankRow) => `
+    <tr class="${bankRow.isTarget ? "is-target" : ""}">
+      <th>${formalEscape(displayBankName(bankRow.bank))}</th>
+      ${bankRow.cells.map((cell) => `
+        <td class="tone-${cell.tone}">
+          <b>${formalEscape(cell.value)}</b>
+          <span>${cell.pct == null ? "P--" : `P${Math.round(cell.pct)}`}</span>
+        </td>`).join("")}
+    </tr>`).join("");
+  return `
+    <section class="formal-section" id="formal-peer-matrix">
+      <div class="formal-section-kicker">对标矩阵全景页</div>
+      <h2>目标银行在核心指标上的位置需要放回同业矩阵中整体判断</h2>
+      <p class="formal-lead">矩阵按银行列示核心指标值和全样本分位，绿色代表相对靠前，红色代表相对靠后，白色代表接近中段。目标银行行加粗显示，用于快速识别哪些差距是共性压力，哪些更可能是个体结构问题。</p>
+      <div class="formal-peer-matrix-wrap">
+        <table class="formal-peer-matrix">
+          <thead><tr><th>银行</th>${head}</tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>
+    </section>`;
+}
+
 function formalTopicSection(topicKey, index) {
   const row = targetRecord();
   const config = rsm2TopicConfig(topicKey);
@@ -49,6 +108,7 @@ function formalTopicSection(topicKey, index) {
   const confidence = typeof confidenceLevel === "function" ? confidenceLevel(primary, row, peerRecords()) : { level: "中", prefix: "现有数据倾向于显示", suffix: "建议保留口径提示。" };
   const temporal = typeof buildTemporalNarrative === "function" ? buildTemporalNarrative(primary, row.bank) : "";
   const mechanism = typeof buildMechanismExplanation === "function" ? buildMechanismExplanation(topicKey) : config.finding;
+  const split = typeof structuralCycleTag === "function" ? structuralCycleTag(primary, row) : null;
   const drill = typeof drillDownRows === "function" ? drillDownRows(topicKey, row).slice(0, 4) : [];
   const drillHtml = drill.map((item) => `
     <div class="formal-drill-card">
@@ -59,7 +119,7 @@ function formalTopicSection(topicKey, index) {
   return `
     <section class="formal-section" id="formal-topic-${formalEscape(topicKey)}">
       <div class="formal-section-kicker">专题 ${String(index + 1).padStart(2, "0")}｜${formalEscape(config.module)}｜置信度 ${formalEscape(confidence.level)}</div>
-      <h2>${formalEscape(reportTitleSentence(judgement?.headline || config.title, 86))}</h2>
+      <h2>${formalEscape(reportTitleSentence(judgement?.headline || config.title, 86).replace(/指标指标/g, "指标"))}</h2>
       <div class="formal-two-column">
         <div>
           <p class="formal-lead">${formalParagraph(`${confidence.prefix}，${judgement?.headline || config.finding} ${confidence.suffix}`, 260)}</p>
@@ -70,7 +130,9 @@ function formalTopicSection(topicKey, index) {
           <p>${formalParagraph(mechanism, 620)}</p>
           <h3>3. 差距归因与时间轨迹</h3>
           <p>${formalParagraph(`${attribution?.headline || config.finding} ${temporal}`, 620)}</p>
-          <h3>4. 管理含义</h3>
+          <h3>4. 结构性与周期性判断</h3>
+          <p>${formalParagraph(split ? `${split.label}当前被识别为${split.tag}因素。${split.note} 该判断决定行动建议是主动调整经营结构，还是保留行业周期边界并跟踪修复节奏。` : "数据不足，暂不区分结构性与周期性因素。", 520)}</p>
+          <h3>5. 管理含义</h3>
           <p>${formalParagraph(`${config.action} 该动作需要在下一轮经营复盘中回到指标变化、对标样本稳定性和数据口径一致性进行验证。`, 520)}</p>
         </div>
         <aside class="formal-side-note">
@@ -89,6 +151,35 @@ function formalWatchSection(row = targetRecord()) {
       <h2>${formalEscape(displayBankName(row?.bank || state.target))}后续应固定少数指标复核价值质量变化</h2>
       <p class="formal-lead">正式报告不建议追踪所有指标，而应把低分位、敏感性较高且与行动建议直接相关的指标放入董事会季度复盘。以下指标用于把本次诊断延伸为后续管理闭环。</p>
       <div class="formal-metric-grid">${rows.map((item) => formalMetricHero(item.key, row)).join("")}</div>
+    </section>`;
+}
+
+function formalWhatIfSection(row = targetRecord()) {
+  const scenario = typeof whatIfScenario === "function" ? whatIfScenario(row) : null;
+  const rows = scenario?.driverRows || [];
+  const body = rows.map((item) => `
+    <tr>
+      <td>${formalEscape(item.label)}</td>
+      <td>${formalEscape(item.assumption)}</td>
+      <td>${formalEscape(`${item.impact >= 0 ? "+" : ""}${(item.impact * 100).toFixed(2)}pct`)}</td>
+      <td>${formalParagraph(item.readout, 120)}</td>
+    </tr>`).join("");
+  const scoreText = scenario?.scoreDelta == null ? "待测算" : `${scenario.scoreDelta >= 0 ? "+" : ""}${scenario.scoreDelta}`;
+  const roaText = scenario?.roaDelta == null ? "待测算" : `${scenario.roaDelta >= 0 ? "+" : ""}${scenario.roaDelta.toFixed(2)}pct`;
+  return `
+    <section class="formal-section" id="formal-whatif">
+      <div class="formal-section-kicker">What-if 管理推演</div>
+      <h2>行动建议需要经受核心假设压力测试，而不是只在基准情形下成立</h2>
+      <p class="formal-lead">本页读取页面上设置的净息差、不良率和成本收入比假设，推演其对 ROA 与 VQA 方向的影响。该测算为管理层讨论用的方向性敏感性，不替代正式预算或精算模型；若轻微假设变化即改变结论，报告语气应降级并补充验证动作。</p>
+      <div class="formal-whatif-strip">
+        <div><span>VQA 变化</span><b>${formalEscape(scoreText)}</b><p>推演后信号：${formalEscape(scenario?.next?.signal || "待测算")}</p></div>
+        <div><span>ROA 方向影响</span><b>${formalEscape(roaText)}</b><p>推演后 ROA：${formalEscape(metricDisplayValue("roa", scenario?.simulated?.roa))}</p></div>
+        <div><span>使用边界</span><b>方向性</b><p>用于董事会情景讨论，需在预算、资产负债和风险模型中复核。</p></div>
+      </div>
+      <table class="formal-fact-table">
+        <thead><tr><th>假设</th><th>变化</th><th>ROA 方向影响</th><th>管理读法</th></tr></thead>
+        <tbody>${body || `<tr><td colspan="4">确认样本后生成 What-if 推演。</td></tr>`}</tbody>
+      </table>
     </section>`;
 }
 
@@ -189,6 +280,7 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
           <p>VQA 当前得分为 ${formalEscape(diagnosis.score)}，信号为“${formalEscape(diagnosis.signal)}”。最需要优先解释的维度是${formalEscape(diagnosis.labels[diagnosis.weakest])}；正式报告后续章节按行业坐标、关键指标、专题归因、敏感性和行动建议逐层证明。</p>
         </div>
       </section>
+      ${formalGuidedPathSection(row)}
       <section class="formal-section" id="formal-context">
         <div class="formal-section-kicker">行业坐标与交叉验证</div>
         <h2>个体差异需要先经过类型均值校准，再判断是否进入结构性归因</h2>
@@ -196,6 +288,9 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
         <ul class="formal-check-list">${checkCards}</ul>
       </section>
       ${formalWatchSection(row)}
+      ${formalWhatIfSection(row)}
+      ${formalPeerMatrixSection(row)}
+      ${formalConsistencySection(row)}
       ${topicSections}
       ${formalSensitivitySection(row)}
       ${formalActionSection(row)}
@@ -215,6 +310,7 @@ function bindFormalReportRender() {
     renderAll = function renderAllWithFormalReport() {
       const result = originalRenderAll.apply(this, arguments);
       renderFormalReport();
+      if (typeof buildSideNav === "function") buildSideNav();
       return result;
     };
     renderAll.__formalReportWrapped = true;

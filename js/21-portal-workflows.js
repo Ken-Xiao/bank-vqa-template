@@ -193,6 +193,183 @@ function drillDownRows(topicId = state.activeTopic, row = targetRecord()) {
   }).sort((a, b) => b.contribution - a.contribution);
 }
 
+function guidedPathRows(row = targetRecord()) {
+  if (!row || typeof computeVqaDiagnosis !== "function") return [];
+  const diagnosis = computeVqaDiagnosis(row, peerRecords());
+  const weak = diagnosis.weakest;
+  const weakLabel = diagnosis.labels?.[weak] || "关键质量维度";
+  const topicByDimension = {
+    profitability: "profit",
+    spread: "nim",
+    risk: "risk",
+    capital: "capital",
+    valuation: "capital",
+    efficiency: "profit",
+    asset: "risk"
+  };
+  const topicKey = topicByDimension[weak] || rsm2MainReportTopics?.()[0] || "profit";
+  const priority = typeof actionPriorityMatrix === "function" ? actionPriorityMatrix(row)[0] : null;
+  const checks = crossValidationNarratives(row);
+  const sensitivity = peerSensitivityRows(row);
+  const hasFlip = sensitivity.some((item) => item.flip);
+  return [
+    {
+      step: "01",
+      title: `先进入${weakLabel}专题`,
+      target: `#formal-topic-${topicKey}`,
+      reason: `VQA 最弱维度为${weakLabel}，先解释分数来源，而不是直接进入行动建议。`
+    },
+    {
+      step: "02",
+      title: `复核${priority?.label || "优先指标"}差距`,
+      target: "#formal-watch",
+      reason: priority ? `${priority.label}综合优先级 ${priority.total}，需要同时看对标差距、趋势动量和改善空间。` : "优先指标尚不足，需先复核关注指标看板。"
+    },
+    {
+      step: "03",
+      title: "检查跨专题一致性",
+      target: "#formal-consistency",
+      reason: checks[0] || "核心指标之间未发现强背离，但仍应将一致性检查作为正式报告的一道门。"
+    },
+    {
+      step: "04",
+      title: "验证对标组鲁棒性",
+      target: "#formal-sensitivity",
+      reason: hasFlip ? "存在移除同业后信号翻转，强结论需要降级。" : "逐一移除同业后信号稳定，可支撑当前对标判断。"
+    },
+    {
+      step: "05",
+      title: "落到行动闭环",
+      target: "#formal-action",
+      reason: "最后将诊断转成 0-3、3-6、6-12 个月的指标、责任和复核路径。"
+    }
+  ];
+}
+
+function peerHeatmapRows(row = targetRecord()) {
+  if (!row) return { keys: [], rows: [] };
+  const keys = ["roa", "nim", "npl", "feeAssetRatio", "coreRevenueGrowth", "costIncomeRatio", "cet1Buffer", "pb"];
+  const banks = [row.bank, ...state.peers].filter(Boolean);
+  const rows = banks.map((bank) => {
+    const record = records.find((item) => item.bank === bank && item.year === state.year);
+    return {
+      bank,
+      isTarget: bank === row.bank,
+      cells: keys.map((key) => {
+        const pctRaw = record ? rankPercentile(record[key], currentRecords(), key, metricDirection(key)) : null;
+        const pct = Number.isFinite(pctRaw) ? pctRaw : null;
+        const tone = pct == null ? "neutral" : pct >= 65 ? "good" : pct <= 35 ? "bad" : "mid";
+        return { key, label: fieldName(key), value: metricDisplayValue(key, record?.[key]), pct, tone };
+      })
+    };
+  });
+  return { keys, rows };
+}
+
+function whatIfAssumptions() {
+  const fallback = { nimBp: 0, nplBp: 0, costPp: 0 };
+  return { ...fallback, ...(state.whatIfAssumptions || {}) };
+}
+
+function ratioDecimal(value, fallback = null) {
+  const numeric = v4Num(value);
+  if (numeric == null) return fallback;
+  return Math.abs(numeric) > 1 ? numeric / 100 : numeric;
+}
+
+function rateDecimal(value, fallback = null) {
+  const numeric = v4Num(value);
+  if (numeric == null) return fallback;
+  return Math.abs(numeric) > 0.2 ? numeric / 100 : numeric;
+}
+
+function whatIfScenario(row = targetRecord(), assumptions = whatIfAssumptions()) {
+  if (!row) return null;
+  const nimDelta = assumptions.nimBp / 10000;
+  const nplDelta = assumptions.nplBp / 10000;
+  const costDelta = assumptions.costPp / 100;
+  const earningAssetShare = ratioDecimal(row.earningAssetRatio, ratioDecimal(row.loanAssetRatio, 0.72));
+  const revenueAssetProxy = Math.max(rateDecimal(row.netInterestAsset, rateDecimal(row.roa, 0.006)), 0.001);
+  const nimRoaImpact = nimDelta * earningAssetShare;
+  const riskRoaImpact = -Math.max(nplDelta, -0.006) * 0.55;
+  const costRoaImpact = -costDelta * revenueAssetProxy;
+  const totalRoaImpact = nimRoaImpact + riskRoaImpact + costRoaImpact;
+  const roaUnit = Math.abs(v4Num(row.roa) ?? 0) > 0.2 ? 100 : 1;
+  const simulated = {
+    ...row,
+    nim: row.nim == null ? row.nim : row.nim + nimDelta * (Math.abs(row.nim) > 0.2 ? 100 : 1),
+    npl: row.npl == null ? row.npl : Math.max(0, row.npl + nplDelta * (Math.abs(row.npl) > 0.2 ? 100 : 1)),
+    costIncomeRatio: row.costIncomeRatio == null ? row.costIncomeRatio : Math.max(0, row.costIncomeRatio + costDelta * (Math.abs(row.costIncomeRatio) > 1 ? 100 : 1)),
+    roa: row.roa == null ? row.roa : Math.max(0, row.roa + totalRoaImpact * roaUnit)
+  };
+  const base = typeof computeVqaDiagnosis === "function" ? computeVqaDiagnosis(row, peerRecords()) : null;
+  const next = typeof computeVqaDiagnosis === "function" ? computeVqaDiagnosis(simulated, peerRecords()) : null;
+  const roaDelta = totalRoaImpact * 100;
+  const scoreDelta = base && next ? next.score - base.score : null;
+  const driverRows = [
+    { label: "净息差", assumption: `${assumptions.nimBp >= 0 ? "+" : ""}${assumptions.nimBp}bp`, impact: nimRoaImpact, readout: assumptions.nimBp >= 0 ? "资产收益修复对 ROA 形成正贡献" : "息差下行会优先压缩资产回报" },
+    { label: "不良率", assumption: `${assumptions.nplBp >= 0 ? "+" : ""}${assumptions.nplBp}bp`, impact: riskRoaImpact, readout: assumptions.nplBp <= 0 ? "风险确认压力缓和，有利于利润质量" : "风险压力抬升会侵蚀利润修复" },
+    { label: "成本收入比", assumption: `${assumptions.costPp >= 0 ? "+" : ""}${assumptions.costPp.toFixed(1)}pct`, impact: costRoaImpact, readout: assumptions.costPp <= 0 ? "效率改善能够释放经营杠杆" : "费用效率走弱会抵消收入端改善" }
+  ];
+  const tone = (scoreDelta ?? 0) > 2 ? "good" : (scoreDelta ?? 0) < -2 ? "bad" : "mid";
+  return { assumptions, simulated, base, next, roaDelta, scoreDelta, driverRows, tone };
+}
+
+function renderWhatIfControlPanel() {
+  const panel = document.getElementById("whatIfResultGrid");
+  if (!panel) return;
+  const scenario = whatIfScenario();
+  const assumptions = whatIfAssumptions();
+  const setText = (id, text) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = text;
+  };
+  setText("whatIfNimLabel", `${assumptions.nimBp >= 0 ? "+" : ""}${assumptions.nimBp}bp`);
+  setText("whatIfNplLabel", `${assumptions.nplBp >= 0 ? "+" : ""}${assumptions.nplBp}bp`);
+  setText("whatIfCostLabel", `${assumptions.costPp >= 0 ? "+" : ""}${assumptions.costPp.toFixed(1)}pct`);
+  if (!scenario) {
+    panel.innerHTML = "<p>确认样本后生成经营假设推演。</p>";
+    return;
+  }
+  const scoreText = scenario.scoreDelta == null ? "待测算" : `${scenario.scoreDelta >= 0 ? "+" : ""}${scenario.scoreDelta}`;
+  const roaText = scenario.roaDelta == null ? "待测算" : `${scenario.roaDelta >= 0 ? "+" : ""}${scenario.roaDelta.toFixed(2)}pct`;
+  panel.innerHTML = `
+    <div class="whatif-result-card tone-${scenario.tone}">
+      <span>VQA 变化</span>
+      <b>${scoreText}</b>
+      <p>推演后信号：${scenario.next?.signal || "待测算"}；用于判断建议是否对关键假设敏感。</p>
+    </div>
+    <div class="whatif-result-card tone-${scenario.tone}">
+      <span>ROA 方向影响</span>
+      <b>${roaText}</b>
+      <p>推演后 ROA：${metricDisplayValue("roa", scenario.simulated.roa)}，基准 ROA：${metricDisplayValue("roa", targetRecord()?.roa)}。</p>
+    </div>
+    ${scenario.driverRows.map((item) => `
+      <div class="whatif-result-card">
+        <span>${item.label}｜${item.assumption}</span>
+        <b>${item.impact >= 0 ? "+" : ""}${(item.impact * 100).toFixed(2)}pct</b>
+        <p>${item.readout}</p>
+      </div>`).join("")}`;
+}
+
+function bindWhatIfControls() {
+  const bindings = [
+    ["whatIfNimBp", "nimBp"],
+    ["whatIfNplBp", "nplBp"],
+    ["whatIfCostPp", "costPp"]
+  ];
+  bindings.forEach(([id, key]) => {
+    const input = document.getElementById(id);
+    if (!input || input.dataset.bound === "true") return;
+    input.dataset.bound = "true";
+    input.addEventListener("input", () => {
+      state.whatIfAssumptions = { ...whatIfAssumptions(), [key]: Number(input.value) || 0 };
+      renderWhatIfControlPanel();
+      if (typeof renderFormalReport === "function") renderFormalReport();
+    });
+  });
+}
+
 function renderWatchMetricsDashboard() {
   const nodes = [document.getElementById("benchmarkWatchlist"), document.getElementById("portalWatchMetrics")].filter(Boolean);
   if (!nodes.length) return;
@@ -205,6 +382,18 @@ function renderWatchMetricsDashboard() {
       <p>${item.gapText}；动量${item.momentum}${item.priority == null ? "" : `；优先级 ${item.priority}`}</p>
     </div>`).join("");
   nodes.forEach((node) => { node.innerHTML = html || "<span>待生成。</span>"; });
+}
+
+function renderGuidedPathPanel() {
+  const panel = document.getElementById("guidedPathList");
+  if (!panel) return;
+  const rows = guidedPathRows();
+  panel.innerHTML = rows.length ? rows.map((item) => `
+    <a class="guided-path-step" href="${item.target}">
+      <span>${item.step}</span>
+      <b>${item.title}</b>
+      <p>${item.reason}</p>
+    </a>`).join("") : "<p>确认样本后生成推荐阅读路径。</p>";
 }
 
 function renderSessionLogPanel() {
@@ -234,6 +423,9 @@ function renderPeerSensitivityPanel() {
 function renderPortalWorkflowPanels() {
   if (!state.confirmed) return;
   if (!state.watchMetrics?.length) state.watchMetrics = defaultWatchMetrics();
+  renderGuidedPathPanel();
+  bindWhatIfControls();
+  renderWhatIfControlPanel();
   renderWatchMetricsDashboard();
   renderPeerSensitivityPanel();
   renderSessionLogPanel();

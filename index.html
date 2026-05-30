@@ -186,6 +186,25 @@
           <div class="command-card"><span>最弱维度</span><b id="commandWeakDimension">待生成</b><p>优先进入管理层行动清单。</p></div>
           <div class="command-card"><span>交付状态</span><b id="commandDeliveryStatus">待复核</b><p>通过复核后再导出正式材料。</p></div>
         </div>
+        <div class="guided-path-panel" id="guidedPathPanel">
+          <div class="guided-path-head">
+            <span>推荐下钻路径</span>
+            <b>确认分析后，系统将按 VQA 弱项和风险信号给出下一步阅读顺序。</b>
+          </div>
+          <div class="guided-path-list" id="guidedPathList"></div>
+        </div>
+        <div class="whatif-control-panel" id="whatIfControlPanel">
+          <div class="whatif-control-head">
+            <span>What-if 决策推演</span>
+            <b>调整核心经营假设，观察结论方向是否改变。</b>
+          </div>
+          <div class="whatif-control-grid">
+            <label>净息差变化 <b id="whatIfNimLabel">+0bp</b><input id="whatIfNimBp" type="range" min="-30" max="30" step="5" value="0" /></label>
+            <label>不良率变化 <b id="whatIfNplLabel">+0bp</b><input id="whatIfNplBp" type="range" min="-30" max="30" step="5" value="0" /></label>
+            <label>成本收入比变化 <b id="whatIfCostLabel">+0.0pct</b><input id="whatIfCostPp" type="range" min="-5" max="5" step="1" value="0" /></label>
+          </div>
+          <div class="whatif-result-grid" id="whatIfResultGrid"></div>
+        </div>
       </section>
       <section class="president-summary-panel analysis-content" id="presidentSummaryPanel" data-workspace-tab="overview" aria-label="行长版一页摘要">
         <div class="president-summary-head">

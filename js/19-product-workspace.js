@@ -55,6 +55,7 @@ function updateClientCommandCenter() {
     status.textContent = ready ? "可进入交付复核" : "需补充复核";
     status.className = ready ? "good" : "warn";
   }
+  if (typeof renderGuidedPathPanel === "function") renderGuidedPathPanel();
 }
 
 function sparcDimensions() {
