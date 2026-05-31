@@ -539,7 +539,38 @@
   "export": {
     "slideStructure": ["章节小标题", "主标题", "副标题", "图表", "图下故事说明", "数据来源"],
     "storyMaxChars": 180,
+    "pageLayout": {
+      "assertionTitle": { "maxChars": 50 },
+      "keyNumberCallout": { "maxItems": 3, "maxCharsEach": 30 },
+      "coreConclusion": { "maxChars": 200 },
+      "managementImplication": { "maxChars": 150 },
+      "soWhat": { "maxChars": 40 }
+    },
+    "pageOrder": ["cover", "toc", "scope", "methodology", "panorama", "macroTransmission", "profit", "nim", "risk", "capital", "transformationSequence", "appendix"],
+    "singleSourceOfTruth": "html_report_dom",
     "versions": ["董事会完整汇报版", "资本市场沟通版", "管理层行动版", "专项分析版", "一页摘要版"]
+  },
+  "prdV3Topics": {
+    "macroTransmission": {
+      "title": "宏观传导与竞争格局",
+      "metrics": ["earningAssetYield", "earningAssetYieldChange", "netInterestRevenueShare", "nonInterestShare", "coreRevenueGrowth"],
+      "question": "同样宏观冲击下，目标银行资产端收益率是否传导更快，收入结构是否缺少缓冲。"
+    },
+    "retailRiskScissors": {
+      "title": "零售风险剪刀差",
+      "metrics": ["personalLoanNpl", "npl", "housingLoanNpl", "consumerLoanNpl", "businessLoanNpl"],
+      "question": "零售不良率是否先于整体不良率抬升，并提示风险前移。"
+    },
+    "profitQualityTriangle": {
+      "title": "利润质量三角验证",
+      "metrics": ["ppopGrowth", "netProfitGrowth", "provisionCoverage", "provisionCoverageChange"],
+      "question": "净利润改善是否由前端利润支撑，还是伴随拨备安全垫消耗。"
+    },
+    "transformationSequence": {
+      "title": "三步转型检查器",
+      "metrics": ["nimGapBp", "coreRevenueGrowth", "feeAssetRatio", "overdueNplDeviation", "ppopGrowth", "netProfitGrowth", "cet1Buffer"],
+      "question": "当前阶段应先修底盘、写入纪律，还是可以交付转型投入。"
+    }
   },
   "reportProfiles": {
     "董事会完整汇报版": {

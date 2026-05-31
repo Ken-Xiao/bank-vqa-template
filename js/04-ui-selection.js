@@ -199,7 +199,10 @@ function populateSelectors() {
       if (typeof preflightExport !== "function" && !state.confirmed) return;
       if (typeof recordExportHistory === "function") recordExportHistory("PDF");
       if (typeof recordAnalysisSession === "function") recordAnalysisSession("打印/导出 PDF", { version: state.reportVersion });
+      if (typeof renderFormalReport === "function") renderFormalReport();
+      document.body.classList.add("printing-formal-report");
       window.print();
+      window.setTimeout(() => document.body.classList.remove("printing-formal-report"), 800);
     });
   }
   [exportSelected, coverageExportSelected].filter(Boolean).forEach((button) => {

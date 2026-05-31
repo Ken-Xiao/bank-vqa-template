@@ -9,6 +9,99 @@ function formalParagraph(text = "", limit = 520) {
   return formalEscape(reportShortText(String(text || "因数据覆盖不足，暂不形成该层判断。"), limit));
 }
 
+function formalBankName(row = targetRecord()) {
+  return displayBankName(row?.bank || state.target);
+}
+
+function formalPeerAnchor(key, row = targetRecord(), peers = peerRecords()) {
+  return `${formalBankName(row)}${fieldName(key)}为${metricDisplayValue(key, row?.[key])}，对标组均值为${metricDisplayValue(key, avg(peers, key))}`;
+}
+
+function formalCausalSentence(topicKey, row = targetRecord(), peers = peerRecords()) {
+  if (!row) return "数据不足，暂不形成机制判断。";
+  if (topicKey === "profit") {
+    return `从传导链看，${formalPeerAnchor("coreRevenueGrowth", row, peers)}，${formalPeerAnchor("feeAssetRatio", row, peers)}。这意味着本轮盈利判断不能停在 ROA 终值，而要追问核心营收和手续费资产比是否已经形成第二收入支柱。`;
+  }
+  if (topicKey === "nim") {
+    return `从传导链看，${formalPeerAnchor("nimGapBp", row, peers)}，${formalPeerAnchor("interestLiabilityCost", row, peers)}。如果资产端收益率先让价、负债端成本下行滞后，息差压力就不是市场噪音，而是负债经营纪律问题。`;
+  }
+  if (topicKey === "risk") {
+    return `从风险确认链条看，${formalPeerAnchor("personalLoanNpl", row, peers)}，${formalPeerAnchor("overdueNplDeviation", row, peers)}。若零售或偏离度先行抬升，综合不良率稳定并不能直接证明资产质量已经干净。`;
+  }
+  if (topicKey === "capital") {
+    return `从资本转化链条看，${formalPeerAnchor("cet1Buffer", row, peers)}，${formalPeerAnchor("rwaDensity", row, peers)}。扩表只有在不持续消耗资本余量、且能转化为 ROA 改善时，才构成可持续增长。`;
+  }
+  return `从估值验证链条看，${formalPeerAnchor("pb", row, peers)}，${formalPeerAnchor("roa", row, peers)}。PB 不能孤立解释，必须回到盈利、风险和资本纪律共同验证。`;
+}
+
+function formalPrioritizedAdvice(topicKey, row = targetRecord()) {
+  const target = formalBankName(row);
+  const seq = typeof v3TransformationSequence === "function" ? v3TransformationSequence(row) : null;
+  if (topicKey === "profit") return `优先级一：${target}应在未来 3 个月把核心营收增速和手续费资产比列为盈利质量主锚点；优先级二：拆分客户经营收入和波动型非息收入；优先级三：ROA 改善只有在 PPOP 同步改善后才进入主动沟通口径。`;
+  if (topicKey === "nim") return `优先级一：以息差对冲缺口作为月度 ALM 纪律；优先级二：压降高成本定期存款并提升结算资金沉淀；优先级三：新增资产投放必须同时满足风险调整收益率和负债成本约束。`;
+  if (topicKey === "risk") return `优先级一：把零售不良剪刀差、关注率和逾期偏离度前移到季度风险会；优先级二：净利润快于 PPOP 时必须同步披露拨备覆盖率变化；优先级三：风险确认节奏要先于利润释放节奏。`;
+  if (topicKey === "capital") return `优先级一：将 CET1 余量和 RWA 密度写入新增资产准入；优先级二：对高资本占用业务建立退出或重定价清单；优先级三：数字化与组织投入必须以 ROA、成本收入比和轻资本收入改善验证。`;
+  return `优先级一：先证明${target}经营质量改善而非只解释 PB 低位；优先级二：把估值叙事绑定 ROA、风险确认和资本余量；优先级三：在${seq?.stage || "当前阶段"}完成前，不宜过度使用价值重估表述。`;
+}
+
+function formalConsultingReadout(topicKey, row = targetRecord(), peers = peerRecords()) {
+  if (!row) return "数据不足，暂不形成咨询判断。";
+  const target = formalBankName(row);
+  const diagnosis = typeof computeVqaDiagnosis === "function" ? computeVqaDiagnosis(row, peers) : null;
+  const weakest = diagnosis?.labels?.[diagnosis.weakest] || "关键维度";
+  if (topicKey === "executive") {
+    return `${target}本轮诊断不宜从“哪些指标高于同业”开始，而应从“哪一项约束会限制后续价值重估”开始。VQA 总分 ${diagnosis?.score ?? "待测算"}，最弱维度为${weakest}，意味着董事会讨论的第一议题应是约束项修复顺序，而不是对优势指标做正向陈述。`;
+  }
+  if (topicKey === "context") {
+    return `${target}的指标差异需要先分成三类：行业共同传导、同类型银行结构约束、目标银行自身经营纪律。只有第三类差异，才应该直接转化为管理层行动清单；前两类差异应进入情景假设和口径边界。`;
+  }
+  if (topicKey === "action") {
+    const seq = typeof v3TransformationSequence === "function" ? v3TransformationSequence(row) : null;
+    return `${target}当前行动阶段判断为“${seq?.stage || "待判断"}”。因此建议不应平均分配到所有专题，而应先处理会改变 VQA 信号的约束项：息差对冲、风险确认、资本消耗和轻资本收入中，谁对总分拖累最大，谁进入 0-3 个月管理闭环。`;
+  }
+  return `${target}本页判断的咨询含义不是复述指标，而是确认该指标是否改变管理层排序：若该项差距持续存在，下一轮经营会应要求责任部门解释差距来源、改善阈值和验证时间窗口。`;
+}
+
+function formalV3SubjectSections(row = targetRecord()) {
+  if (!row) return "";
+  const macro = typeof v3MacroTransmission === "function" ? v3MacroTransmission(row, peerRecords()) : null;
+  const scissors = typeof v3RetailRiskScissors === "function" ? v3RetailRiskScissors(row, peerRecords()) : null;
+  const triangle = typeof v3ProfitQualityTriangle === "function" ? v3ProfitQualityTriangle(row, peerRecords()) : null;
+  const sequence = typeof v3TransformationSequence === "function" ? v3TransformationSequence(row) : null;
+  return `
+    <section class="formal-section" id="formal-macro-transmission">
+      <div class="formal-section-kicker">专题分析｜宏观传导与竞争格局</div>
+      <h2>${formalBankName(row)}的外部压力需要先拆成资产端传导和收入结构缓冲</h2>
+      <p class="formal-lead">${formalParagraph(`${macro?.label || "资产收益率传导待验证"}，${macro?.bufferLabel || "收入结构缓冲待验证"}。${formalBankName(row)}生息资产收益率一年变化为${metricDisplayValue("earningAssetYield", macro?.yieldChange)}，对标组变化为${metricDisplayValue("earningAssetYield", macro?.peerYieldChange)}；非息收入占比为${metricDisplayValue("nonInterestShare", row.nonInterestShare)}，对标组均值为${metricDisplayValue("nonInterestShare", avg(peerRecords(), "nonInterestShare"))}。这说明本章要回答的不是利率是否下行，而是下行压力是否更快、更深地进入目标银行报表。`, 520)}</p>
+      <div class="formal-risk-grid">
+        <div class="formal-risk-card"><span>资产端传导</span><b>${formalEscape(macro?.label || "待验证")}</b><p>若目标银行收益率下行快于对标组，应复盘重点客群、区域竞争和贷款定价纪律。</p></div>
+        <div class="formal-risk-card"><span>收入缓冲</span><b>${formalEscape(macro?.bufferLabel || "待验证")}</b><p>非息收入和手续费资产比决定利率下行时利润表是否有第二支柱。</p></div>
+        <div class="formal-risk-card"><span>竞争格局</span><b>大行下沉压力需定性纳入</b><p>区域中小银行的压力不只来自利率，也来自优质客群和低成本负债的竞争再分配。</p></div>
+      </div>
+    </section>
+    <section class="formal-section" id="formal-risk-forward">
+      <div class="formal-section-kicker">专题分析｜风险前瞻三层验证</div>
+      <h2>${formalBankName(row)}风险判断需要从综合不良率前移到零售、利润质量和偏离度</h2>
+      <p class="formal-lead">${formalParagraph(`零售风险剪刀差判断为“${scissors?.label || "待验证"}”，个贷不良率与整体不良率差值为${fmt(scissors?.spread)}，对标组差值为${fmt(scissors?.peerSpread)}。利润质量三角判断为“${triangle?.label || "待验证"}”，PPOP 增速为${metricDisplayValue("ppopGrowth", row.ppopGrowth)}，净利润增速为${metricDisplayValue("netProfitGrowth", row.netProfitGrowth)}，拨备覆盖率为${metricDisplayValue("provisionCoverage", row.provisionCoverage)}。`, 560)}</p>
+      <div class="formal-risk-grid">
+        <div class="formal-risk-card"><span>一层：零售先行</span><b>${formalEscape(scissors?.label || "待验证")}</b><p>零售剪刀差扩大时，综合不良率稳定可能只是滞后结果。</p></div>
+        <div class="formal-risk-card"><span>二层：利润质量</span><b>${formalEscape(triangle?.label || "待验证")}</b><p>净利润快于 PPOP 且拨备下降时，应触发反直觉警示。</p></div>
+        <div class="formal-risk-card"><span>三层：确认时差</span><b>偏离度 ${formalEscape(metricDisplayValue("overdueNplDeviation", row.overdueNplDeviation))}</b><p>偏离度和关注率应作为领先指标，而不是附录指标。</p></div>
+      </div>
+    </section>
+    <section class="formal-section" id="formal-transformation-sequence">
+      <div class="formal-section-kicker">专题分析｜转型顺序检查器</div>
+      <h2>${formalBankName(row)}当前行动阶段应定义为：${formalEscape(sequence?.stage || "待判断")}</h2>
+      <p class="formal-lead">${formalParagraph(sequence?.advice || "数据不足，暂不形成转型顺序判断。", 420)}</p>
+      <div class="formal-sequence-grid">${(sequence?.checks || []).map((item) => `
+        <div class="formal-sequence-card ${item.pass ? "pass" : "fail"}">
+          <span>${item.pass ? "通过" : "未过"}</span>
+          <b>${formalEscape(item.label)}</b>
+          <p>${formalEscape(item.value)}</p>
+        </div>`).join("")}</div>
+    </section>`;
+}
+
 function formalMetricHero(key, row = targetRecord()) {
   const gap = typeof v4MetricGap === "function" ? v4MetricGap(key, row, peerRecords()) : null;
   const pctRaw = rankPercentile(row?.[key], currentRecords(), key, metricDirection(key));
@@ -49,8 +142,8 @@ function formalGuidedPathSection(row = targetRecord()) {
   return `
     <section class="formal-section" id="formal-guided-path">
       <div class="formal-section-kicker">推荐下钻路径</div>
-      <h2>报告阅读顺序应由诊断结果驱动，而不是由页面顺序驱动</h2>
-      <p class="formal-lead">本轮报告根据 VQA 最弱维度、行动优先级、跨专题一致性和对标组敏感性生成推荐路径。董办可先按此路径审阅，再回到完整报告逐章复核。</p>
+      <h2>${formalEscape(displayBankName(row?.bank || state.target))}本轮应先看${formalEscape(computeVqaDiagnosis(row, peerRecords()).labels[computeVqaDiagnosis(row, peerRecords()).weakest])}，再回到其他专题验证</h2>
+      <p class="formal-lead">推荐路径不是页面说明，而是根据目标银行低分位维度、对标差距和行动优先级形成的审阅顺序。若先看强项，容易把表观优势误读为经营质量改善；若先看约束项，更容易判断改善是否可持续。</p>
       <div class="formal-guided-grid">${cards}</div>
     </section>`;
 }
@@ -122,18 +215,18 @@ function formalTopicSection(topicKey, index) {
       <h2>${formalEscape(reportTitleSentence(judgement?.headline || config.title, 86).replace(/指标指标/g, "指标"))}</h2>
       <div class="formal-two-column">
         <div>
-          <p class="formal-lead">${formalParagraph(`${confidence.prefix}，${judgement?.headline || config.finding} ${confidence.suffix}`, 260)}</p>
+          <p class="formal-lead">${formalParagraph(`${targetRecord()?.bank ? formalBankName(row) : "目标银行"}本页要回答的不是“${config.title}是否好看”，而是该专题是否会改变管理层下一步排序。${confidence.prefix}，${judgement?.headline || config.finding} ${confidence.suffix}`, 320)}</p>
           <h3>1. 证据基础</h3>
           <p>${formalParagraph(facts.slice(0, 3).map((fact) => `${fact.指标名称}为${fact.目标值}，对标均值${fact.对标均值}，分位为${fact.分位}`).join("；") || "本专题缺少足够可用指标。", 520)}</p>
           ${formalFactTable(facts)}
           <h3>2. 形成机制</h3>
-          <p>${formalParagraph(mechanism, 620)}</p>
+          <p>${formalParagraph(`${formalCausalSentence(topicKey, row, peerRecords())} ${mechanism}`, 620)}</p>
           <h3>3. 差距归因与时间轨迹</h3>
           <p>${formalParagraph(`${attribution?.headline || config.finding} ${temporal}`, 620)}</p>
           <h3>4. 结构性与周期性判断</h3>
           <p>${formalParagraph(split ? `${split.label}当前被识别为${split.tag}因素。${split.note} 该判断决定行动建议是主动调整经营结构，还是保留行业周期边界并跟踪修复节奏。` : "数据不足，暂不区分结构性与周期性因素。", 520)}</p>
           <h3>5. 管理含义</h3>
-          <p>${formalParagraph(`${config.action} 该动作需要在下一轮经营复盘中回到指标变化、对标样本稳定性和数据口径一致性进行验证。`, 520)}</p>
+          <p>${formalParagraph(formalPrioritizedAdvice(topicKey, row), 620)}</p>
         </div>
         <aside class="formal-side-note">
           <b>下钻读法</b>
@@ -216,7 +309,7 @@ function formalActionSection(row = targetRecord()) {
     <section class="formal-section" id="formal-action">
       <div class="formal-section-kicker">行动建议</div>
       <h2>${formalEscape(displayBankName(row?.bank || state.target))}修复路径应从优先级最高的指标开始，而不是平均用力</h2>
-      <p class="formal-lead">行动排序采用影响度、可改善性和紧迫性三类因子综合判断。正式报告的建议不使用“持续关注”作为结论，而是把每项建议绑定到指标、时间窗口和复核方式。</p>
+      <p class="formal-lead">${formalParagraph(formalConsultingReadout("action", row), 520)}</p>
       <div class="formal-action-grid">${cards}</div>
       <div class="formal-roadmap">
         <div><b>0-3 个月</b><p>确认低分位指标口径、责任部门和改善阈值。</p></div>
@@ -271,7 +364,7 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
       <section class="formal-executive" id="formal-executive">
         <div class="formal-section-kicker">执行摘要</div>
         <h2>${formalEscape(story.client_answer)}</h2>
-        <p class="formal-lead">本报告的核心判断是：${formalParagraph(story.deck_answer, 420)}</p>
+        <p class="formal-lead">${formalParagraph(formalConsultingReadout("executive", row), 480)}</p>
         <div class="formal-metric-grid">
           ${["roa", "nim", "npl", "pb"].map((key) => formalMetricHero(key, row)).join("")}
         </div>
@@ -284,10 +377,11 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
       <section class="formal-section" id="formal-context">
         <div class="formal-section-kicker">行业坐标与交叉验证</div>
         <h2>个体差异需要先经过类型均值校准，再判断是否进入结构性归因</h2>
-        <p class="formal-lead">${formalParagraph(context, 520)}</p>
+        <p class="formal-lead">${formalParagraph(`${formalConsultingReadout("context", row)} ${context}`, 620)}</p>
         <ul class="formal-check-list">${checkCards}</ul>
       </section>
       ${formalWatchSection(row)}
+      ${formalV3SubjectSections(row)}
       ${typeof investmentEvidenceHtmlForFormal === "function" ? investmentEvidenceHtmlForFormal() : ""}
       ${formalWhatIfSection(row)}
       ${formalPeerMatrixSection(row)}

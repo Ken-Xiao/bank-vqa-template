@@ -143,7 +143,9 @@ function computeVqaDiagnosis(row, peers) {
     `资本效率 ${dim.capital} 分，资本余量 ${fmt(row.carBuffer, 0, "bp")}，RWA密度 ${fmt(row.rwaDensity)}。`,
     `估值验证 ${dim.valuation} 分，PB ${row.pb == null ? "暂无" : Number(row.pb).toFixed(2) + "x"}，类型均值 ${avg(typeRows, "pb") == null ? "暂无" : avg(typeRows, "pb").toFixed(2) + "x"}。`
   ];
-  return { score, dim, labels, dimensions, weakest: weakest[0], strongest: strongest[0], signal, facts };
+  const counterintuitiveAlerts = typeof v3CounterintuitiveAlerts === "function" ? v3CounterintuitiveAlerts(row, peers) : [];
+  const transformationSequence = typeof v3TransformationSequence === "function" ? v3TransformationSequence(row) : null;
+  return { score, dim, labels, dimensions, weakest: weakest[0], strongest: strongest[0], signal, facts, counterintuitiveAlerts, transformationSequence };
 }
 
 function updateVqaPanel(row, peers) {

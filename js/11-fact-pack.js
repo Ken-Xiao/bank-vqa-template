@@ -12,6 +12,11 @@ function buildStandardFactRow(key, row, peers, typeRows, allRows) {
   const peerAvg = avg(peers, key);
   const typeAvg = avg(typeRows, key);
   const completenessRate = completeness([row, ...peers].filter(Boolean), key);
+  const alerts = typeof v3CounterintuitiveAlerts === "function" ? v3CounterintuitiveAlerts(row, peers) : [];
+  const sequence = typeof v3TransformationSequence === "function" ? v3TransformationSequence(row) : null;
+  const macro = typeof v3MacroTransmission === "function" ? v3MacroTransmission(row, peers) : null;
+  const triangle = typeof v3ProfitQualityTriangle === "function" ? v3ProfitQualityTriangle(row, peers) : null;
+  const factor = typeof dupontBreakdown === "function" ? dupontBreakdown(row, peers)?.mainDriver : null;
   return {
     指标代码: key,
     指标名称: metricLabel[key] || fieldName(key),
@@ -27,6 +32,14 @@ function buildStandardFactRow(key, row, peers, typeRows, allRows) {
     全样本分位: rankPercentile(value, allRows, key, metricDirection(key)),
     数据完整性: completenessRate == null ? "暂无" : `${(completenessRate * 100).toFixed(1)}%`,
     解释方向: metricDirectionText(key),
+    因子归因值: factor?.gap == null ? "暂无" : metricDisplayValue(key, factor.gap),
+    主导因子标签: factor?.label || "待验证",
+    传导链标签: macro?.label || "待验证",
+    反直觉标记: alerts.length ? alerts.map((item) => item.type).join("、") : "",
+    反直觉提示: alerts.length ? alerts.map((item) => item.title).join("；") : "",
+    转型阶段标签: sequence?.stage || "待判断",
+    利润质量三角: triangle?.label || "待验证",
+    区域比较锚点: row?.region ? `${row.region}区域，需与同区域和同类型样本共同复核` : "待补区域字段",
     原始值: value,
     可用: value !== null && value !== undefined && !Number.isNaN(value)
   };

@@ -616,7 +616,7 @@
           <label><input type="checkbox" class="report-section-check" value="06 / 06" checked /> 行动建议</label>
         </div>
       </div>
-      <p class="analysis-content client-internal" style="margin:0 0 14px;color:#667789;font-size:13px;font-weight:700;">导出时将隐藏筛选器与勾选区，默认输出 RSM 风格正式报告；PPT 作为备用演示稿保留。</p>
+      <p class="analysis-content client-internal" style="margin:0 0 14px;color:#667789;font-size:13px;font-weight:700;">导出时以正式报告 HTML 为唯一交付母版；PDF 和 PPTX 均按该报告结构生成。</p>
 
       <section class="formal-report-shell analysis-content" id="formalReportShell" data-workspace-tab="report" aria-label="正式报告阅读版">
         <div class="formal-report-head">
@@ -630,7 +630,7 @@
         <article class="formal-report" id="formalReport">确认分析后生成正式报告。</article>
       </section>
 
-      <section class="analysis-deck-shell analysis-content" id="analysisDeckShell" data-workspace-tab="report" aria-label="PPT版式报告预览">
+      <section class="analysis-deck-shell analysis-content client-internal" id="analysisDeckShell" data-workspace-tab="report" aria-label="PPT版式报告预览" hidden>
         <div class="deck-shell-head">
           <div>
             <span>备用演示版</span>
@@ -1106,6 +1106,7 @@
   <script src="js/17-rsm-deck-theme.js?v=20260529-deck-ui"></script>
   <script src="js/18-board-workbench.js?v=20260530-client-language"></script>
   <script src="js/19-product-workspace.js?v=20260530-benchmarkiq-v2"></script>
+  <script src="js/24-prd-v3-workbench.js?v=20260531-prd-v3"></script>
   <script src="js/10-bootstrap.js"></script>
 </body>
 </html>

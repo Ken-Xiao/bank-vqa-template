@@ -21,6 +21,31 @@
       "label": "管理层行动版",
       "instruction": "面向管理层执行，强调责任部门、改善节点和可追踪指标。",
       "opening": "{bank}下一步应围绕本专题建立“事实包、责任部门、改善节点、披露话术”四件套。"
+    },
+    "chapterOpener": {
+      "label": "章节开篇问题",
+      "instruction": "用“董事会需要判断的不是……而是……”开篇，先提出经营问题，再说明本章证据链。不得引入事实包之外数字。",
+      "opening": "董事会需要判断的不是单项指标高低，而是{bank}的{topicTitle}是否能解释经营质量变化。"
+    },
+    "causalNarrative": {
+      "label": "机制解释型推理",
+      "instruction": "使用“从传导链看”展开，顺序为变化来自哪里、这意味着什么、管理层应先做什么。至少引用两个事实包字段。",
+      "opening": "从传导链看，{bank}{topicTitle}的变化应先拆驱动因子，再判断其经营含义。"
+    },
+    "counterintuitiveAlert": {
+      "label": "反直觉警示",
+      "instruction": "当事实包出现 counterintuitive_alert 时，使用“看似改善，但拆开看”句式，解释表观指标和底层驱动的背离。",
+      "opening": "看似改善，但拆开看，{bank}的{topicTitle}仍需用底层驱动复核。"
+    },
+    "prioritizedAction": {
+      "label": "优先级排序建议",
+      "instruction": "必须使用“优先级一、优先级二、优先级三”结构，每条包含量化锚点、时间窗口和责任动作。",
+      "opening": "{bank}的管理建议应先排序，再分配指标锚点和执行窗口。"
+    },
+    "peerComparison": {
+      "label": "同业比较语境",
+      "instruction": "使用“这不是个体表现，而是区域/类型共性或差异”的句式建立比较边界，并区分已验证与待验证结论。",
+      "opening": "{bank}的{topicTitle}需要放入对标组和类型均值中判断，避免把行业共性误读为单行问题。"
     }
   },
   "constraints": [

@@ -331,6 +331,249 @@ function slideTextBlocks(slideEl) {
   };
 }
 
+function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
+  const title = sectionEl.querySelector("h1, h2")?.textContent?.trim() || `${displayBankName(state.target)}正式报告`;
+  const subtitle = sectionEl.querySelector(".formal-lead, header p, .formal-callout p")?.textContent?.trim() || "";
+  const moduleLabel = sectionEl.querySelector(".formal-section-kicker")?.textContent?.trim()
+    || (sectionEl.matches(".formal-cover") ? "董事会经营诊断报告" : "正式报告");
+  const metrics = [...sectionEl.querySelectorAll(".formal-metric-hero")].slice(0, 6).map((el) => {
+    const label = el.querySelector("span")?.textContent?.trim() || "";
+    const value = el.querySelector("b")?.textContent?.trim() || "";
+    const note = el.querySelector("em, p")?.textContent?.trim() || "";
+    return `${label} ${value}${note ? `｜${note}` : ""}`;
+  });
+  const facts = [...sectionEl.querySelectorAll(".formal-fact-table tbody tr")].slice(0, 5).map((tr) => [...tr.children].map((td) => td.textContent.trim()).filter(Boolean).join("｜"));
+  const cards = [...sectionEl.querySelectorAll(".formal-action-card, .formal-consistency-card, .formal-drill-card, .formal-guided-step, .formal-whatif-strip > div, .formal-risk-card, .formal-sequence-card")].slice(0, 6).map((el) => {
+    const label = el.querySelector("span")?.textContent?.trim() || "";
+    const head = el.querySelector("b, h3")?.textContent?.trim() || "";
+    const note = [...el.querySelectorAll("p, em")].map((p) => p.textContent.trim()).filter(Boolean).join("；");
+    return `${label} ${head}${note ? `：${note}` : ""}`.trim();
+  });
+  const paragraphs = [...sectionEl.querySelectorAll("p")].map((p) => p.textContent.trim()).filter(Boolean);
+  const tocItems = sections.slice(0, 9).map((el, i) => `${String(i + 1).padStart(2, "0")} ${el.querySelector("h1, h2")?.textContent?.trim() || "报告章节"}`);
+  return {
+    moduleLabel,
+    className: sectionEl.className || "",
+    title,
+    subtitle,
+    story: pptxShortText(paragraphs.join(" "), 140),
+    comments: pptxKeyLines(paragraphs, 5, 84),
+    blocks: pptxKeyLines([...facts, ...cards], 6, 84),
+    flow: [],
+    routeCards: [],
+    routeSteps: [],
+    metrics: pptxKeyLines(metrics, 8, 44),
+    scopeItems: [],
+    methodCards: [],
+    topics: pptxKeyLines(cards, 8, 78),
+    actionCards: pptxKeyLines(cards, 6, 78),
+    consultingCards: pptxKeyLines([...cards, ...paragraphs], 8, 82),
+    coverTitle: sectionEl.matches(".formal-cover") ? title : "",
+    coverSub: sectionEl.matches(".formal-cover") ? subtitle : "",
+    coverVqa: sectionEl.matches(".formal-cover") ? sectionEl.querySelector("aside")?.textContent?.trim() || "" : "",
+    tocItems
+  };
+}
+
+function formalReportSlidesForPptx() {
+  if (typeof renderFormalReport === "function") renderFormalReport();
+  const sections = [...document.querySelectorAll("#formalReport > header, #formalReport > section")];
+  if (sections.length) return sections;
+  if (typeof buildPrintDeck === "function") buildPrintDeck();
+  return [...document.querySelectorAll("#printDeck .print-slide")];
+}
+
+function parseMetricForPptx(line = "") {
+  const text = pptxCleanText(line);
+  const match = text.match(/(.+?)\s+(-?\d+(?:\.\d+)?)(%|bp|x|倍|pct)?/);
+  return {
+    label: match ? match[1].replace(/[｜|].*$/, "").slice(0, 18) : text.slice(0, 18),
+    value: match ? `${match[2]}${match[3] || ""}` : "",
+    raw: match ? Number(match[2]) : null,
+    note: text.replace(match?.[0] || "", "").replace(/^｜/, "").slice(0, 38)
+  };
+}
+
+function addFormalMetricStrip(slide, pptx, theme, blocks, x, y, w) {
+  const c = theme.colors;
+  const metrics = (blocks.metrics || []).slice(0, 4).map(parseMetricForPptx);
+  if (!metrics.length) return 0;
+  const gap = 0.16;
+  const cardW = (w - gap * (metrics.length - 1)) / metrics.length;
+  metrics.forEach((metric, i) => {
+    const cx = x + i * (cardW + gap);
+    slide.addShape(pptx.ShapeType.rect, { x: cx, y, w: cardW, h: 1.05, fill: { color: "F3F8FC" }, line: { color: "D9E4EF", width: 0.65 } });
+    slide.addShape(pptx.ShapeType.rect, { x: cx, y, w: 0.08, h: 1.05, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
+    slide.addText(metric.value || "--", {
+      x: cx + 0.18,
+      y: y + 0.12,
+      w: cardW - 0.3,
+      h: 0.34,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 21,
+      color: c.navy,
+      bold: true,
+      fit: "shrink"
+    });
+    slide.addText(metric.label, {
+      x: cx + 0.18,
+      y: y + 0.5,
+      w: cardW - 0.3,
+      h: 0.24,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 10.5,
+      color: c.slate,
+      bold: true,
+      fit: "shrink"
+    });
+    slide.addText(metric.note, {
+      x: cx + 0.18,
+      y: y + 0.75,
+      w: cardW - 0.3,
+      h: 0.22,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 8.5,
+      color: c.slate,
+      fit: "shrink"
+    });
+  });
+  return 1.18;
+}
+
+function addFormalEvidenceBars(slide, pptx, theme, blocks, x, y, w, h) {
+  const c = theme.colors;
+  const lines = [...(blocks.blocks || []), ...(blocks.consultingCards || []), ...(blocks.comments || [])].slice(0, 5);
+  slide.addShape(pptx.ShapeType.rect, { x, y, w, h, fill: { color: c.white }, line: { color: "DCE5EE", width: 0.75 } });
+  slide.addText("主证据对象", {
+    x: x + 0.25,
+    y: y + 0.18,
+    w: w - 0.5,
+    h: 0.28,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 15,
+    color: c.navy,
+    bold: true
+  });
+  if (!lines.length) {
+    slide.addText("本页暂无可转化为图表的结构化证据，建议回到正式报告补充指标表或专题图。", {
+      x: x + 0.25,
+      y: y + 0.65,
+      w: w - 0.5,
+      h: h - 0.8,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 14,
+      color: c.text,
+      fit: "shrink"
+    });
+    return;
+  }
+  const max = Math.max(...lines.map((line) => Math.abs(parseMetricForPptx(line).raw ?? 1)), 1);
+  lines.forEach((line, i) => {
+    const metric = parseMetricForPptx(line);
+    const rowY = y + 0.68 + i * ((h - 1.0) / Math.max(lines.length, 1));
+    const barW = Math.max(0.35, Math.min(1, Math.abs(metric.raw ?? (lines.length - i)) / max) * (w - 3.1));
+    const fill = i === 0 ? (c.secondary || "0099D8") : i === 1 ? c.navy : "7ED0F0";
+    slide.addText(metric.label, {
+      x: x + 0.25,
+      y: rowY,
+      w: 2.1,
+      h: 0.28,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 10.5,
+      color: c.text,
+      bold: i < 2,
+      fit: "shrink"
+    });
+    slide.addShape(pptx.ShapeType.rect, { x: x + 2.45, y: rowY + 0.04, w: w - 3.25, h: 0.16, fill: { color: "EEF3F7" }, line: { color: "EEF3F7", transparency: 100 } });
+    slide.addShape(pptx.ShapeType.rect, { x: x + 2.45, y: rowY + 0.04, w: barW, h: 0.16, fill: { color: fill }, line: { color: fill, transparency: 100 } });
+    slide.addText(metric.value || metric.note || "证据", {
+      x: x + w - 0.72,
+      y: rowY - 0.02,
+      w: 0.55,
+      h: 0.24,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 9.5,
+      color: c.navy,
+      bold: true,
+      fit: "shrink"
+    });
+  });
+  slide.addShape(pptx.ShapeType.line, { x: x + 2.45, y: y + h - 0.4, w: w - 3.25, h: 0, line: { color: "D9E4EF", width: 0.6, dash: "dash" } });
+  slide.addText("注：条形长度按本页可识别数字归一化显示，用于保留图表阅读路径；正式数值以报告表格为准。", {
+    x: x + 0.25,
+    y: y + h - 0.31,
+    w: w - 0.5,
+    h: 0.18,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 7.8,
+    color: c.slate,
+    fit: "shrink"
+  });
+}
+
+function addFormalHtmlAlignedSlide(slide, pptx, theme, blocks, page, total) {
+  const c = theme.colors;
+  const brief = pptxSlideBrief(blocks, "content");
+  slide.background = { color: c.bg || "FFFFFF" };
+  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 0.34, w: 0.36, h: 0.06, fill: { color: "6A6F76" }, line: { color: "6A6F76", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 0.9, y: 0.34, w: 0.36, h: 0.06, fill: { color: "10B981" }, line: { color: "10B981", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 1.32, y: 0.34, w: 0.72, h: 0.06, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
+  slide.addText(blocks.moduleLabel || "正式报告", {
+    x: 14.6,
+    y: 0.22,
+    w: 4.8,
+    h: 0.34,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 12,
+    color: c.secondary || "0099D8",
+    bold: true,
+    align: "right",
+    fit: "shrink"
+  });
+  slide.addText(brief.title, {
+    x: 0.48,
+    y: 0.72,
+    w: 18.9,
+    h: 0.78,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 31,
+    color: c.navy,
+    bold: true,
+    fit: "shrink",
+    valign: "top"
+  });
+  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 1.63, w: 18.9, h: 0.62, fill: { color: "F3F8FC" }, line: { color: "F3F8FC", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 1.63, w: 0.12, h: 0.62, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
+  slide.addText(brief.subtitle || brief.note, {
+    x: 0.75,
+    y: 1.74,
+    w: 18.25,
+    h: 0.38,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 14.5,
+    color: c.text,
+    fit: "shrink"
+  });
+  const metricHeight = addFormalMetricStrip(slide, pptx, theme, blocks, 0.48, 2.52, 18.9);
+  const evidenceTop = 2.52 + metricHeight + 0.12;
+  addFormalEvidenceBars(slide, pptx, theme, blocks, 0.48, evidenceTop, 12.15, 4.92);
+  addConsultingTextBlock(slide, pptx, theme, 13.05, evidenceTop, 6.32, 2.25, "咨询解读", brief.evidence, c.secondary || "0099D8");
+  addConsultingTextBlock(slide, pptx, theme, 13.05, evidenceTop + 2.58, 6.32, 2.34, "管理含义", brief.implication, c.navy);
+  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 9.42, w: 18.9, h: 0.48, fill: { color: c.navy }, line: { color: c.navy, transparency: 100 } });
+  slide.addText(brief.implication[0] || "本页结论需回到指标、对标组和行动窗口验证。", {
+    x: 0.72,
+    y: 9.53,
+    w: 18.35,
+    h: 0.25,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 13,
+    color: c.white,
+    bold: true,
+    fit: "shrink"
+  });
+  addRsmFooter(slide, pptx, theme, page, total);
+}
+
 function addChapterAgendaSlide(slide, pptx, theme, blocks, page, total) {
   const c = theme.colors;
   const brief = pptxSlideBrief(blocks, "chapter-agenda");
@@ -1020,7 +1263,7 @@ async function downloadPptxReport() {
   }
   try {
     await ensurePptxLoaded();
-    buildPrintDeck();
+    if (typeof renderFormalReport === "function") renderFormalReport();
     const theme = rsmPptxTheme();
     theme.coverBgData = await imageUrlToDataUrl(theme.coverBg || "assets/sunong_ref/cover-bg.png");
     const pptx = new PptxGenJS();
@@ -1031,12 +1274,15 @@ async function downloadPptxReport() {
     pptx.subject = `${state.target}_${state.year}_价值质量诊断`;
     pptx.title = `${state.target}价值质量诊断与经营对标分析`;
 
-    const slides = [...document.querySelectorAll("#printDeck .print-slide")];
+    const slides = formalReportSlidesForPptx();
     for (let index = 0; index < slides.length; index += 1) {
       const slideEl = slides[index];
       const slide = pptx.addSlide();
-      const blocks = slideTextBlocks(slideEl);
-      const deckType = slideEl.dataset.deckType || "content";
+      const isFormal = slideEl.closest("#formalReport");
+      const blocks = isFormal ? formalSlideTextBlocks(slideEl, index, slides) : slideTextBlocks(slideEl);
+      const deckType = isFormal
+        ? (index === 0 ? "cover" : "content")
+        : (slideEl.dataset.deckType || "content");
       const page = Number(slideEl.dataset.slideIndex || index + 1);
       const total = Number(slideEl.dataset.slideTotal || slides.length);
       const svgEl = slideEl.querySelector("svg");
@@ -1050,15 +1296,17 @@ async function downloadPptxReport() {
         addChapterAgendaSlide(slide, pptx, theme, blocks, page, total);
       } else if (deckType === "chart") {
         addChartPptxSlide(slide, pptx, theme, blocks, page, total, svg);
+      } else if (isFormal) {
+        addFormalHtmlAlignedSlide(slide, pptx, theme, blocks, page, total);
       } else {
         addContentSlide(slide, pptx, theme, blocks, page, total, svg);
       }
     }
 
-    const filename = `${safeFilename(state.target)}_${state.year}_苏农风格演示报告.pptx`;
+    const filename = `${safeFilename(state.target)}_${state.year}_正式诊断报告_同HTML结构.pptx`;
     await pptx.writeFile({ fileName: filename });
     if (typeof recordExportHistory === "function") recordExportHistory("PPTX");
-    setProjectStatus(`PPTX 已导出：${filename}，版式对齐苏农汇报材料（${theme.slideW}×${theme.slideH} in）。`);
+    setProjectStatus(`PPTX 已导出：${filename}，页序和内容读取正式报告 HTML。`);
   } catch (error) {
     console.error("PPTX export failed", error);
     const message = error?.message ? `（${error.message}）` : "";
