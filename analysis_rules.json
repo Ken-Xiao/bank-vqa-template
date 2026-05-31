@@ -3,7 +3,7 @@
     "name": "银行董办对标分析工具",
     "audience": ["董事会办公室", "战略管理部", "财务管理部", "资本市场沟通团队"],
     "defaultOutput": "董事会汇报版",
-    "rulesVersion": "2026.05.4-v4"
+    "rulesVersion": "2026.05.31-v5"
   },
   "sparc_vqa_mapping": {
     "scale": {
@@ -124,6 +124,22 @@
     }
   },
   "metrics": {
+    "economicProfit": {
+      "label": "经济利润",
+      "direction": "higherBetter",
+      "theme": "价值创造",
+      "unit": "万元"
+    },
+    "theoreticalPb": {
+      "label": "DDM理论PB",
+      "direction": "contextual",
+      "theme": "资本估值"
+    },
+    "pbDiscount": {
+      "label": "PB估值偏离",
+      "direction": "contextual",
+      "theme": "资本估值"
+    },
     "roa": {
       "label": "总资产收益率",
       "direction": "higherBetter",
@@ -409,6 +425,19 @@
         "action": "先用经营质量证明低估值是价值错配，而不是质量折价，再进入资本市场沟通。"
       }
     }
+  },
+  "valuationAssumptions": {
+    "defaultCoe": 10,
+    "terminalGrowth": 3,
+    "expectedLossRate": 0.6,
+    "coeByBankType": {
+      "国有大行": 8.5,
+      "股份行": 10,
+      "城市商业银行": 11,
+      "农村商业银行": 12
+    },
+    "sensitivityStep": 1,
+    "caveat": "以下归因基于截面回归和公开年报数据，反映市场定价的统计规律，不等同于因果承诺。"
   },
   "warningRules": {
     "red": {

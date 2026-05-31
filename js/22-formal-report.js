@@ -373,6 +373,7 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
           <p>VQA 当前得分为 ${formalEscape(diagnosis.score)}，信号为“${formalEscape(diagnosis.signal)}”。最需要优先解释的维度是${formalEscape(diagnosis.labels[diagnosis.weakest])}；正式报告后续章节按行业坐标、关键指标、专题归因、敏感性和行动建议逐层证明。</p>
         </div>
       </section>
+      ${typeof formalV5ValueSections === "function" ? formalV5ValueSections(row) : ""}
       ${formalGuidedPathSection(row)}
       <section class="formal-section" id="formal-context">
         <div class="formal-section-kicker">行业坐标与交叉验证</div>

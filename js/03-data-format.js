@@ -477,7 +477,8 @@ function updateProjectFlow() {
 
 function metricDisplayValue(key, value) {
   if (value === null || value === undefined || Number.isNaN(value)) return "暂无";
-  if (["pb", "pbMid"].includes(key)) return `${Number(value).toFixed(2)}x`;
+  if (["pb", "pbMid", "theoreticalPb", "pbDiscount"].includes(key)) return `${Number(value).toFixed(2)}x`;
+  if (key === "economicProfit") return typeof v5FormatMoney === "function" ? v5FormatMoney(value) : `${Number(value).toFixed(0)}万元`;
   if (key.includes("Buffer") || key === "nimGapBp") return fmtBp(value);
   return fmt(value);
 }

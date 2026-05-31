@@ -369,6 +369,7 @@ function updateSectionText(row, peers) {
   if (!actions.length) actions.push("资本效率和估值沟通");
   setHtml("actionTitle", `${target}后续行动优先级：${actions.join("、")}。`);
   setHtml("actionNote", `该优先级由 VQA 总分 ${diagnosis.score}、短板维度“${diagnosis.labels[diagnosis.weakest]}”、${peerText} 对标组均值和${typeText} 类型均值共同生成。当前规则结论：${warning.message}`);
+  if (typeof renderV5ValuePanel === "function") renderV5ValuePanel(row);
   updateRecommendations(diagnosis, row, peers);
   updateEnhancedInsights(row, peers);
   updateStoryText(row, peers, actions);
