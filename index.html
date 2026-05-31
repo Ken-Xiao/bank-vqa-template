@@ -377,11 +377,42 @@
         <button type="button" data-tab-target="governance"><span>6</span>管理</button>
       </nav>
       <section class="step-shell step2-content analysis-content" id="step2Content" data-step-shell="analysis" aria-label="诊断结论">
-        <section class="step-focus-section" id="step2SummarySection" aria-label="30秒总结">
+        <section class="step-focus-section step2-diagnosis-hero" id="step2SummarySection" aria-label="30秒总结">
           <span>Step 2 · 30 秒诊断</span>
-          <h2>确认口径后，这里显示一句总答案、VQA 信号和三个董事会讨论问题</h2>
-          <p>本区域将在 Sprint 7B 合并 Client Brief、President Summary 和 Client Command Center。</p>
+          <h2 id="step2DiagnosisTitle">确认口径后生成价值质量总答案</h2>
+          <p id="step2DiagnosisLead">这里将合并客户摘要、行长摘要和交付控制台，先用一句话说明当前价值质量约束，再给出董事会应优先讨论的三个问题。</p>
+          <div class="step2-kpi-strip" id="step2KpiStrip" aria-label="关键诊断指标"></div>
+          <div class="step2-board-questions" id="step2BoardQuestions" aria-label="董事会讨论问题"></div>
         </section>
+        <div class="section-bridge">先用总答案定调，再用三类证据判断结论是否可上会。</div>
+        <div class="step2-evidence-grid" aria-label="三类核心证据">
+          <section class="step-focus-section step2-evidence-section" id="step2PeerPosition" aria-label="同业位置证据">
+            <span>Evidence 01 · 同业位置</span>
+            <h3>SPARC 五灯号显示哪些能力支撑或拖累价值质量</h3>
+            <div class="step2-evidence-body" id="step2PeerPositionBody">确认分析后生成同业位置卡。</div>
+          </section>
+          <section class="step-focus-section step2-evidence-section" id="step2TopChanges" aria-label="异动与偏离证据">
+            <span>Evidence 02 · Top Changes & Deviations</span>
+            <h3>先看本期变化，再看相对对标组的偏离</h3>
+            <div class="step2-evidence-body" id="step2TopChangesBody">确认分析后生成异动与偏离。</div>
+          </section>
+          <section class="step-focus-section step2-evidence-section" id="step2PbAnswer" aria-label="估值答案证据">
+            <span>Evidence 03 · PB 估值锚</span>
+            <h3>低 PB 是价值错配，还是经营质量折价</h3>
+            <div class="step2-evidence-body" id="step2PbAnswerBody">确认分析后生成 PB 估值答案。</div>
+          </section>
+        </div>
+        <section class="step-focus-section step2-topic-section" id="step2TopicCards" aria-label="专题入口">
+          <span>N · 专题深钻入口</span>
+          <h3>专题默认折叠为问题、证据、机制和行动</h3>
+          <div class="step2-topic-grid" id="step2TopicGrid"></div>
+        </section>
+        <section class="step-focus-section step2-action-section" id="step2ActionPath" aria-label="行动路径">
+          <span>Action Path</span>
+          <h3>把诊断转成 0-3、3-6、6-12 个月行动顺序</h3>
+          <div class="step2-action-path" id="step2ActionPathGrid"></div>
+        </section>
+      </section>
       </section>
       <section class="analysis-roadmap analysis-content" id="analysisRoadmap" aria-label="分析导航地图">
         <div class="analysis-roadmap-head">
