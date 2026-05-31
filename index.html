@@ -64,7 +64,7 @@
     </section>
 
     <section class="workspace">
-      <div class="control-surface">
+      <div class="control-surface step-shell step1-content" id="step1Content" data-step-shell="setup" aria-label="设定口径">
         <div class="selection-intro">
           <div>
             <span>分析口径设置</span>
@@ -376,6 +376,13 @@
         <button type="button" data-tab-target="review"><span>5</span>复核</button>
         <button type="button" data-tab-target="governance"><span>6</span>管理</button>
       </nav>
+      <section class="step-shell step2-content analysis-content" id="step2Content" data-step-shell="analysis" aria-label="诊断结论">
+        <section class="step-focus-section" id="step2SummarySection" aria-label="30秒总结">
+          <span>Step 2 · 30 秒诊断</span>
+          <h2>确认口径后，这里显示一句总答案、VQA 信号和三个董事会讨论问题</h2>
+          <p>本区域将在 Sprint 7B 合并 Client Brief、President Summary 和 Client Command Center。</p>
+        </section>
+      </section>
       <section class="analysis-roadmap analysis-content" id="analysisRoadmap" aria-label="分析导航地图">
         <div class="analysis-roadmap-head">
           <div>
@@ -744,6 +751,7 @@
         </div>
       </section>
 
+      <div class="step-shell step3-content analysis-content" id="step3Content" data-step-shell="report">
       <section class="report-first-workspace analysis-content" id="reportFirstWorkspace" data-workspace-tab="report" aria-label="正式报告工作台">
         <div class="report-first-main" id="reportFirstMain">
           <div class="report-tools report-first-tools">
@@ -800,6 +808,7 @@
           </section>
         </aside>
       </section>
+      </div>
 
       <section class="analysis-deck-shell analysis-content client-internal" id="analysisDeckShell" data-workspace-tab="legacy-report" aria-label="PPT版式报告预览" hidden>
         <div class="deck-shell-head">
@@ -1230,6 +1239,22 @@
         </section>
       </div>
     </section>
+    <aside class="tool-drawer" id="toolDrawer" aria-label="辅助工具箱" aria-hidden="true">
+      <div class="tool-drawer-head">
+        <div>
+          <span>工具箱</span>
+          <b>数据、复核、项目和 AI 辅助</b>
+        </div>
+        <button type="button" id="closeToolDrawer" aria-label="关闭工具箱">关闭</button>
+      </div>
+      <div class="tool-drawer-tabs" role="tablist" aria-label="工具箱分类">
+        <button type="button" data-drawer-tab-target="data">数据</button>
+        <button type="button" data-drawer-tab-target="review">复核</button>
+        <button type="button" data-drawer-tab-target="project">项目</button>
+        <button type="button" data-drawer-tab-target="ai">AI</button>
+      </div>
+      <div class="tool-drawer-panel" id="toolDrawerPanel">选择一个工具分类后显示对应入口。</div>
+    </aside>
   </main>
   <div class="metric-modal" id="metricModal" hidden>
     <div class="metric-modal-backdrop" id="metricModalBackdrop"></div>

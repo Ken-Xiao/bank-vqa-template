@@ -216,6 +216,50 @@ function bindGlobalBar() {
   document.getElementById("openToolDrawer")?.addEventListener("click", () => openToolDrawer("data"));
 }
 
+function drawerContent(tab = state.activeDrawerTab || "data") {
+  const map = {
+    data: { title: "数据工作台", text: "打开指标探索器、字段覆盖、口径说明和底表导出。", target: "dataCoverageSection", workspaceTab: "data" },
+    review: { title: "交付复核", text: "检查导出页序、口径风险、PRD 覆盖和 AI 写稿治理。", target: "boardReviewPanel", workspaceTab: "review" },
+    project: { title: "项目管理", text: "管理项目保存、对标组治理、版本记录和导出留痕。", target: "projectFlow", workspaceTab: "governance" },
+    ai: { title: "AI 辅助", text: "查看叙事生成、CEAM 结构和后续云端 AI 接入口。", target: "aiGovernancePanel", workspaceTab: "governance" }
+  };
+  return map[tab] || map.data;
+}
+
+function setDrawerTab(tab = state.activeDrawerTab || "data") {
+  state.activeDrawerTab = tab;
+  document.querySelectorAll("[data-drawer-tab-target]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.drawerTabTarget === tab);
+  });
+  const content = drawerContent(tab);
+  const host = document.getElementById("toolDrawerPanel");
+  if (host) {
+    host.innerHTML = `
+      <div class="tool-drawer-card">
+        <span>${content.title}</span>
+        <p>${content.text}</p>
+        <button type="button" data-drawer-jump="${content.target}" data-drawer-workspace="${content.workspaceTab}">进入</button>
+      </div>`;
+  }
+}
+
+function openToolDrawer(tab = state.activeDrawerTab || "data") {
+  state.drawerOpen = true;
+  document.body.classList.add("drawer-open");
+  const drawer = document.getElementById("toolDrawer");
+  drawer?.setAttribute("aria-hidden", "false");
+  document.getElementById("openToolDrawer")?.setAttribute("aria-expanded", "true");
+  setDrawerTab(tab);
+}
+
+function closeToolDrawer() {
+  state.drawerOpen = false;
+  document.body.classList.remove("drawer-open");
+  const drawer = document.getElementById("toolDrawer");
+  drawer?.setAttribute("aria-hidden", "true");
+  document.getElementById("openToolDrawer")?.setAttribute("aria-expanded", "false");
+}
+
 function appModeForWorkspaceTab(tab = activeWorkspaceTab) {
   if (tab === "report") return "report";
   if (state?.confirmed) return "analysis";
