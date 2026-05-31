@@ -163,7 +163,7 @@ function renderAnalysisRoadmap() {
 }
 
 function bindAnalysisRoadmap() {
-  document.querySelectorAll("#analysisRoadmap [data-nav-target], .topic-next-actions [data-nav-target]").forEach((el) => {
+  document.querySelectorAll("#analysisRoadmap [data-nav-target], #step2Content [data-nav-target], .topic-next-actions [data-nav-target]").forEach((el) => {
     if (el.dataset.navBound) return;
     el.dataset.navBound = "1";
     el.addEventListener("click", (event) => {
