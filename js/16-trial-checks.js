@@ -169,6 +169,19 @@ function trialReadinessChecks() {
           : "AI 解读均已绑定事实包引用。"
     });
   }
+  if (typeof exportSequenceGateChecks === "function") {
+    const sequenceGate = exportSequenceGateChecks();
+    rows.push({
+      key: "export-sequence",
+      status: sequenceGate.status === "bad" ? "bad" : sequenceGate.status === "warn" ? "warn" : "ok",
+      title: "导出页序一致性",
+      text: sequenceGate.blockers.length
+        ? sequenceGate.blockers.join("；")
+        : sequenceGate.warnings.length
+          ? sequenceGate.warnings.join("；")
+          : `HTML、PDF和PPTX均读取同一正式报告页序，共 ${sequenceGate.rows.length} 个章节。`
+    });
+  }
   return rows;
 }
 
@@ -191,6 +204,7 @@ function updateTrialCheckPanel() {
     </div>
   `).join("");
   renderExportHistory();
+  if (typeof renderExportSequenceQaPanel === "function") renderExportSequenceQaPanel();
 }
 
 function preflightExport(format) {

@@ -270,13 +270,15 @@ async function reportHtmlDocument() {
   const sections = typeof applyFormalReportContract === "function"
     ? applyFormalReportContract(wrapper)
     : [...wrapper.querySelectorAll("header, section")];
-  const exportNav = sections.map((section, idx) => {
+  if (typeof applyReportStructureContract === "function") applyReportStructureContract(wrapper);
+  const exportSections = sections.filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden);
+  const exportNav = exportSections.map((section, idx) => {
     const id = section.id || `formal-export-section-${idx + 1}`;
     section.id = id;
     const label = section.dataset.sectionTitle || section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`;
     return `<a href="#${xmlEscape(id)}"><span>${String(idx + 1).padStart(2, "0")}</span>${xmlEscape(exportClientText(label))}</a>`;
   }).join("");
-  const sectionCount = sections.length || wrapper.querySelectorAll(".print-slide").length;
+  const sectionCount = exportSections.length || wrapper.querySelectorAll(".print-slide").length;
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -809,6 +811,9 @@ async function exportDataWorkbook(mode = "selected") {
     { name: "AI引用审计", rows: typeof narrativeAuditExportRows === "function" ? narrativeAuditExportRows() : [] },
     { name: "文案锁定状态", rows: typeof narrativeLockExportRows === "function" ? narrativeLockExportRows() : [] },
     { name: "交付复核状态", rows: typeof deliveryReviewExportRows === "function" ? deliveryReviewExportRows() : [] },
+    { name: "导出页序QA", rows: typeof exportSequenceQaExportRows === "function" ? exportSequenceQaExportRows() : [] },
+    { name: "CEAM叙事结构", rows: typeof ceamNarrativeExportRows === "function" ? ceamNarrativeExportRows() : [] },
+    { name: "报告结构编辑", rows: typeof reportStructureExportRows === "function" ? reportStructureExportRows() : [] },
     { name: "结构化事实包", rows: typeof exportStructuredFactPackRows === "function" ? exportStructuredFactPackRows() : [] },
     { name: "机制归因事实包", rows: typeof exportMechanismFactPackRows === "function" ? exportMechanismFactPackRows() : [] },
     { name: "董办汇报主线", rows: factPack ? factPack.boardRows : [] }

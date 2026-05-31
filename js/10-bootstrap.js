@@ -119,6 +119,8 @@ async function initApp() {
   if (typeof initProductWorkspace === "function") initProductWorkspace();
   if (typeof initPrdTraceabilityModule === "function") initPrdTraceabilityModule();
   if (typeof initAiGovernanceModule === "function") initAiGovernanceModule();
+  if (typeof initExportSequenceQaModule === "function") initExportSequenceQaModule();
+  if (typeof initCeamStructureEditorModule === "function") initCeamStructureEditorModule();
 }
 
 initApp();

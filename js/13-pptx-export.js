@@ -492,7 +492,9 @@ function formalReportSlidesForPptx() {
   const sections = typeof applyFormalReportContract === "function"
     ? applyFormalReportContract()
     : [...document.querySelectorAll("#formalReport > header, #formalReport > section")];
-  if (sections.length) return sections;
+  if (typeof applyReportStructureContract === "function") applyReportStructureContract();
+  const activeSections = sections.filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden);
+  if (activeSections.length) return activeSections;
   if (typeof buildPrintDeck === "function") buildPrintDeck();
   return [...document.querySelectorAll("#printDeck .print-slide")];
 }

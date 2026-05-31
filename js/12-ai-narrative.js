@@ -228,13 +228,14 @@ function generateTopicNarrativeDraft(topic, facts, channel) {
   const meaning = channel === "action"
     ? `${topic.actions.slice(0, 2).join("；")}。管理上建议在3个月内明确责任部门、指标阈值和复盘节奏，优先跟踪${citations.map((f) => f.指标名称).join("、") || "核心指标"}。`
     : `这意味着，本专题不能停留在单项指标说明，而要围绕${citations.map((f) => f.指标名称).join("、") || topic.title}判断经营动作是否连续有效。${confidence.suffix}`;
+  const ceam = typeof ceamNarrativeBlock === "function" ? ceamNarrativeBlock(topic, facts, channel) : null;
   const naturalDraft = consultingNaturalParagraph({
     target,
     topic,
-    claim,
-    evidence,
-    attribution: attributionText,
-    meaning,
+    claim: ceam?.Claim || claim,
+    evidence: ceam?.Evidence || evidence,
+    attribution: ceam?.Attribution || attributionText,
+    meaning: ceam?.Meaning || meaning,
     evidenceText
   });
   const text = sanitizeComplianceText(downgradeNarrativeByRisk(naturalDraft, citations), topic.forbiddenPhrases);
