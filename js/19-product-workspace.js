@@ -178,6 +178,44 @@ function bindAnalysisRoadmap() {
   });
 }
 
+function renderGlobalBar() {
+  const bank = document.getElementById("globalBankContext");
+  const signal = document.getElementById("globalVqaSignal");
+  const row = typeof targetRecord === "function" ? targetRecord() : null;
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  if (bank) {
+    bank.textContent = state?.confirmed && row
+      ? `${displayBankName(row.bank)} · ${state.year || ""}`
+      : "待选择银行";
+  }
+  if (signal) {
+    signal.textContent = state?.confirmed && diagnosis
+      ? `VQA ${diagnosis.score} · ${diagnosis.signal || "待判断"}`
+      : "确认口径后生成诊断";
+  }
+  document.querySelectorAll("[data-app-mode-target]").forEach((button) => {
+    const isActive = button.dataset.appModeTarget === state.appMode;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-current", isActive ? "step" : "false");
+  });
+}
+
+function bindGlobalBar() {
+  document.querySelectorAll("[data-app-mode-target]").forEach((button) => {
+    if (button.dataset.appModeBound) return;
+    button.dataset.appModeBound = "1";
+    button.addEventListener("click", () => {
+      const mode = button.dataset.appModeTarget;
+      if (!state.confirmed && mode !== "setup") return;
+      setAppMode(mode);
+    });
+  });
+  document.getElementById("globalExportToggle")?.addEventListener("click", () => {
+    document.getElementById("clientExportToggle")?.click();
+  });
+  document.getElementById("openToolDrawer")?.addEventListener("click", () => openToolDrawer("data"));
+}
+
 function appModeForWorkspaceTab(tab = activeWorkspaceTab) {
   if (tab === "report") return "report";
   if (state?.confirmed) return "analysis";
@@ -715,8 +753,10 @@ function initProductWorkspace() {
   bindClientActionBar();
   bindOverviewDepthToggle();
   bindLayoutPanelToggles();
-  state.activeWorkspaceTab = "report";
-  setWorkspaceTab("report");
+  bindGlobalBar();
+  setAppMode(state.confirmed ? "analysis" : "setup", { skipRouting: true });
+  state.activeWorkspaceTab = "overview";
+  setWorkspaceTab(state.activeWorkspaceTab);
   setDataSubtab("quality");
   updateClientCommandCenter();
   updateBenchmarkV1();

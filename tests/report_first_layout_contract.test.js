@@ -12,6 +12,7 @@ assert(html.indexOf("formalReportShell") < html.indexOf("reportControlRail"), "r
 assert(css.includes(".report-first-workspace"), "CSS must style report-first workspace");
 assert(css.includes(".report-control-rail"), "CSS must style persistent report control rail");
 assert(css.includes("body.analysis-ready:not(.setup-expanded) .control-surface"), "CSS must keep setup compact after analysis is ready");
-assert(workspace.includes('state.activeWorkspaceTab = "report"'), "post-confirm default tab must be report");
+assert(workspace.includes('setWorkspaceTab("report")'), "report mode must still route to report workspace");
+assert(workspace.includes('data-app-state'), "v7 shell must expose app state routing");
 
 console.log("report-first-layout-contract-ok");

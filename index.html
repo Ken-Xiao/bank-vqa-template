@@ -12,6 +12,22 @@
 
 </head>
 <body>
+  <header class="global-bar" id="globalBar" aria-label="BenchmarkIQ 全局导航">
+    <button class="global-brand" id="globalBrandHome" type="button" data-app-mode-target="setup" aria-label="返回设定口径">BenchmarkIQ</button>
+    <div class="global-context">
+      <span id="globalBankContext">待选择银行</span>
+      <b id="globalVqaSignal">确认口径后生成诊断</b>
+    </div>
+    <nav class="global-steps" aria-label="三步工作流">
+      <button type="button" data-app-mode-target="setup"><span>1</span>设定口径</button>
+      <button type="button" data-app-mode-target="analysis"><span>2</span>看结论</button>
+      <button type="button" data-app-mode-target="report"><span>3</span>出报告</button>
+    </nav>
+    <div class="global-actions">
+      <button class="global-tool-toggle" id="openToolDrawer" type="button" aria-controls="toolDrawer" aria-expanded="false">工具箱</button>
+      <button class="global-export-toggle" id="globalExportToggle" type="button">导出</button>
+    </div>
+  </header>
   <aside class="side-nav analysis-content" id="sideNav" aria-label="章节导航">
     <div class="side-nav-head">
       <h3>页面导航</h3>
