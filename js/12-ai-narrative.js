@@ -368,8 +368,16 @@ async function regenerateTopicNarrativesWithAi(topicId = state.activeTopic) {
 
 function bindTopicNarrativeEditors(host, topicId) {
   host.querySelectorAll("[data-narrative-channel]").forEach((textarea) => {
+    const channel = textarea.dataset.narrativeChannel;
+    if (typeof isNarrativeLocked === "function" && isNarrativeLocked(topicId, channel)) {
+      textarea.disabled = true;
+      textarea.title = "该段文案已锁定，需先在 AI 写稿治理面板解锁后再编辑。";
+      return;
+    }
     textarea.addEventListener("change", () => {
       saveTopicNarrativeEdit(topicId, textarea.dataset.narrativeChannel, textarea.value);
+      if (typeof resetDeliveryToDraft === "function") resetDeliveryToDraft("AI 解读已编辑，需重新复核。");
+      if (typeof renderAiGovernancePanel === "function") renderAiGovernancePanel();
     });
   });
   host.querySelector("#regenerateTopicNarrative")?.addEventListener("click", () => regenerateTopicNarratives(topicId));

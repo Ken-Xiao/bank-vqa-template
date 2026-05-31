@@ -117,6 +117,8 @@ async function initApp() {
   initPptxExport();
   if (typeof initBoardWorkbench === "function") initBoardWorkbench();
   if (typeof initProductWorkspace === "function") initProductWorkspace();
+  if (typeof initPrdTraceabilityModule === "function") initPrdTraceabilityModule();
+  if (typeof initAiGovernanceModule === "function") initAiGovernanceModule();
 }
 
 initApp();

@@ -139,10 +139,36 @@ function trialReadinessChecks() {
   });
   rows.push({
     key: "formal-figures",
-    status: formal.figures >= 4 ? "ok" : formal.figures > 0 ? "warn" : "bad",
+    status: formal.figures >= 4 ? "ok" : "warn",
     title: "图表证据章节",
-    text: formal.figures ? `正式报告已纳入 ${formal.figures} 张图表证据。` : "正式报告尚未纳入图表证据。"
+    text: formal.figures ? `正式报告已纳入 ${formal.figures} 张图表证据。` : "正式报告尚未纳入图片图表证据；可导出文字报告，但建议补充图表证据页。"
   });
+  if (typeof deliveryGateChecks === "function") {
+    const gate = deliveryGateChecks();
+    rows.push({
+      key: "delivery-gate",
+      status: gate.status === "bad" ? "bad" : gate.status === "warn" ? "warn" : "ok",
+      title: "交付门禁",
+      text: gate.blockers.length
+        ? gate.blockers.join("；")
+        : gate.warnings.length
+          ? gate.warnings.join("；")
+          : "PRD、复核状态和 AI 引用审计未发现阻断。"
+    });
+  }
+  if (typeof aiGovernanceGateChecks === "function") {
+    const aiGate = aiGovernanceGateChecks();
+    rows.push({
+      key: "ai-governance",
+      status: aiGate.status === "bad" ? "bad" : aiGate.warnings.length ? "warn" : "ok",
+      title: "AI 引用审计",
+      text: aiGate.blockers.length
+        ? aiGate.blockers.join("；")
+        : aiGate.warnings.length
+          ? aiGate.warnings.join("；")
+          : "AI 解读均已绑定事实包引用。"
+    });
+  }
   return rows;
 }
 

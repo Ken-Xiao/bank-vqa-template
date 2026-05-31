@@ -804,6 +804,11 @@ async function exportDataWorkbook(mode = "selected") {
     { name: "图表事实包", rows: chartFactRows() },
     { name: "专题解释器", rows: topicExplainerRows(row, peers) },
     { name: "专题AI解读", rows: topicWorkbenchExportRows() },
+    { name: "PRD完成度", rows: typeof prdCoverageExportRows === "function" ? prdCoverageExportRows() : [] },
+    { name: "事实包注册表", rows: typeof factPackRegistryExportRows === "function" ? factPackRegistryExportRows() : [] },
+    { name: "AI引用审计", rows: typeof narrativeAuditExportRows === "function" ? narrativeAuditExportRows() : [] },
+    { name: "文案锁定状态", rows: typeof narrativeLockExportRows === "function" ? narrativeLockExportRows() : [] },
+    { name: "交付复核状态", rows: typeof deliveryReviewExportRows === "function" ? deliveryReviewExportRows() : [] },
     { name: "结构化事实包", rows: typeof exportStructuredFactPackRows === "function" ? exportStructuredFactPackRows() : [] },
     { name: "机制归因事实包", rows: typeof exportMechanismFactPackRows === "function" ? exportMechanismFactPackRows() : [] },
     { name: "董办汇报主线", rows: factPack ? factPack.boardRows : [] }

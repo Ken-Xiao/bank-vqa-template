@@ -72,6 +72,8 @@ function projectSnapshotWithMeta(name, id) {
     peerTemplate: state.peerTemplate,
     activeTopic: state.activeTopic,
     editedNarratives: state.editedNarratives || {},
+    deliveryReview: state.deliveryReview || {},
+    narrativeLocks: state.narrativeLocks || {},
     includedTopics: state.includedTopics || {},
     editedChartStories: state.editedChartStories || {},
     confirmed: state.confirmed,
@@ -89,6 +91,8 @@ function applyProjectSnapshot(project) {
   state.peerTemplate = project.peerTemplate || "manual";
   state.activeTopic = project.activeTopic || state.activeTopic;
   state.editedNarratives = project.editedNarratives || {};
+  state.deliveryReview = project.deliveryReview || state.deliveryReview || {};
+  state.narrativeLocks = project.narrativeLocks || state.narrativeLocks || {};
   state.includedTopics = project.includedTopics || {};
   state.editedChartStories = project.editedChartStories || {};
   state.currentProjectId = project.id || null;
@@ -100,6 +104,9 @@ function applyProjectSnapshot(project) {
   updateSelectionSummary();
   applyReportVersion(state.reportVersion);
   if (state.confirmed) renderAll();
+  if (typeof renderPrdCoverageDashboard === "function") renderPrdCoverageDashboard();
+  if (typeof renderDeliveryReviewPanel === "function") renderDeliveryReviewPanel();
+  if (typeof renderAiGovernancePanel === "function") renderAiGovernancePanel();
 }
 
 function upsertCurrentProject(name) {
