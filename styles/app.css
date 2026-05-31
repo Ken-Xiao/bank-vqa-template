@@ -4181,6 +4181,128 @@
       color: #fff;
     }
 
+    .report-first-workspace {
+      align-items: start;
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      margin-top: 16px;
+    }
+
+    .report-first-main {
+      min-width: 0;
+    }
+
+    .report-first-tools {
+      align-items: start;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: minmax(260px, .72fr) minmax(0, 1.28fr);
+      margin: 0 0 14px;
+      padding: 14px;
+      border: 1px solid #d9e4ef;
+      border-top: 5px solid var(--blue);
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(6,27,58,.06);
+    }
+
+    .report-first-tools span {
+      display: block;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .report-first-tools h2 {
+      margin: 4px 0 6px;
+      color: var(--navy-2);
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .report-first-tools p {
+      margin: 0;
+      color: #667789;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .report-control-rail {
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      min-width: 0;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .report-control-rail .board-review-panel {
+      margin: 0;
+      padding: 14px;
+      border: 1px solid #d9e4ef;
+      border-top: 5px solid var(--green);
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(6,27,58,.06);
+    }
+
+    .report-control-rail .board-review-head {
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .report-control-rail .board-review-head h2 {
+      font-size: 18px;
+      line-height: 1.28;
+      margin: 4px 0 10px;
+    }
+
+    .report-control-rail .board-review-verdict {
+      display: inline-flex;
+      margin-top: 2px;
+      min-height: 0;
+      padding: 7px 9px;
+      font-size: 12px;
+    }
+
+    .report-control-rail .board-review-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .report-control-rail .board-review-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .report-control-rail .governance-control-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .report-control-rail .governance-panel,
+    .report-control-rail .governance-panel.is-wide {
+      grid-column: auto;
+      padding: 12px;
+    }
+
+    .report-control-rail .governance-head {
+      display: block;
+    }
+
+    .report-control-rail .governance-kpis,
+    .report-control-rail .sequence-route-grid,
+    .report-control-rail .ceam-strip {
+      grid-template-columns: 1fr;
+    }
+
+    .report-control-rail .sequence-qa-table {
+      min-width: 560px;
+    }
+
     .analysis-roadmap {
       position: sticky;
       top: 126px;
@@ -5732,6 +5854,16 @@
       .workspace-tabs {
         position: static;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .report-first-workspace,
+      .report-first-tools {
+        grid-template-columns: 1fr;
+      }
+      .report-control-rail {
+        position: static;
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
       }
       .analysis-roadmap {
         position: static;

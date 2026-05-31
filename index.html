@@ -724,32 +724,63 @@
         </div>
       </section>
 
-      <div class="report-tools analysis-content" data-workspace-tab="report">
-        <h2>正式报告结构</h2>
-        <div class="checks">
-          <label><input type="checkbox" class="report-section-check" value="01 / 06" checked /> 价值质量总览</label>
-          <label><input type="checkbox" class="report-section-check" value="02 / 06" checked /> 盈利质量</label>
-          <label><input type="checkbox" class="report-section-check" value="03 / 06" checked /> 息差负债</label>
-          <label><input type="checkbox" class="report-section-check" value="04 / 06" checked /> 风险拨备</label>
-          <label><input type="checkbox" class="report-section-check" value="05 / 06" checked /> 资本估值</label>
-          <label><input type="checkbox" class="report-section-check" value="06 / 06" checked /> 行动建议</label>
-        </div>
-      </div>
-      <p class="analysis-content client-internal" style="margin:0 0 14px;color:#667789;font-size:13px;font-weight:700;">导出时以正式报告 HTML 为唯一交付母版；PDF 和 PPTX 均按该报告结构生成。</p>
-
-      <section class="formal-report-shell analysis-content" id="formalReportShell" data-workspace-tab="report" aria-label="正式报告阅读版">
-        <div class="formal-report-head">
-          <div>
-            <span>正式报告阅读版</span>
-            <h2>董事会经营诊断报告</h2>
-            <p>本区域按正式咨询报告结构呈现完整论述：先回答董事会问题，再逐章展开证据、归因、交叉验证和管理建议。</p>
+      <section class="report-first-workspace analysis-content" id="reportFirstWorkspace" data-workspace-tab="report" aria-label="正式报告工作台">
+        <div class="report-first-main" id="reportFirstMain">
+          <div class="report-tools report-first-tools">
+            <div>
+              <span>Report-first workspace</span>
+              <h2>正式报告结构</h2>
+              <p>导出时以正式报告 HTML 为唯一交付母版；PDF 和 PPTX 均按该报告结构生成。</p>
+            </div>
+            <div class="checks">
+              <label><input type="checkbox" class="report-section-check" value="01 / 06" checked /> 价值质量总览</label>
+              <label><input type="checkbox" class="report-section-check" value="02 / 06" checked /> 盈利质量</label>
+              <label><input type="checkbox" class="report-section-check" value="03 / 06" checked /> 息差负债</label>
+              <label><input type="checkbox" class="report-section-check" value="04 / 06" checked /> 风险拨备</label>
+              <label><input type="checkbox" class="report-section-check" value="05 / 06" checked /> 资本估值</label>
+              <label><input type="checkbox" class="report-section-check" value="06 / 06" checked /> 行动建议</label>
+            </div>
           </div>
-          <div class="formal-report-meta">RSM · Report format · HTML/PDF</div>
+
+          <section class="formal-report-shell" id="formalReportShell" aria-label="正式报告阅读版">
+            <div class="formal-report-head">
+              <div>
+                <span>正式报告阅读版</span>
+                <h2>董事会经营诊断报告</h2>
+                <p>本区域按正式咨询报告结构呈现完整论述：先回答董事会问题，再逐章展开证据、归因、交叉验证和管理建议。</p>
+              </div>
+              <div class="formal-report-meta">RSM · Report format · HTML/PDF</div>
+            </div>
+            <article class="formal-report" id="formalReport">确认分析后生成正式报告。</article>
+          </section>
         </div>
-        <article class="formal-report" id="formalReport">确认分析后生成正式报告。</article>
+
+        <aside class="report-control-rail" id="reportControlRail" aria-label="报告交付控制台">
+          <section class="board-review-panel" id="boardReviewPanel" aria-label="董办复核">
+            <div class="board-review-head">
+              <div>
+                <span>交付控制台</span>
+                <h2>复核报告结构、语言、页序和导出状态</h2>
+              </div>
+              <div class="board-review-verdict" id="boardReviewVerdict">等待形成报告</div>
+            </div>
+            <div class="board-review-grid" id="boardReviewGrid"></div>
+            <div class="board-review-actions">
+              <button class="btn secondary" id="runBoardReview" type="button">更新复核结果</button>
+              <span id="boardReviewNote">复核结果将随目标银行、对标组、图表取舍和报告版本同步更新。</span>
+            </div>
+            <div class="governance-control-grid">
+              <section class="governance-panel" id="deliveryReviewPanel" aria-label="交付状态"></section>
+              <section class="governance-panel" id="prdCoverageDashboard" aria-label="PRD完成度"></section>
+              <section class="governance-panel is-wide" id="aiGovernancePanel" aria-label="AI写稿治理"></section>
+              <section class="governance-panel is-wide" id="exportSequenceQaPanel" aria-label="导出页序QA"></section>
+              <section class="governance-panel is-wide" id="reportStructureEditor" aria-label="报告结构编辑器"></section>
+            </div>
+          </section>
+        </aside>
       </section>
 
-      <section class="analysis-deck-shell analysis-content client-internal" id="analysisDeckShell" data-workspace-tab="report" aria-label="PPT版式报告预览" hidden>
+      <section class="analysis-deck-shell analysis-content client-internal" id="analysisDeckShell" data-workspace-tab="legacy-report" aria-label="PPT版式报告预览" hidden>
         <div class="deck-shell-head">
           <div>
             <span>备用演示版</span>
@@ -767,29 +798,7 @@
         <section class="print-deck" id="printDeck"></section>
       </section>
 
-      <section class="board-review-panel analysis-content" id="boardReviewPanel" data-workspace-tab="review" aria-label="董办复核">
-        <div class="board-review-head">
-          <div>
-            <span>董办复核</span>
-            <h2>交付前复核：样本边界、数据质量、页面逻辑和行动建议</h2>
-          </div>
-          <div class="board-review-verdict" id="boardReviewVerdict">等待形成报告</div>
-        </div>
-        <div class="board-review-grid" id="boardReviewGrid"></div>
-        <div class="board-review-actions">
-          <button class="btn secondary" id="runBoardReview" type="button">更新复核结果</button>
-          <span id="boardReviewNote">复核结果将随目标银行、对标组、图表取舍和报告版本同步更新。</span>
-        </div>
-        <div class="governance-control-grid">
-          <section class="governance-panel" id="deliveryReviewPanel" aria-label="交付状态"></section>
-          <section class="governance-panel" id="prdCoverageDashboard" aria-label="PRD完成度"></section>
-          <section class="governance-panel is-wide" id="aiGovernancePanel" aria-label="AI写稿治理"></section>
-          <section class="governance-panel is-wide" id="exportSequenceQaPanel" aria-label="导出页序QA"></section>
-          <section class="governance-panel is-wide" id="reportStructureEditor" aria-label="报告结构编辑器"></section>
-        </div>
-      </section>
-
-      <div class="report-deck analysis-content" data-workspace-tab="report">
+      <div class="report-deck analysis-content" data-workspace-tab="legacy-report">
         <section class="report-page" data-page="01 / 06">
           <div class="report-topbar">
             <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">价值质量总览</div>

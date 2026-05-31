@@ -1,6 +1,6 @@
 /* Bank VQA module: 19-product-workspace.js — V1/V2/V3 client workspace */
 
-var activeWorkspaceTab = "overview";
+var activeWorkspaceTab = "report";
 var activeDataSubtab = "quality";
 
 function analysisNavigationItems() {
@@ -100,6 +100,7 @@ function bindAnalysisRoadmap() {
 
 function setWorkspaceTab(tab = activeWorkspaceTab) {
   activeWorkspaceTab = tab;
+  state.activeWorkspaceTab = tab;
   document.body.dataset.activeTab = tab;
   document.querySelectorAll("[data-workspace-tab]").forEach((el) => {
     el.hidden = el.dataset.workspaceTab !== tab;
@@ -602,7 +603,8 @@ function initProductWorkspace() {
   });
   bindClientActionBar();
   bindOverviewDepthToggle();
-  setWorkspaceTab("overview");
+  state.activeWorkspaceTab = "report";
+  setWorkspaceTab("report");
   setDataSubtab("quality");
   updateClientCommandCenter();
   updateBenchmarkV1();
