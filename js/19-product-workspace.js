@@ -323,6 +323,209 @@ function setWorkspaceTab(tab = activeWorkspaceTab) {
   else if (typeof renderGlobalBar === "function") renderGlobalBar();
 }
 
+function step2Esc(value = "") {
+  return typeof v5Esc === "function"
+    ? v5Esc(value)
+    : String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[char]));
+}
+
+function step2Metric(key, value) {
+  return typeof metricDisplayValue === "function" ? metricDisplayValue(key, value) : (value ?? "暂无");
+}
+
+function step2DiagnosisModel(row = typeof targetRecord === "function" ? targetRecord() : null, peers = typeof peerRecords === "function" ? peerRecords() : []) {
+  if (!state?.confirmed || !row) {
+    return {
+      ready: false,
+      title: "确认口径后生成价值质量总答案",
+      lead: "Step 2 将先回答本次分析最重要的一句话，再用同业位置、异动偏离和PB估值锚证明结论。",
+      kpis: [
+        { label: "VQA", value: "待生成", tone: "neutral" },
+        { label: "最弱维度", value: "待生成", tone: "neutral" },
+        { label: "PB答案", value: "待生成", tone: "neutral" },
+        { label: "数据完整性", value: "待复核", tone: "neutral" }
+      ]
+    };
+  }
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  const scores = typeof sparcDimensionScores === "function" ? sparcDimensionScores(row) : [];
+  const overall = typeof sparcOverallScore === "function" ? sparcOverallScore(scores) : null;
+  const pb = typeof theoreticalPB === "function" ? theoreticalPB(row) : null;
+  const quality = typeof criticalMetricCompleteness === "function" ? criticalMetricCompleteness() : null;
+  const weakest = diagnosis?.labels?.[diagnosis.weakest] || [...scores].filter((item) => item.score != null).sort((a, b) => a.score - b.score)[0]?.label || "关键质量维度";
+  const action = diagnosis?.dimensions?.[diagnosis.weakest]?.actionTitle || "形成专项修复动作";
+  const pbGap = pb?.actual == null || pb?.pb == null ? null : pb.actual - pb.pb;
+  return {
+    ready: true,
+    diagnosis,
+    title: `${displayBankName(row.bank)}VQA ${diagnosis?.score ?? "--"}分：${diagnosis?.signal || "价值质量待判断"}`,
+    lead: `当前首要议题不是继续堆指标，而是判断${weakest}是否已经成为价值质量约束。建议先围绕“${action}”形成 3-12 个月闭环，再进入报告编排。`,
+    kpis: [
+      { label: "VQA信号", value: diagnosis?.signal || "待判断", tone: diagnosis?.score >= 75 ? "good" : diagnosis?.score >= 60 ? "warn" : "bad" },
+      { label: "SPARC位置", value: overall == null ? "待补" : `${overall.toFixed(0)}分`, tone: overall == null ? "neutral" : overall >= 70 ? "good" : overall >= 45 ? "warn" : "bad" },
+      { label: "PB折价", value: pbGap == null ? "待补" : `${pbGap >= 0 ? "+" : ""}${pbGap.toFixed(2)}x`, tone: pbGap == null ? "neutral" : pbGap >= 0 ? "good" : "bad" },
+      { label: "数据完整性", value: quality == null ? "待复核" : `${(quality * 100).toFixed(0)}%`, tone: quality == null ? "neutral" : quality >= 0.8 ? "good" : quality >= 0.6 ? "warn" : "bad" }
+    ]
+  };
+}
+
+function step2BoardQuestions(row = typeof targetRecord === "function" ? targetRecord() : null, peers = typeof peerRecords === "function" ? peerRecords() : []) {
+  if (state?.confirmed && row && typeof boardroomDiscussionQuestions === "function") {
+    return boardroomDiscussionQuestions(row, peers).slice(0, 3);
+  }
+  return [
+    { dimension: "总答案", question: "目标银行当前价值质量差异主要来自哪里？", evidence: ["确认口径后生成证据"] },
+    { dimension: "同业位置", question: "哪些能力支撑或拖累同业位置？", evidence: ["确认对标组后生成证据"] },
+    { dimension: "行动优先级", question: "下一步应先修复经营质量、风险透明度还是估值沟通？", evidence: ["确认报告版本后生成建议"] }
+  ];
+}
+
+function step2TopChangesModel(row = typeof targetRecord === "function" ? targetRecord() : null, peers = typeof peerRecords === "function" ? peerRecords() : []) {
+  const empty = { positive: [], negative: [], deviations: [], cross: [] };
+  if (!state?.confirmed || !row || typeof v6AnomalyRadar !== "function") return empty;
+  return v6AnomalyRadar(row, peers);
+}
+
+function step2TopicCards(row = typeof targetRecord === "function" ? targetRecord() : null) {
+  const topics = typeof topicDefinitions === "function" ? topicDefinitions().slice(0, 6) : [];
+  return topics.map((topic) => {
+    const facts = state?.confirmed && typeof topicFactPackRows === "function" ? topicFactPackRows(topic.id) : [];
+    const judgement = state?.confirmed && typeof topicJudgement === "function" ? topicJudgement(topic.id, facts) : null;
+    const evidence = judgement?.evidence?.[0];
+    return {
+      ...topic,
+      signal: judgement?.signal || "待生成",
+      level: judgement?.level || "neutral",
+      headline: judgement?.headline || topic.question || "确认口径后生成专题判断。",
+      evidenceText: evidence ? `${evidence.指标名称} ${evidence.目标值}｜${evidence.分位}` : "确认分析后补充关键证据。",
+      action: topic.actions?.[0] || "进入专题深钻，补齐证据、机制和行动。"
+    };
+  });
+}
+
+function renderStep2Kpis(model) {
+  return model.kpis.map((item) => `
+    <div class="step2-kpi-card tone-${item.tone || "neutral"}">
+      <span>${step2Esc(item.label)}</span>
+      <b>${step2Esc(item.value)}</b>
+    </div>`).join("");
+}
+
+function renderStep2Questions(items) {
+  return items.map((item, index) => `
+    <a class="step2-question-card" href="${item.link ? `#${item.link}` : "#step2PeerPosition"}">
+      <span>${String(index + 1).padStart(2, "0")}｜${step2Esc(item.dimension || "董事会议题")}</span>
+      <b>${step2Esc(item.question || "待生成讨论问题")}</b>
+      <p>${step2Esc((item.evidence || []).filter(Boolean).slice(0, 3).join("；") || "确认口径后生成支撑证据。")}</p>
+    </a>`).join("");
+}
+
+function renderStep2PeerPosition(row) {
+  const scores = typeof sparcDimensionScores === "function" ? sparcDimensionScores(row) : [];
+  if (!state?.confirmed || !row || !scores.length) {
+    return "<div class=\"empty-card\">确认样本后生成 SPARC 五灯号。</div>";
+  }
+  return scores.map((item) => {
+    const signal = typeof sparcSignalLevel === "function" ? sparcSignalLevel(item.score) : { level: "neutral", label: "待补", lamp: "待补" };
+    return `
+      <div class="step2-sparc-card tone-${signal.level}">
+        <span>${step2Esc(item.code)}｜${step2Esc(signal.lamp)}</span>
+        <b>${step2Esc(item.label)}</b>
+        <em>${item.score == null ? "待补" : `${item.score.toFixed(0)}分`}｜${step2Esc(signal.label)}</em>
+        <p>${step2Esc(item.weakestMetric ? `关键复核：${item.weakestMetric.label} ${step2Metric(item.weakestMetric.key, item.weakestMetric.value)}` : item.question)}</p>
+      </div>`;
+  }).join("");
+}
+
+function renderStep2TopChanges(model) {
+  const renderList = (title, items, mode = "momentum") => `
+    <div class="step2-change-list">
+      <b>${step2Esc(title)}</b>
+      ${items.length ? items.slice(0, 5).map((item) => `
+        <div class="step2-change-row">
+          <span>${step2Esc(item.label)}</span>
+          <em>${mode === "peer"
+            ? `目标 ${step2Metric(item.key, item.current)}｜对标 ${step2Metric(item.key, item.peer)}`
+            : `${step2Esc(item.momentum?.direction || "变化待判")}｜${step2Esc(item.momentum?.acceleration || item.tag || "待判断")}`}</em>
+        </div>`).join("") : "<p>暂无显著项目。</p>"}
+    </div>`;
+  return `
+    ${renderList("本期正向变化", model.positive)}
+    ${renderList("本期负向变化", model.negative)}
+    ${renderList("相对同业偏离", model.deviations, "peer")}
+    ${renderList("纵横共振信号", model.cross, "peer")}`;
+}
+
+function renderStep2PbAnswer(row, peers) {
+  if (!state?.confirmed || !row) return "<div class=\"empty-card\">确认样本后生成 PB 估值答案。</div>";
+  const pb = typeof theoreticalPB === "function" ? theoreticalPB(row) : null;
+  const drivers = typeof pbDriverRanking === "function" ? pbDriverRanking(row, peers).slice(0, 3) : [];
+  const gap = pb?.actual == null || pb?.pb == null ? null : pb.actual - pb.pb;
+  return `
+    <div class="step2-pb-head">
+      <span>${step2Esc(pb?.label || "PB答案待补")}</span>
+      <b>${step2Metric("pb", pb?.actual)} / 理论 ${step2Metric("theoreticalPb", pb?.pb)}</b>
+      <p>${gap == null ? "PB或ROE数据不足，暂不形成强判断。" : `实际PB较DDM理论锚${gap >= 0 ? "高" : "低"} ${Math.abs(gap).toFixed(2)}x，需要用经营质量和风险透明度解释。`}</p>
+    </div>
+    <div class="step2-driver-list">
+      ${drivers.length ? drivers.map((item) => `<div><b>${step2Esc(item.label)}</b><span>${step2Esc(item.readout)}</span></div>`).join("") : "<div><b>驱动因素待补</b><span>样本或回归数据不足，建议先复核PB、ROE、不良率和成本收入比。</span></div>"}
+    </div>`;
+}
+
+function renderStep2Topics(cards) {
+  return cards.length ? cards.map((card) => `
+    <article class="step2-topic-card tone-${card.level}">
+      <span>${step2Esc(card.signal)}</span>
+      <h4>${step2Esc(card.title)}</h4>
+      <p>${step2Esc(card.headline)}</p>
+      <em>${step2Esc(card.evidenceText)}</em>
+      <a href="#topicWorkbenchSection" data-nav-target="topics">${step2Esc(card.action)}</a>
+    </article>`).join("") : "<div class=\"empty-card\">专题定义待加载。</div>";
+}
+
+function renderStep2ActionPath(row, peers) {
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  const drivers = row && typeof pbDriverRanking === "function" ? pbDriverRanking(row, peers).slice(0, 2) : [];
+  const weakest = diagnosis?.labels?.[diagnosis.weakest] || "关键质量维度";
+  const action = diagnosis?.dimensions?.[diagnosis.weakest]?.actionTitle || "补齐诊断证据";
+  const stages = [
+    { period: "0-3个月", title: `先复核${weakest}`, text: action },
+    { period: "3-6个月", title: "形成经营修复证据", text: drivers[0]?.readout || "跟踪ROE、NIM、风险确认和资本消耗的连续改善。" },
+    { period: "6-12个月", title: "验证估值叙事", text: drivers[1]?.readout || "把同业位置改善、风险透明度和资本纪律转成资本市场沟通材料。" }
+  ];
+  return stages.map((item) => `
+    <div class="step2-action-card">
+      <span>${step2Esc(item.period)}</span>
+      <b>${step2Esc(item.title)}</b>
+      <p>${step2Esc(item.text)}</p>
+    </div>`).join("");
+}
+
+function renderStep2Diagnosis() {
+  const row = typeof targetRecord === "function" ? targetRecord() : null;
+  const peers = typeof peerRecords === "function" ? peerRecords() : [];
+  const model = step2DiagnosisModel(row, peers);
+  const title = document.getElementById("step2DiagnosisTitle");
+  const lead = document.getElementById("step2DiagnosisLead");
+  const kpis = document.getElementById("step2KpiStrip");
+  const questions = document.getElementById("step2BoardQuestions");
+  const peer = document.getElementById("step2PeerPositionBody");
+  const changes = document.getElementById("step2TopChangesBody");
+  const pb = document.getElementById("step2PbAnswerBody");
+  const topics = document.getElementById("step2TopicGrid");
+  const actions = document.getElementById("step2ActionPathGrid");
+  if (title) title.textContent = model.title;
+  if (lead) lead.textContent = model.lead;
+  if (kpis) kpis.innerHTML = renderStep2Kpis(model);
+  if (questions) questions.innerHTML = renderStep2Questions(step2BoardQuestions(row, peers));
+  if (peer) peer.innerHTML = renderStep2PeerPosition(row);
+  if (changes) changes.innerHTML = renderStep2TopChanges(step2TopChangesModel(row, peers));
+  if (pb) pb.innerHTML = renderStep2PbAnswer(row, peers);
+  if (topics) topics.innerHTML = renderStep2Topics(step2TopicCards(row));
+  if (actions) actions.innerHTML = renderStep2ActionPath(row, peers);
+  bindAnalysisRoadmap();
+}
+
 function commandCenterDiagnosis() {
   const row = typeof targetRecord === "function" ? targetRecord() : null;
   const peers = typeof peerRecords === "function" ? peerRecords() : [];
@@ -346,6 +549,7 @@ function updateClientCommandCenter() {
     if (dataQuality) dataQuality.textContent = "待生成";
     if (weak) weak.textContent = "待生成";
     if (status) status.textContent = "待复核";
+    if (typeof renderStep2Diagnosis === "function") renderStep2Diagnosis();
     return;
   }
   const weakest = diagnosis.labels?.[diagnosis.weakest] || "关键质量维度";
@@ -363,6 +567,7 @@ function updateClientCommandCenter() {
     status.className = ready ? "good" : "warn";
   }
   if (typeof renderGuidedPathPanel === "function") renderGuidedPathPanel();
+  if (typeof renderStep2Diagnosis === "function") renderStep2Diagnosis();
 }
 
 function sparcDimensions() {
@@ -819,12 +1024,14 @@ function initProductWorkspace() {
   setWorkspaceTab(state.activeWorkspaceTab);
   setDataSubtab("quality");
   updateClientCommandCenter();
+  renderStep2Diagnosis();
   updateBenchmarkV1();
   const originalRenderAll = typeof renderAll === "function" ? renderAll : null;
   if (originalRenderAll && !originalRenderAll.__productWorkspaceWrapped) {
     renderAll = function renderAllWithProductWorkspace() {
       const result = originalRenderAll.apply(this, arguments);
       updateClientCommandCenter();
+      renderStep2Diagnosis();
       updateBenchmarkV1();
       setWorkspaceTab(activeWorkspaceTab);
       renderAnalysisRoadmap();
