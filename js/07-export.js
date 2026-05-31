@@ -117,6 +117,21 @@ function safeFilename(text) {
   return String(text || "报告").replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "");
 }
 
+function formalReportBaseFilename() {
+  return `${safeFilename(displayBankName(state.target) || state.target)}_${state.year}_正式报告`;
+}
+
+function formalReportExportMeta(format = "HTML") {
+  const ext = String(format || "HTML").toLowerCase();
+  return {
+    format: `正式报告 ${String(format || "HTML").toUpperCase()}`,
+    baseName: formalReportBaseFilename(),
+    filename: `${formalReportBaseFilename()}.${ext}`,
+    contentSource: "formalReport contract",
+    note: "页序、章节标题、页型和图表证据读取同一正式报告内容树"
+  };
+}
+
 function downloadTextFile(filename, content, type = "text/html;charset=utf-8") {
   const blob = new Blob([content], { type });
   const link = document.createElement("a");
@@ -145,7 +160,7 @@ function pendingDataExportRows(selectedRows = selectedBankRecords()) {
 }
 
 async function loadReportExportCss() {
-  const files = ["styles/app.css", "styles/rsm-consulting-ppt.css", "styles/rsm-deck.css"];
+  const files = ["styles/app.css", "styles/rsm-consulting-ppt.css", "styles/rsm-deck.css", "styles/print.css"];
   const chunks = [];
   for (const file of files) {
     try {
@@ -252,11 +267,13 @@ async function reportHtmlDocument() {
     : cloneClientDeckForExport(document.getElementById("printDeck")).outerHTML;
   const wrapper = document.createElement("div");
   wrapper.innerHTML = reportHtml;
-  const sections = [...wrapper.querySelectorAll("header, section")];
+  const sections = typeof applyFormalReportContract === "function"
+    ? applyFormalReportContract(wrapper)
+    : [...wrapper.querySelectorAll("header, section")];
   const exportNav = sections.map((section, idx) => {
     const id = section.id || `formal-export-section-${idx + 1}`;
     section.id = id;
-    const label = section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`;
+    const label = section.dataset.sectionTitle || section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`;
     return `<a href="#${xmlEscape(id)}"><span>${String(idx + 1).padStart(2, "0")}</span>${xmlEscape(exportClientText(label))}</a>`;
   }).join("");
   const sectionCount = sections.length || wrapper.querySelectorAll(".print-slide").length;
@@ -436,8 +453,10 @@ body { background: #F7F8FA; color: #2F3A4A; margin: 0; }
 }
 
 async function downloadReportHtml() {
-  const filename = `${safeFilename(state.target)}_${state.year}_正式诊断报告.html`;
-  downloadTextFile(filename, await reportHtmlDocument());
+  const meta = formalReportExportMeta("HTML");
+  downloadTextFile(meta.filename, await reportHtmlDocument());
+  setProjectStatus(`${meta.format} 已导出：${meta.filename}。${meta.note}。`);
+  return meta.filename;
 }
 
 function flattenRows(rows) {
@@ -470,6 +489,7 @@ function coverageExportRows(scopeRows) {
     const allRate = completeness(records, key);
     const years = [...new Set(records.filter((row) => row[key] !== null && row[key] !== undefined && !Number.isNaN(row[key])).map((row) => row.year))].sort((a, b) => a - b);
     const entry = metricDictionaryEntry(key);
+    const risk = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(key, scopeRows) : null;
     return {
       指标代码: key,
       指标名称: metricLabel[key] || key,
@@ -479,11 +499,104 @@ function coverageExportRows(scopeRows) {
       计算公式: entry?.formula || "",
       是否派生: entry?.is_derived ? "是" : entry ? "否" : "",
       缺失策略: entry?.missing_policy || "",
+      口径风险等级: risk?.level || "",
+      口径风险标签: risk?.label || "",
+      报告使用建议: risk?.decisionUse || "",
+      口径脚注: risk?.note || "",
       选定样本完整性: selectedRate == null ? "" : Number((selectedRate * 100).toFixed(2)),
       全样本完整性: allRate == null ? "" : Number((allRate * 100).toFixed(2)),
       可用年份: years.length ? `${years[0]}-${years[years.length - 1]}` : ""
     };
   });
+}
+
+function calibrationRiskExportRows(scopeRows = selectedBankRecords()) {
+  return metricKeysForCoverage().map((key) => {
+    const entry = metricDictionaryEntry(key);
+    const risk = typeof metricCalibrationRisk === "function"
+      ? metricCalibrationRisk(key, scopeRows)
+      : { level: "", label: "", decisionUse: "", note: "", selectedRate: null, allRate: null, highRisk: false };
+    const targetRow = targetRecord();
+    return {
+      指标代码: key,
+      指标名称: entry?.metric_name || metricLabel[key] || key,
+      主题: entry?.theme || metricTheme(key),
+      口径风险等级: risk.level,
+      口径风险标签: risk.label,
+      报告使用建议: risk.decisionUse,
+      口径脚注: risk.note,
+      是否高敏感指标: risk.highRisk ? "是" : "否",
+      目标银行当前值: targetRow?.[key] ?? "",
+      目标银行缺失原因: missingReasonForMetric(key, targetRow),
+      选定样本完整性: risk.selectedRate == null ? "" : Number((risk.selectedRate * 100).toFixed(2)),
+      全样本完整性: risk.allRate == null ? "" : Number((risk.allRate * 100).toFixed(2)),
+      来源分组: entry?.source_group || "",
+      来源字段: entry?.source_field || "",
+      计算公式: entry?.formula || analysisRules?.metrics?.[key]?.formula || "",
+      判断方向: entry?.direction || analysisRules?.metrics?.[key]?.direction || "",
+      缺失策略: entry?.missing_policy || "",
+      覆盖银行: metricCoverageLines(key).join("；")
+    };
+  });
+}
+
+function exportFieldPriority(priority = "") {
+  const text = String(priority || "");
+  if (text.includes("高")) return "high";
+  if (text.includes("中")) return "medium";
+  if (text.includes("低")) return "low";
+  return "none";
+}
+
+function fieldCoverageMatrixExportRows(matrix = fieldCoverageMatrix) {
+  if (!Array.isArray(matrix) || !matrix.length) return [];
+  return matrix.map((item, index) => {
+    const meta = typeof fieldCoverageStatusMeta === "function"
+      ? fieldCoverageStatusMeta(item.status)
+      : { connected: String(item.status || "").includes("已接入"), level: "" };
+    return {
+      序号: index + 1,
+      字段组: item.source_group || "未分组字段",
+      来源字段: item.source_field || "",
+      接入状态: meta.connected ? "connected" : "pending",
+      原始状态: item.status || "",
+      覆盖等级: meta.level || "",
+      补数优先级: exportFieldPriority(item.priority),
+      原始优先级: item.priority || "",
+      处理建议: item.recommendation || ""
+    };
+  });
+}
+
+function exportMetadataRows(mode = "selected", scopeRows = selectedBankRecords()) {
+  const riskRows = calibrationRiskExportRows(scopeRows);
+  const riskCount = (level) => riskRows.filter((row) => row.口径风险等级 === level).length;
+  const fieldRows = fieldCoverageMatrixExportRows();
+  const pendingFields = fieldRows.filter((row) => row.接入状态 === "pending");
+  const priorityFields = pendingFields.filter((row) => ["high", "medium"].includes(row.补数优先级));
+  return [{
+    目标银行: state.target,
+    对标银行: state.peers.join("、"),
+    分类型银行数据: state.types.join("、"),
+    分析年份: state.year,
+    报告版本: state.reportVersion,
+    规则版本: typeof rulesVersionLabel === "function" ? rulesVersionLabel() : "未标注",
+    AI写稿模式: aiProviderConfig?.provider || "local",
+    对标组模板: state.peerTemplate,
+    已纳入图表数: includedChartCount(),
+    排除图表: Object.entries(state.includedCharts).filter(([, included]) => included === false).map(([key]) => key).join("、"),
+    导出范围: mode === "all" ? "全部数据" : "选定银行与对标银行",
+    L1口径风险指标数: riskCount("L1"),
+    L2口径风险指标数: riskCount("L2"),
+    L3口径风险指标数: riskCount("L3"),
+    L4口径风险指标数: riskCount("L4"),
+    字段矩阵总字段数: fieldRows.length,
+    字段矩阵已接入字段数: fieldRows.filter((row) => row.接入状态 === "connected").length,
+    字段矩阵待接入字段数: pendingFields.length,
+    需优先补齐字段数: priorityFields.length,
+    高优先级待补字段数: pendingFields.filter((row) => row.补数优先级 === "high").length,
+    生成时间: new Date().toLocaleString("zh-CN", { hour12: false })
+  }];
 }
 
 function metricDictionaryExportRows(scopeRows = selectedBankRecords()) {
@@ -492,6 +605,7 @@ function metricDictionaryExportRows(scopeRows = selectedBankRecords()) {
     const selectedRate = completeness(scopeRows, key);
     const allRate = completeness(records, key);
     const targetRow = targetRecord();
+    const risk = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(key, scopeRows) : null;
     return {
       指标代码: key,
       指标名称: entry?.metric_name || metricLabel[key] || key,
@@ -504,6 +618,10 @@ function metricDictionaryExportRows(scopeRows = selectedBankRecords()) {
       缺失策略: entry?.missing_policy || "",
       目标银行当前值: targetRow?.[key] ?? "",
       目标银行缺失原因: missingReasonForMetric(key, targetRow),
+      口径风险等级: risk?.level || "",
+      口径风险标签: risk?.label || "",
+      报告使用建议: risk?.decisionUse || "",
+      口径脚注: risk?.note || "",
       选定样本完整性: selectedRate == null ? "" : Number((selectedRate * 100).toFixed(2)),
       全样本完整性: allRate == null ? "" : Number((allRate * 100).toFixed(2)),
       覆盖银行: metricCoverageLines(key).join("；")
@@ -671,11 +789,14 @@ async function exportDataWorkbook(mode = "selected") {
         生成时间: new Date().toLocaleString("zh-CN")
       }]
     },
+    { name: "导出元数据", rows: exportMetadataRows(mode, selectedRows) },
     { name: "目标银行", rows: flattenRows(row ? series(row.bank) : []) },
     { name: "对标银行", rows: flattenRows(peers.flatMap((peer) => series(peer.bank))) },
     { name: "类型均值", rows: typeAverageExportRows() },
     { name: "指标完整性", rows: coverageExportRows(selectedRows) },
     { name: "指标口径", rows: metricDictionaryExportRows(selectedRows) },
+    { name: "口径风险元数据", rows: calibrationRiskExportRows(selectedRows) },
+    { name: "字段覆盖矩阵", rows: fieldCoverageMatrixExportRows() },
     { name: "待补数据清单", rows: pendingDataExportRows(selectedRows) },
     { name: "VQA诊断", rows: factPack ? factPack.summaryRows : [] },
     { name: "VQA维度评分", rows: factPack ? factPack.dimensionRows : [] },
@@ -684,6 +805,7 @@ async function exportDataWorkbook(mode = "selected") {
     { name: "专题解释器", rows: topicExplainerRows(row, peers) },
     { name: "专题AI解读", rows: topicWorkbenchExportRows() },
     { name: "结构化事实包", rows: typeof exportStructuredFactPackRows === "function" ? exportStructuredFactPackRows() : [] },
+    { name: "机制归因事实包", rows: typeof exportMechanismFactPackRows === "function" ? exportMechanismFactPackRows() : [] },
     { name: "董办汇报主线", rows: factPack ? factPack.boardRows : [] }
   ];
   if (mode === "all") sheets.push({ name: "全样本明细", rows: flattenRows(records) });
@@ -789,6 +911,7 @@ function chartFactPack(title) {
     const value = row?.[key];
     const peerAvg = avg(peers, key);
     const typeAvg = avg(typeRows, key);
+    const risk = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(key, [row, ...peers].filter(Boolean)) : null;
     return {
       图表: cleanChartName(title),
       指标代码: key,
@@ -800,7 +923,11 @@ function chartFactPack(title) {
       一年变化: row ? yoyValue(row.bank, key) : null,
       五年变化: row ? fiveYearValue(row.bank, key) : null,
       分位: rankPercentile(value, allRows, key, metricDirection(key)),
-      完整性: completeness([row, ...peers].filter(Boolean), key) == null ? "" : Number((completeness([row, ...peers].filter(Boolean), key) * 100).toFixed(1))
+      完整性: completeness([row, ...peers].filter(Boolean), key) == null ? "" : Number((completeness([row, ...peers].filter(Boolean), key) * 100).toFixed(1)),
+      口径风险等级: risk?.level || "",
+      口径风险标签: risk?.label || "",
+      报告使用建议: risk?.decisionUse || "",
+      口径脚注: risk?.note || ""
     };
   });
   const lead = rows[0];

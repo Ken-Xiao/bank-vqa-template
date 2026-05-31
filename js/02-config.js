@@ -58,6 +58,17 @@ async function loadMetricDictionary() {
   }
 }
 
+async function loadFieldCoverageMatrix() {
+  try {
+    const response = await fetch("data_governance/field_coverage_matrix.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("field coverage matrix unavailable");
+    const rows = await response.json();
+    fieldCoverageMatrix = Array.isArray(rows) ? rows : [];
+  } catch (error) {
+    fieldCoverageMatrix = [];
+  }
+}
+
 async function loadLanguageDiscipline() {
   try {
     const response = await fetch("config/language_discipline.json", { cache: "no-store" });

@@ -12,6 +12,7 @@ function buildStandardFactRow(key, row, peers, typeRows, allRows) {
   const peerAvg = avg(peers, key);
   const typeAvg = avg(typeRows, key);
   const completenessRate = completeness([row, ...peers].filter(Boolean), key);
+  const calibration = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(key, [row, ...peers].filter(Boolean)) : null;
   const alerts = typeof v3CounterintuitiveAlerts === "function" ? v3CounterintuitiveAlerts(row, peers) : [];
   const sequence = typeof v3TransformationSequence === "function" ? v3TransformationSequence(row) : null;
   const macro = typeof v3MacroTransmission === "function" ? v3MacroTransmission(row, peers) : null;
@@ -31,6 +32,10 @@ function buildStandardFactRow(key, row, peers, typeRows, allRows) {
     五年变化: row ? (fiveYearValue(row.bank, key) == null ? "暂无" : metricDisplayValue(key, fiveYearValue(row.bank, key))) : "暂无",
     全样本分位: rankPercentile(value, allRows, key, metricDirection(key)),
     数据完整性: completenessRate == null ? "暂无" : `${(completenessRate * 100).toFixed(1)}%`,
+    口径风险等级: calibration?.level || "L2",
+    口径风险标签: calibration?.label || "L2 可比，需脚注",
+    报告使用建议: calibration?.decisionUse || "主报告+脚注",
+    口径脚注: calibration?.note || "建议保留指标口径、样本覆盖和数据来源说明。",
     解释方向: metricDirectionText(key),
     因子归因值: factor?.gap == null ? "暂无" : metricDisplayValue(key, factor.gap),
     主导因子标签: factor?.label || "待验证",
@@ -89,6 +94,152 @@ function buildChartFactPackObject(title) {
   };
 }
 
+function mechanismRiskMeta(key, rows = selectedBankRecords()) {
+  if (!key || typeof metricCalibrationRisk !== "function") {
+    return { level: "", label: "", decisionUse: "", note: "" };
+  }
+  const known = records.some((row) => row[key] !== undefined) || !!metricDictionaryEntry(key) || !!analysisRules?.metrics?.[key];
+  if (!known) return { level: "", label: "", decisionUse: "", note: "" };
+  return metricCalibrationRisk(key, rows);
+}
+
+function mechanismRowBase(module, row = targetRecord()) {
+  return {
+    目标银行: row?.bank || state.target,
+    分析年份: state.year,
+    对标银行: state.peers.join("、"),
+    分析模块: module
+  };
+}
+
+function mechanismMetricRow(module, key, item = {}, row = targetRecord(), rowsForRisk = selectedBankRecords()) {
+  const risk = mechanismRiskMeta(key, rowsForRisk);
+  return {
+    ...mechanismRowBase(module, row),
+    指标代码: key || item.key || "",
+    指标名称: item.label || metricLabel[key] || fieldName(key) || key || "",
+    目标值: item.valueText || metricDisplayValue(key, item.value),
+    对标值: item.peerText || metricDisplayValue(key, item.peer),
+    差距: item.gapText || metricDisplayValue(key, item.gap),
+    贡献值: item.contribution == null ? "" : Number(item.contribution.toFixed ? item.contribution.toFixed(4) : item.contribution),
+    贡献占比: item.contributionShare == null ? "" : `${(item.contributionShare * 100).toFixed(1)}%`,
+    判断: item.readout || "",
+    口径风险等级: risk.level,
+    口径风险标签: risk.label,
+    报告使用建议: risk.decisionUse,
+    口径脚注: risk.note
+  };
+}
+
+function buildDupontMechanismModule(row = targetRecord(), peers = peerRecords()) {
+  const pack = typeof dupontBreakdown === "function" ? dupontBreakdown(row, peers) : null;
+  const main = pack?.mainDriver;
+  return {
+    id: "dupont",
+    title: "DuPont三级分解",
+    headline: main
+      ? `ROE 差距优先由${main.label}解释，贡献占比${main.contributionShare == null ? "待测算" : `${(main.contributionShare * 100).toFixed(0)}%`}。`
+      : "ROE 分解数据不足，需补齐资产、权益、收入、费用与拨备字段。",
+    rows: (pack?.nodes || []).map((node) => mechanismMetricRow("DuPont三级分解", node.id, {
+      ...node,
+      readout: node.gap == null
+        ? "缺少目标或对标值"
+        : `${node.label}较对标组${node.goodGap >= 0 ? "形成正向支撑" : "形成拖累"}`
+    }, row, [row, ...peers].filter(Boolean)))
+  };
+}
+
+function buildProfitAttributionModule(row = targetRecord()) {
+  const pack = typeof netProfitAttribution === "function" ? netProfitAttribution(row) : null;
+  return {
+    id: "profit",
+    title: "净利润归因瀑布",
+    headline: pack
+      ? `${pack.yearFrom}-${pack.yearTo} 净利润变化${metricDisplayValue("netProfit", pack.total)}，最大正贡献为${pack.positive?.label || "待验证"}，最大拖累为${pack.negative?.label || "待验证"}。`
+      : "净利润归因缺少上一年净利润或利润表拆分字段，暂不形成瀑布结论。",
+    rows: (pack?.items || []).map((item) => mechanismMetricRow("净利润归因瀑布", item.key, {
+      label: item.label,
+      value: item.value,
+      peer: null,
+      gap: item.value,
+      contribution: item.value,
+      contributionShare: item.share == null ? null : Math.abs(item.share),
+      readout: item.value > 0 ? "对净利润同比形成正贡献" : item.value < 0 ? "对净利润同比形成拖累" : "贡献中性"
+    }, row, [row].filter(Boolean)))
+  };
+}
+
+function buildNimAttributionModule(row = targetRecord(), peers = peerRecords()) {
+  const attribution = typeof gapAttributionEngine === "function" ? gapAttributionEngine("nim", row, peers) : null;
+  const rows = (attribution?.rows || []).map((item) => mechanismMetricRow("NIM归因", item.key, {
+    label: item.label,
+    valueText: item.value,
+    peerText: item.peer,
+    contribution: item.contribution,
+    readout: `${item.label}用于解释净息差相对差距`
+  }, row, [row, ...peers].filter(Boolean)));
+  ["nim", "earningAssetYield", "interestLiabilityCost", "timeDepositShare"].forEach((key) => {
+    if (rows.some((item) => item.指标代码 === key)) return;
+    rows.push(mechanismMetricRow("NIM归因", key, {
+      label: fieldName(key),
+      value: row?.[key],
+      peer: avg(peers, key),
+      gap: row?.[key] == null || avg(peers, key) == null ? null : row[key] - avg(peers, key),
+      readout: "NIM 归因底层指标"
+    }, row, [row, ...peers].filter(Boolean)));
+  });
+  return {
+    id: "nim",
+    title: "NIM归因",
+    headline: attribution?.headline || "息差归因需同时拆分资产收益率、负债成本和存款结构。",
+    rows
+  };
+}
+
+function buildBenchmarkLinesModule(row = targetRecord(), peers = peerRecords()) {
+  const keys = ["roa", "roe", "nim", "earningAssetYield", "interestLiabilityCost", "npl", "provisionCoverage", "cet1Buffer", "rwaDensity", "pb"];
+  const rows = keys.flatMap((key) => {
+    const lines = typeof benchmarkLinesForMetric === "function" ? benchmarkLinesForMetric(key, peers) : [];
+    return lines.map((line) => mechanismMetricRow("多基准线", key, {
+      label: `${fieldName(key)}-${line.label}`,
+      value: row?.[key],
+      peer: line.value,
+      gap: row?.[key] == null || line.value == null ? null : row[key] - line.value,
+      readout: `用于图表基准线：${line.label}`
+    }, row, [row, ...peers].filter(Boolean)));
+  });
+  return {
+    id: "benchmark",
+    title: "多基准线",
+    headline: `已为 ${keys.length} 个核心指标生成对标均值、中位数、分位数、类型/全样本和监管线基准。`,
+    rows
+  };
+}
+
+function buildMechanismFactPackObject(row = targetRecord(), peers = peerRecords()) {
+  return {
+    type: "mechanism",
+    target: row?.bank || state.target,
+    year: state.year,
+    peerBanks: state.peers.slice(),
+    modules: {
+      dupont: buildDupontMechanismModule(row, peers),
+      profit: buildProfitAttributionModule(row),
+      nim: buildNimAttributionModule(row, peers),
+      benchmark: buildBenchmarkLinesModule(row, peers)
+    },
+    generatedAt: new Date().toISOString()
+  };
+}
+
+function exportMechanismFactPackRows() {
+  const pack = buildMechanismFactPackObject();
+  return Object.values(pack.modules).flatMap((module) => module.rows.map((row) => ({
+    ...row,
+    模块结论: module.headline
+  })));
+}
+
 function exportStructuredFactPackRows() {
   const topicRows = topicDefinitions().flatMap((topic) => {
     const pack = buildTopicFactPackObject(topic.id);
@@ -108,5 +259,11 @@ function exportStructuredFactPackRows() {
       ...fact
     }));
   });
-  return [...topicRows, ...chartRows];
+  const mechanismRows = typeof exportMechanismFactPackRows === "function"
+    ? exportMechanismFactPackRows().map((row) => ({
+      包类型: "机制归因事实包",
+      ...row
+    }))
+    : [];
+  return [...topicRows, ...chartRows, ...mechanismRows];
 }

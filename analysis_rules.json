@@ -3,7 +3,7 @@
     "name": "银行董办对标分析工具",
     "audience": ["董事会办公室", "战略管理部", "财务管理部", "资本市场沟通团队"],
     "defaultOutput": "董事会汇报版",
-    "rulesVersion": "2026.05.31-v5"
+    "rulesVersion": "2026.05.31-v6"
   },
   "sparc_vqa_mapping": {
     "scale": {

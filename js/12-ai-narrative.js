@@ -102,6 +102,21 @@ function narrativeStorageKey(topicId, channel) {
   return `${topicId}.${channel}`;
 }
 
+function narrativeShortText(text, limit = 180) {
+  if (typeof reportShortText === "function") return reportShortText(text, limit);
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  return clean.length > limit ? `${clean.slice(0, limit)}…` : clean;
+}
+
+function consultingNaturalParagraph({ target, topic, claim, evidence, attribution, meaning, evidenceText }) {
+  return [
+    `${target}${topic.title.replace(/专题$/, "")}的本轮判断是：${claim}`,
+    evidence,
+    `形成这一判断的原因，不是单个指标高低，而是${narrativeShortText(attribution, 170)}。`,
+    `${meaning}本段依据的核心指标为${evidenceText || "待补充"}。`
+  ].join("");
+}
+
 function getStoredNarrative(topicId, channel) {
   ensureEditedNarratives();
   return state.editedNarratives[narrativeStorageKey(topicId, channel)] || "";
@@ -115,7 +130,35 @@ function saveTopicNarrativeEdit(topicId, channel, text) {
 }
 
 function narrativeRiskForFact(fact) {
-  if (!fact || typeof calibrationRiskItems !== "function") return null;
+  if (!fact) return null;
+  if (fact.口径风险等级) {
+    const level = fact.口径风险等级;
+    const tone = level === "L1" ? "green" : level === "L2" ? "yellow" : level === "L3" ? "orange" : "red";
+    return {
+      key: fact.指标代码,
+      label: fact.指标名称 || fieldName(fact.指标代码),
+      level: tone,
+      riskLevel: level,
+      riskLabel: fact.口径风险标签,
+      risk: fact.口径脚注,
+      note: fact.口径脚注,
+      decisionUse: fact.报告使用建议
+    };
+  }
+  if (typeof metricCalibrationRisk === "function") {
+    const risk = metricCalibrationRisk(fact.指标代码);
+    return {
+      key: fact.指标代码,
+      label: fact.指标名称 || fieldName(fact.指标代码),
+      level: risk.tone,
+      riskLevel: risk.level,
+      riskLabel: risk.label,
+      risk: risk.note,
+      note: risk.note,
+      decisionUse: risk.decisionUse
+    };
+  }
+  if (typeof calibrationRiskItems !== "function") return null;
   const risks = calibrationRiskItems();
   return risks.find((item) => item.key === fact.指标代码) || null;
 }
@@ -130,10 +173,11 @@ function narrativeRiskSuffix(facts = []) {
     });
   const risk = ranked[0];
   if (!risk || risk.level === "green") return "";
+  const riskLevel = risk.riskLevel || (risk.level === "red" ? "L4" : risk.level === "orange" ? "L3" : "L2");
   const riskLanguage = languageDiscipline?.riskLanguage?.[risk.level] || {};
-  if (risk.level === "red") return `${risk.label}当前口径不足以支撑对标结论，相关段落已降级为待补数据事项。`;
-  if (risk.level === "orange") return `${risk.label}数据显示存在偏高或偏低信号，但因${risk.risk}，不宜形成强结论。`;
-  return `${risk.label}需保留口径脚注：${risk.risk}。${riskLanguage.suffix || ""}`;
+  if (risk.level === "red") return `${riskLevel}｜${risk.label}当前口径不足以支撑对标结论，相关段落已降级为待补数据事项。${risk.risk || ""}`;
+  if (risk.level === "orange") return `${riskLevel}｜${risk.label}数据显示存在偏高或偏低信号，但因${risk.risk || "口径限制"}，不宜形成强结论。`;
+  return `${riskLevel}｜${risk.label}需保留口径脚注：${risk.risk || "需复核口径边界"}。${riskLanguage.suffix || ""}`;
 }
 
 function downgradeNarrativeByRisk(text, facts = []) {
@@ -176,13 +220,24 @@ function generateTopicNarrativeDraft(topic, facts, channel) {
   const confidence = typeof confidenceLevel === "function" ? confidenceLevel(metricKey, row, peerRecords()) : { level: "中", prefix: "现有数据倾向于显示", suffix: "建议保留口径提示。" };
   const attribution = typeof gapAttributionEngine === "function" ? gapAttributionEngine(metricKey, row, peerRecords()) : null;
   const claim = `${confidence.prefix}，${judgement.headline}（置信度：${confidence.level}）。`;
-  const evidence = citations.length ? `证据包括：${citations.slice(0, 3).map((f) => `${f.指标名称}${f.目标值}、对标均值${f.对标均值}`).join("；")}。` : "因数据覆盖不足，暂不形成该层判断。";
+  const target = displayBankName(row?.bank || state.target);
+  const evidence = citations.length
+    ? `${target}的关键证据落在${citations.slice(0, 3).map((f) => `${f.指标名称}${f.目标值}、对标${f.对标均值}`).join("；")}。`
+    : `${target}在该专题的可用指标不足，当前只能先保留问题判断，不能直接形成强结论。`;
   const attributionText = `${attribution?.headline || topic.mechanism || opening} ${typeof buildMechanismExplanation === "function" ? buildMechanismExplanation(topic.id) : ""}`;
   const meaning = channel === "action"
-    ? `${topic.actions.slice(0, 2).join("；")}。建议3个月内完成责任部门和指标阈值确认，优先跟踪：${citations.map((f) => f.指标名称).join("、") || "核心指标"}。`
-    : `对董事会意味着，本专题不应停留在单项指标说明，而应围绕${citations.map((f) => f.指标名称).join("、") || topic.title}形成连续改善证据。${confidence.suffix}`;
-  const ceam = `C｜${claim}\nE｜${evidence}\nA｜${reportShortText(attributionText, 180)}\nM｜${meaning} 依据指标：${evidenceText || "待补充"}。`;
-  const text = sanitizeComplianceText(downgradeNarrativeByRisk(ceam, citations), topic.forbiddenPhrases);
+    ? `${topic.actions.slice(0, 2).join("；")}。管理上建议在3个月内明确责任部门、指标阈值和复盘节奏，优先跟踪${citations.map((f) => f.指标名称).join("、") || "核心指标"}。`
+    : `这意味着，本专题不能停留在单项指标说明，而要围绕${citations.map((f) => f.指标名称).join("、") || topic.title}判断经营动作是否连续有效。${confidence.suffix}`;
+  const naturalDraft = consultingNaturalParagraph({
+    target,
+    topic,
+    claim,
+    evidence,
+    attribution: attributionText,
+    meaning,
+    evidenceText
+  });
+  const text = sanitizeComplianceText(downgradeNarrativeByRisk(naturalDraft, citations), topic.forbiddenPhrases);
   if (channel === "board") return text || base.board;
   if (channel === "market") return text || base.market;
   return text || base.action;

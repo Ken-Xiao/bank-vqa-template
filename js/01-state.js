@@ -31,6 +31,7 @@ var records = data.records || [];
 var banks = data.banks || [];
 var analysisRules = null;
 var metricDictionary = {};
+var fieldCoverageMatrix = [];
 var languageDiscipline = null;
 
 var metricLabel = {

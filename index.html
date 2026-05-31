@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles/app.css?v=20260530-benchmarkiq-v3" />
   <link rel="stylesheet" href="styles/rsm-consulting-ppt.css?v=20260530-client-spine" />
   <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-v7" />
+  <link rel="stylesheet" href="styles/print.css?v=20260531-prd-v6" media="print" />
 
 </head>
 <body>
@@ -91,6 +92,7 @@
                 <button class="btn secondary" id="targetClearSearch" type="button">清空</button>
               </div>
             </div>
+            <div class="target-preview-card" id="targetSelectionPreview"></div>
             <div class="choice-panel target-panel" id="targetBankChecks"></div>
           </div>
           <div class="field-label selector-field peer-field">对标银行
@@ -100,6 +102,7 @@
               <option selected>上海农商行</option>
               <option selected>苏州</option>
             </select>
+            <div class="peer-selection-card" id="peerSelectionPreview"></div>
             <div class="choice-panel" id="peerBankChecks"></div>
             <span class="multi-help">勾选一个或多个对标银行，最多显示 8 家</span>
           </div>
@@ -154,9 +157,9 @@
           <button class="btn secondary analysis-content" id="refreshAnalysis" type="button">刷新诊断</button>
           <button class="btn secondary analysis-content" id="saveProject" type="button">保存当前项目</button>
           <button class="btn secondary analysis-content" id="loadProject" type="button">加载最近项目</button>
-          <button class="btn analysis-content" id="exportReportHtml" type="button">导出汇报稿HTML</button>
-          <button class="btn secondary analysis-content" id="exportReportPptx" type="button">导出汇报PPT</button>
-          <button class="btn secondary analysis-content" id="exportReport" type="button">打印/导出PDF</button>
+          <button class="btn analysis-content" id="exportReportHtml" type="button">导出正式报告 HTML</button>
+          <button class="btn secondary analysis-content" id="exportReportPptx" type="button">导出正式报告 PPTX</button>
+          <button class="btn secondary analysis-content" id="exportReport" type="button">打印/导出正式报告 PDF</button>
           <button class="btn secondary analysis-content" id="exportSelectedData" type="button">导出选定数据</button>
           <button class="btn secondary analysis-content" id="exportAllData" type="button">导出全部数据</button>
           <div class="project-status analysis-content" id="projectStatus">当前项目尚未保存。</div>
@@ -174,7 +177,7 @@
               <div class="export-menu-list" id="clientExportMenu">
                 <button type="button" data-export-target="exportReportHtml">正式报告 HTML</button>
                 <button type="button" data-export-target="exportReport">报告 PDF / 打印</button>
-                <button type="button" data-export-target="exportReportPptx">备用演示 PPT</button>
+                <button type="button" data-export-target="exportReportPptx">正式报告 PPTX</button>
                 <button type="button" data-export-target="exportSelectedData">选定数据底稿</button>
                 <button type="button" data-export-target="exportAllData">全量数据底稿</button>
               </div>
@@ -187,38 +190,68 @@
         <span><strong>对标银行</strong>常熟农商行、瑞丰农商行、上海农商行、苏州</span>
         <span><strong>类型均值</strong>国有大行、股份行、城市商业银行、农村商业银行</span>
       </div>
+      <section class="sprint-baseline-panel analysis-content client-internal" id="sprintBaselinePanel" data-workspace-tab="review" aria-label="稳定基线检查">
+        <div>
+          <span>Sprint 0 稳定基线</span>
+          <h2>交付前先确认资源、脚本、报告树和测试契约未回退</h2>
+          <p>本面板用于把 smoke test、资源路径、正式报告契约和数据治理字典放在同一张复核清单里，减少后续导出问题。</p>
+        </div>
+        <div class="sprint-baseline-grid" id="sprintBaselineGrid"></div>
+      </section>
       <section class="client-command-center analysis-content" id="clientCommandCenter" data-workspace-tab="overview" aria-label="客户任务台">
         <div class="command-main">
           <span>30 秒结论</span>
           <h2 id="commandVerdictTitle">确认样本后，先看本次价值质量总答案</h2>
           <p id="commandVerdictText">这里将汇总 VQA 诊断、数据完整性、最弱维度和建议动作，帮助董办判断是否可以进入报告编排。</p>
         </div>
+        <div class="overview-depth-control">
+          <span>总览密度</span>
+          <button class="btn secondary" id="overviewDepthToggle" type="button" aria-pressed="false">展开深层模块</button>
+        </div>
         <div class="command-grid">
           <div class="command-card"><span>数据可信度</span><b id="commandDataQuality">待生成</b><p>决定结论能否进入主报告。</p></div>
           <div class="command-card"><span>最弱维度</span><b id="commandWeakDimension">待生成</b><p>优先进入管理层行动清单。</p></div>
           <div class="command-card"><span>交付状态</span><b id="commandDeliveryStatus">待复核</b><p>通过复核后再导出正式材料。</p></div>
         </div>
-        <div class="guided-path-panel" id="guidedPathPanel">
-          <div class="guided-path-head">
-            <span>推荐下钻路径</span>
-            <b>确认分析后，系统将按 VQA 弱项和风险信号给出下一步阅读顺序。</b>
+        <div class="overview-decision-grid">
+          <div class="overview-decision-card">
+            <div class="overview-decision-head">
+              <span>董事会议题</span>
+              <b>把专题下钻先压缩成三条可讨论问题</b>
+            </div>
+            <div class="v6-discussion-strip is-command" id="v6DiscussionStrip"></div>
           </div>
-          <div class="guided-path-list" id="guidedPathList"></div>
+          <div class="overview-decision-card">
+            <div class="overview-decision-head">
+              <span>SPARC 交通灯</span>
+              <b>先看战略、盈利、资产质量、风险、资本的状态差异</b>
+            </div>
+            <div class="traffic-light-grid is-command" id="sparcTrafficLights"></div>
+          </div>
         </div>
-        <div class="whatif-control-panel" id="whatIfControlPanel">
-          <div class="whatif-control-head">
-            <span>What-if 决策推演</span>
-            <b>调整核心经营假设，观察结论方向是否改变。</b>
+        <div class="overview-secondary-grid">
+          <div class="guided-path-panel" id="guidedPathPanel">
+            <div class="guided-path-head">
+              <span>推荐下钻路径</span>
+              <b>确认分析后，系统将按 VQA 弱项和风险信号给出下一步阅读顺序。</b>
+            </div>
+            <div class="guided-path-list" id="guidedPathList"></div>
           </div>
-          <div class="whatif-control-grid">
-            <label>净息差变化 <b id="whatIfNimLabel">+0bp</b><input id="whatIfNimBp" type="range" min="-30" max="30" step="5" value="0" /></label>
-            <label>不良率变化 <b id="whatIfNplLabel">+0bp</b><input id="whatIfNplBp" type="range" min="-30" max="30" step="5" value="0" /></label>
-            <label>成本收入比变化 <b id="whatIfCostLabel">+0.0pct</b><input id="whatIfCostPp" type="range" min="-5" max="5" step="1" value="0" /></label>
+          <div class="whatif-control-panel" id="whatIfControlPanel">
+            <div class="whatif-control-head">
+              <span>What-if 决策推演</span>
+              <b>调整核心经营假设，观察结论方向是否改变。</b>
+            </div>
+            <div class="whatif-control-grid">
+              <label>净息差变化 <b id="whatIfNimLabel">+0bp</b><input id="whatIfNimBp" type="range" min="-30" max="30" step="5" value="0" /></label>
+              <label>不良率变化 <b id="whatIfNplLabel">+0bp</b><input id="whatIfNplBp" type="range" min="-30" max="30" step="5" value="0" /></label>
+              <label>成本收入比变化 <b id="whatIfCostLabel">+0.0pct</b><input id="whatIfCostPp" type="range" min="-5" max="5" step="1" value="0" /></label>
+            </div>
+            <div class="whatif-result-grid" id="whatIfResultGrid"></div>
           </div>
-          <div class="whatif-result-grid" id="whatIfResultGrid"></div>
         </div>
       </section>
-      <section class="president-summary-panel analysis-content" id="presidentSummaryPanel" data-workspace-tab="overview" aria-label="行长版一页摘要">
+      <section class="president-summary-panel analysis-content" id="presidentSummaryPanel" data-workspace-tab="overview" data-overview-depth="primary" aria-label="行长版一页摘要">
         <div class="president-summary-head">
           <div>
             <span>行长版一页摘要</span>
@@ -226,7 +259,6 @@
           </div>
           <button class="btn secondary" id="jumpPresidentReport" type="button">查看报告页</button>
         </div>
-        <div class="traffic-light-grid" id="sparcTrafficLights"></div>
         <div class="president-summary-grid">
           <div>
             <b>关键发现三条</b>
@@ -238,7 +270,7 @@
           </div>
         </div>
       </section>
-      <section class="v5-value-panel analysis-content" id="v5ValuePanel" data-workspace-tab="overview" aria-label="价值创造与估值归因">
+      <section class="v5-value-panel analysis-content" id="v5ValuePanel" data-workspace-tab="overview" data-overview-depth="secondary" aria-label="价值创造与估值归因">
         <div class="v5-panel-head">
           <div>
             <span>BenchmarkIQ V5</span>
@@ -262,7 +294,7 @@
           <div id="v5TornadoPanel"></div>
         </div>
       </section>
-      <section class="benchmark-v1-panel analysis-content" id="benchmarkV1Panel" data-workspace-tab="overview" aria-label="BenchmarkIQ V1 总览">
+      <section class="benchmark-v1-panel analysis-content" id="benchmarkV1Panel" data-workspace-tab="overview" data-overview-depth="secondary" aria-label="BenchmarkIQ V1 总览">
         <div class="benchmark-v1-head">
           <div>
             <span>BenchmarkIQ V3</span>
@@ -289,7 +321,7 @@
           </div>
         </div>
       </section>
-      <section class="ib-evidence-panel analysis-content" id="ibEvidencePanel" data-workspace-tab="overview" aria-label="投行级证据页">
+      <section class="ib-evidence-panel analysis-content" id="ibEvidencePanel" data-workspace-tab="overview" data-overview-depth="secondary" aria-label="投行级证据页">
         <div class="ib-evidence-head">
           <div>
             <span>Investment Banking Evidence Pack</span>
@@ -325,6 +357,17 @@
         <button type="button" data-tab-target="review"><span>5</span>复核</button>
         <button type="button" data-tab-target="governance"><span>6</span>管理</button>
       </nav>
+      <section class="analysis-roadmap analysis-content" id="analysisRoadmap" aria-label="分析导航地图">
+        <div class="analysis-roadmap-head">
+          <div>
+            <span>分析地图</span>
+            <b id="analysisRoadmapTitle">先确认样本，再按路径推进分析</b>
+          </div>
+          <a id="analysisNextAction" href="#topicWorkbenchSection" data-nav-target="topics">下一步</a>
+        </div>
+        <div class="analysis-roadmap-steps" id="analysisRoadmapSteps"></div>
+        <div class="analysis-map-links" id="analysisMapLinks"></div>
+      </section>
       <section class="client-brief-panel analysis-content" id="clientBriefPanel" data-workspace-tab="overview" aria-label="客户汇报摘要">
         <div class="client-brief-main">
           <span>董事会问题</span>
@@ -590,9 +633,34 @@
             <span>待补指标：待生成</span>
           </div>
         </div>
+        <div class="field-coverage-heatmap" id="fieldCoverageHeatmap"></div>
+        <div class="field-coverage-matrix-panel" id="fieldCoverageMatrixPanel">
+          <div class="field-matrix-head">
+            <div>
+              <span>257 字段展开表</span>
+              <h3>按接入状态和字段组查看待补字段，先判断专题能否直接进入报告</h3>
+            </div>
+            <label>筛选
+              <select id="fieldCoverageMatrixFilter">
+                <option value="all">全部字段</option>
+                <option value="pending">待接入字段</option>
+                <option value="connected">已接入字段</option>
+                <option value="medium">中优先级待补</option>
+                <option value="paused">暂缓字段</option>
+              </select>
+            </label>
+          </div>
+          <div class="field-matrix-table-wrap">
+            <table class="field-matrix-table">
+              <thead><tr><th>字段组</th><th>字段</th><th>状态</th><th>优先级</th><th>处理建议</th></tr></thead>
+              <tbody id="fieldCoverageMatrixBody"></tbody>
+            </table>
+          </div>
+        </div>
         <div class="data-subtabs" role="tablist" aria-label="数据页子视图">
           <button class="is-active" type="button" data-data-subtab="quality">数据覆盖与质量</button>
           <button type="button" data-data-subtab="calibration">口径统一与可比性</button>
+          <button type="button" data-data-subtab="explorer">指标探索器</button>
         </div>
         <div class="calibration-risk-panel" id="calibrationRiskPanel" data-data-panel="calibration">
           <div>
@@ -601,6 +669,21 @@
             <p>净息差、非息收入、信用成本、逾期偏离和资本口径属于董事会报告中的高风险指标。系统按“可直接对比 / 可对比，需注意口径 / 仅供参考 / 数据不足，暂不使用”处理结论强度。</p>
           </div>
           <div class="calibration-risk-grid" id="calibrationRiskGrid"></div>
+        </div>
+        <div class="metric-explorer-panel" id="metricExplorerPanel" data-data-panel="explorer">
+          <div class="metric-explorer-head">
+            <div>
+              <span>Metric Explorer V1</span>
+              <h3>单指标下钻：目标值、对标组、趋势、分位和口径风险同屏复核</h3>
+              <p>选择任一核心指标，系统会同步展示目标银行当前值、对标组均值、类型均值、全样本分位、年度趋势和 L1-L4 口径标签。</p>
+            </div>
+            <label>选择指标
+              <select id="metricExplorerSelect"></select>
+            </label>
+          </div>
+          <div class="metric-explorer-content" id="metricExplorerContent">
+            <div class="empty-card">确认分析后，可选择指标查看单指标下钻。</div>
+          </div>
         </div>
         <div class="coverage-grid" data-data-panel="quality">
           <div>
@@ -764,17 +847,17 @@
               </div>
               <div class="chart-gallery">
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图1-1_LPR与四类银行生息资产收益率.png" alt="LPR与四类银行生息资产收益率" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图1-1_LPR与四类银行生息资产收益率.png" alt="LPR与四类银行生息资产收益率" />
                   <b>图1-1｜LPR 与四类银行生息资产收益率</b>
                   <span>回答“同一轮利率下行，哪类银行资产端传导更快”。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图1-2_四类银行收入结构堆叠对比.png" alt="四类银行收入结构堆叠对比" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图1-2_四类银行收入结构堆叠对比.png" alt="四类银行收入结构堆叠对比" />
                   <b>图1-2｜收入结构缓冲空间</b>
                   <span>对照利息与非息占比，看谁对生息资产收入依赖更深。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-4_手续费与核心营收组别散点.png" alt="手续费与核心营收组别散点" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图2-4_手续费与核心营收组别散点.png" alt="手续费与核心营收组别散点" />
                   <b>图2-4｜手续费资产比 × 核心营收</b>
                   <span>把目标银行放入“轻资本能力与主业修复”的坐标系。</span>
                 </div>
@@ -811,32 +894,32 @@
               </div>
               <div class="chart-gallery">
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-1_核心与非核心收入分化散点.png" alt="核心与非核心收入分化散点" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图2-1_核心与非核心收入分化散点.png" alt="核心与非核心收入分化散点" />
                   <b>图2-1｜核心与非核心收入分化</b>
                   <span>横轴核心营收、纵轴总营收，判断增长来自主业还是补位。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-2_轻资本协同两年轨迹.png" alt="轻资本协同两年轨迹" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图2-2_轻资本协同两年轨迹.png" alt="轻资本协同两年轨迹" />
                   <b>图2-2A｜轻资本协同两年轨迹</b>
                   <span>看手续费资产比与核心营收是否同步改善。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-3_轻资本协同四类银行三联趋势.png" alt="轻资本协同四类银行三联趋势" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图2-3_轻资本协同四类银行三联趋势.png" alt="轻资本协同四类银行三联趋势" />
                   <b>图2-2B｜四类银行三联趋势</b>
                   <span>对照手续费、核心营收与拨备前利润，三线同向才更像结构改善。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-5_ROA七因子四类银行类型对比.png" alt="ROA七因子四类银行类型对比" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图2-5_ROA七因子四类银行类型对比.png" alt="ROA七因子四类银行类型对比" />
                   <b>图2-5A｜总资产收益率当年支撑与侵蚀</b>
                   <span>不是只看总资产收益率终值，而是看哪些因子支撑、哪些因子侵蚀。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-5_ROA七因子五年变动对比.png" alt="ROA七因子五年变动对比" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图2-5_ROA七因子五年变动对比.png" alt="ROA七因子五年变动对比" />
                   <b>图2-5B｜总资产收益率五年变化路径</b>
                   <span>识别旧盈利机制边际效力下降与新收入机制承接不足。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图2-6_ROA七因子五区域对比.png" alt="ROA七因子五区域对比" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图2-6_ROA七因子五区域对比.png" alt="ROA七因子五区域对比" />
                   <b>图2-6｜五区域总资产收益率机制对比</b>
                   <span>同一盈利指标在不同区域背后可能是不同经营结构。</span>
                 </div>
@@ -866,6 +949,12 @@
             <div class="main-dynamic-chart" data-chart="nimGapRank"></div>
             <div class="source">数据来源：iFinD 数据，RSM 研究汇总</div>
           </div>
+          <div class="chart-card">
+            <div class="chart-title">图表 3-1B｜净息差多基准线</div>
+            <div class="chart-subtitle">同时展示目标银行、对标组、类型均值、全样本与监管参照，避免只用单一均值解释息差位置。</div>
+            <div class="main-dynamic-chart" data-chart="benchmarkLine" data-metric="nim"></div>
+            <div class="source">数据来源：iFinD 数据，RSM 研究汇总</div>
+          </div>
           <div class="insight-box" id="nimInsight" style="margin-top:20px;"><b>管理含义：</b>当缺口持续为正，说明负债成本调整慢于资产端让价，2026 年应优先把存款结构、内部资金转移定价和重点客群结算沉淀纳入资产负债修复议程。</div>
           <details class="more-panel" open>
             <summary>查看更多：息差、负债结构与贷款收益成色图表组</summary>
@@ -878,32 +967,32 @@
               </div>
               <div class="chart-gallery">
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-2_存款结构与五区域定期占比.png" alt="存款结构与五区域定期占比" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图3-2_存款结构与五区域定期占比.png" alt="存款结构与五区域定期占比" />
                   <b>图3-2｜存款结构与定期化</b>
                   <span>解释为什么负债端降本经常慢于资产端让价。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-3_息差缺口与负债成本对照.png" alt="息差缺口与负债成本对照" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图3-3_息差缺口与负债成本对照.png" alt="息差缺口与负债成本对照" />
                   <b>图3-3｜缺口 × 负债成本</b>
                   <span>区分“已降本但追不上”和“结构联动、缺口收敛”。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-4_贷款收益成色桥图.png" alt="贷款收益成色桥图" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图3-4_贷款收益成色桥图.png" alt="贷款收益成色桥图" />
                   <b>图3-4｜贷款收益成色桥图</b>
                   <span>把名义收益拆到风险调整后收益，避免高票面误判。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-5_名义与风险调整收益散点.png" alt="名义与风险调整收益散点" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图3-5_名义与风险调整收益散点.png" alt="名义与风险调整收益散点" />
                   <b>图3-5｜名义收益 × 风险调整收益</b>
                   <span>识别高票面高风险补偿，还是高质量定价能力。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-6_息差缺口与风险调整收益双面板.png" alt="息差缺口与风险调整收益双面板" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图3-6_息差缺口与风险调整收益双面板.png" alt="息差缺口与风险调整收益双面板" />
                   <b>图3-6｜息差缺口与收益成色双面板</b>
                   <span>把负债防守能力与资产真实收益放在同一框架。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图3-7_票面与成色四象限.png" alt="票面与成色四象限" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图3-7_票面与成色四象限.png" alt="票面与成色四象限" />
                   <b>图3-7｜票面与成色四象限</b>
                   <span>输出“高收益是否真的高质量”的经营判断。</span>
                 </div>
@@ -958,32 +1047,32 @@
               </div>
               <div class="chart-gallery">
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-1_零售不良率行业与区域双面板.png" alt="零售不良率行业与区域双面板" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图4-1_零售不良率行业与区域双面板.png" alt="零售不良率行业与区域双面板" />
                   <b>图4-1｜零售不良率行业与区域双面板</b>
                   <span>判断风险裂缝是否先出现在零售和下沉资产。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-2_逾期偏离度哑铃图.png" alt="逾期偏离度哑铃图" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图4-2_逾期偏离度哑铃图.png" alt="逾期偏离度哑铃图" />
                   <b>图4-2｜逾期偏离度哑铃图</b>
                   <span>看 2024-2025 偏离度变化，识别确认滞后加快样本。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-3_偏离度与不良关注走势.png" alt="偏离度与不良关注走势" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图4-3_偏离度与不良关注走势.png" alt="偏离度与不良关注走势" />
                   <b>图4-3｜偏离度与不良 + 关注率轨迹</b>
                   <span>偏离度与关注率同升，提示风险停留在结果指标之前。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-4_利润质量四象限.png" alt="利润质量四象限" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图4-4_利润质量四象限.png" alt="利润质量四象限" />
                   <b>图4-4｜利润质量四象限</b>
                   <span>把净利润、拨备前利润与覆盖率放在一起识别利润含金量。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-5_偏离度覆盖率样本散点.png" alt="偏离度覆盖率样本散点" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图4-5_偏离度覆盖率样本散点.png" alt="偏离度覆盖率样本散点" />
                   <b>图4-5｜偏离度 × 覆盖率样本散点</b>
                   <span>横看确认节奏，纵看安全垫，气泡看利润质量缺口。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-6_区域风险缓冲热力矩阵.png" alt="区域风险缓冲热力矩阵" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图4-6_区域风险缓冲热力矩阵.png" alt="区域风险缓冲热力矩阵" />
                   <b>图4-6｜区域风险缓冲热力矩阵</b>
                   <span>用于给区域风险动作排优先级。</span>
                 </div>
@@ -1031,32 +1120,32 @@
               </div>
               <div class="chart-gallery">
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-1_资本效率四象限.png" alt="资本效率四象限" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图5-1_资本效率四象限.png" alt="资本效率四象限" />
                   <b>图5-1｜资本效率四象限</b>
                   <span>判断扩表策略是否稀释资本，找出高风险消耗象限。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-2_资本余量与RWA缺口双图.png" alt="资本余量与RWA缺口双图" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图5-2_资本余量与RWA缺口双图.png" alt="资本余量与RWA缺口双图" />
                   <b>图5-2｜核心一级资本余量 × 风险加权资产缺口</b>
                   <span>看风险加权资产增速是否快于资本积累。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-3_资本压力指数全员排序.png" alt="资本压力指数全员排序" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图5-3_资本压力指数全员排序.png" alt="资本压力指数全员排序" />
                   <b>图5-3｜资本压力指数全员排序</b>
                   <span>分值越高，新增资本越可能只是维持旧比率。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-4_五区域城农商三指标对比.png" alt="五区域城农商三指标对比" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图5-4_五区域城农商三指标对比.png" alt="五区域城农商三指标对比" />
                   <b>图5-4｜五区域三指标对比</b>
                   <span>对照成本刚性、轻收入密度和主业修复。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图5-5_成本与轻收入象限气泡图.png" alt="成本与轻收入象限气泡图" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图5-5_成本与轻收入象限气泡图.png" alt="成本与轻收入象限气泡图" />
                   <b>图5-5｜成本刚性 × 轻收入密度</b>
                   <span>右下象限代表高成本、轻收入薄、主业修复偏弱。</span>
                 </div>
                 <div class="figure-thumb">
-                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="../../数据/更新版数据/选中数据/选中图片/图4-6_区域风险缓冲热力矩阵.png" alt="市净率验证占位" />
+                  <img loading="lazy" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3C/svg%3E" data-src="assets/figures/图4-6_区域风险缓冲热力矩阵.png" alt="市净率验证占位" />
                   <b>市净率验证｜估值与质量交叉矩阵</b>
                   <span>纳入市净率数据后，可判断“价值错配 / 质量折价”。</span>
                 </div>
@@ -1145,6 +1234,7 @@
   <script src="js/24-prd-v3-workbench.js?v=20260531-prd-v3"></script>
   <script src="js/25-v4-deep-dive.js?v=20260531-prd-v4"></script>
   <script src="js/26-v5-value-engine.js?v=20260531-prd-v5"></script>
+  <script src="js/27-v6-boardroom-engine.js?v=20260531-prd-v6"></script>
   <script src="js/10-bootstrap.js"></script>
 </body>
 </html>

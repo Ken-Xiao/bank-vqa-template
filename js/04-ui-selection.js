@@ -45,6 +45,55 @@ function ensureTargetInFilter() {
   }
 }
 
+function targetSelectionPreviewHtml() {
+  const meta = bankMeta(state.target) || {};
+  const row = latest(state.target) || {};
+  return `
+    <div>
+      <span>当前目标银行</span>
+      <b>${displayBankName(state.target)}</b>
+      <em>${meta.region || row.region || "区域未标注"}｜${meta.type || row.type || "银行样本"}</em>
+    </div>
+    <div class="target-preview-metrics">
+      <span>ROA <b>${fmt(row.roa)}</b></span>
+      <span>净息差 <b>${fmt(row.nim)}</b></span>
+      <span>PB <b>${row.pb == null ? "暂无" : `${Number(row.pb).toFixed(2)}x`}</b></span>
+    </div>`;
+}
+
+function peerSelectionPreviewHtml() {
+  const template = typeof peerTemplateLabel === "function" ? peerTemplateLabel(state.peerTemplate) : state.peerTemplate;
+  const rows = peerRecords();
+  return `
+    <div>
+      <span>当前对标组</span>
+      <b>${state.peers.length} 家｜${template}</b>
+      <em>${displayBankList(state.peers, "尚未选择对标银行")}</em>
+    </div>
+    <div class="peer-preview-metrics">
+      <span>ROA均值 <b>${fmt(avg(rows, "roa"))}</b></span>
+      <span>PB均值 <b>${avg(rows, "pb") == null ? "暂无" : `${avg(rows, "pb").toFixed(2)}x`}</b></span>
+    </div>`;
+}
+
+function peerCandidateRows() {
+  const selected = new Set(state.peers);
+  const recommended = new Set(peerTemplateBanks(state.peerTemplate).filter((bank) => bank !== state.target));
+  return banks
+    .filter((bank) => bank.bank !== state.target)
+    .map((bank) => ({
+      ...bank,
+      isSelected: selected.has(bank.bank),
+      isRecommended: recommended.has(bank.bank),
+      bucket: bankTypeBucket(bank.type)
+    }))
+    .sort((a, b) => {
+      const rankA = a.isSelected ? 0 : a.isRecommended ? 1 : 2;
+      const rankB = b.isSelected ? 0 : b.isRecommended ? 1 : 2;
+      return rankA - rankB || (a.region || "").localeCompare(b.region || "", "zh-CN") || a.bank.localeCompare(b.bank, "zh-CN");
+    });
+}
+
 function renderTargetDrillControls() {
   const typeTabs = document.getElementById("targetTypeTabs");
   const regionTabs = document.getElementById("targetRegionTabs");
@@ -111,9 +160,13 @@ function renderTargetDrillControls() {
 function renderChoicePanels() {
   const targetBox = document.getElementById("targetBankChecks");
   const peerBox = document.getElementById("peerBankChecks");
+  const targetPreview = document.getElementById("targetSelectionPreview");
+  const peerPreview = document.getElementById("peerSelectionPreview");
   const typeBox = document.getElementById("typeChecks");
   const maxPeers = analysisRules?.inputs?.peerBanks?.recommendedMax || 8;
   renderTargetDrillControls();
+  if (targetPreview) targetPreview.innerHTML = targetSelectionPreviewHtml();
+  if (peerPreview) peerPreview.innerHTML = peerSelectionPreviewHtml();
   if (targetBox) {
     const targetRows = filteredTargetBanks();
     targetBox.innerHTML = targetRows.length ? targetRows.map((b) => `
@@ -132,10 +185,10 @@ function renderChoicePanels() {
     }));
   }
   if (peerBox) {
-    peerBox.innerHTML = banks.filter((b) => b.bank !== state.target).map((b) => `
-      <label class="choice-item ${state.peers.includes(b.bank) ? "is-selected" : ""}">
+    peerBox.innerHTML = peerCandidateRows().map((b) => `
+      <label class="choice-item peer-choice ${b.isSelected ? "is-selected" : ""} ${b.isRecommended ? "is-recommended" : ""}">
         <input type="checkbox" name="peerBankChoice" value="${b.bank}" ${state.peers.includes(b.bank) ? "checked" : ""}>
-        <span>${displayBankName(b.bank)}<em>${b.region || "区域未标注"}｜${b.type || "银行样本"}</em></span>
+        <span>${displayBankName(b.bank)}<em>${b.isSelected ? "已选｜" : b.isRecommended ? "推荐｜" : ""}${b.region || "区域未标注"}｜${b.type || "银行样本"}</em></span>
       </label>
     `).join("");
     peerBox.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => {
@@ -300,19 +353,23 @@ function populateSelectors() {
     exportHtml.addEventListener("click", () => {
       if (typeof preflightExport === "function" && !preflightExport("HTML")) return;
       if (typeof preflightExport !== "function" && !state.confirmed) return;
-      if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出 HTML 汇报稿", { version: state.reportVersion });
+      if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出正式报告 HTML", { version: state.reportVersion });
       void downloadReportHtml();
-      if (typeof recordExportHistory === "function") recordExportHistory("HTML");
+      if (typeof recordExportHistory === "function") recordExportHistory("正式报告 HTML");
     });
   }
   if (exporter) {
     exporter.addEventListener("click", () => {
       if (typeof preflightExport === "function" && !preflightExport("PDF")) return;
       if (typeof preflightExport !== "function" && !state.confirmed) return;
-      if (typeof recordExportHistory === "function") recordExportHistory("PDF");
-      if (typeof recordAnalysisSession === "function") recordAnalysisSession("打印/导出 PDF", { version: state.reportVersion });
+      if (typeof recordExportHistory === "function") recordExportHistory("正式报告 PDF");
+      if (typeof recordAnalysisSession === "function") recordAnalysisSession("打印/导出正式报告 PDF", { version: state.reportVersion });
       if (typeof renderFormalReport === "function") renderFormalReport();
       document.body.classList.add("printing-formal-report");
+      if (typeof formalReportExportMeta === "function") {
+        const meta = formalReportExportMeta("PDF");
+        setProjectStatus(`正在打开打印窗口：建议另存为 ${meta.filename}。${meta.note}。`);
+      }
       window.print();
       window.setTimeout(() => document.body.classList.remove("printing-formal-report"), 800);
     });

@@ -1,0 +1,60 @@
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm 16mm;
+  }
+
+  body.printing-formal-report,
+  body {
+    background: #fff !important;
+  }
+
+  .formal-report {
+    color: #172331;
+  }
+
+  .formal-report > header,
+  .formal-report > section {
+    page-break-before: always;
+    break-before: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    min-height: auto;
+  }
+
+  .formal-report > header:first-child {
+    page-break-before: auto;
+    break-before: auto;
+  }
+
+  .formal-section table {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .formal-section thead {
+    display: table-header-group;
+  }
+
+  .formal-section tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .formal-section svg,
+  .formal-section .v4-chart-card,
+  .formal-section .v5-card,
+  .formal-section .v6-anomaly-grid {
+    max-height: 160mm;
+    overflow: hidden;
+  }
+
+  .formal-report::after {
+    content: "机密 | 仅供董事会讨论";
+    position: fixed;
+    right: 12mm;
+    bottom: 7mm;
+    color: #7f95aa;
+    font-size: 9px;
+  }
+}

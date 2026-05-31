@@ -372,7 +372,7 @@ function buildExecutiveTakeawaysSlide() {
   const takeaways = [
     {
       label: "结论 01",
-      claim: `${target}本轮质量差异集中在${story.weakest}`,
+      claim: typeof v6TensionOpening === "function" ? v6TensionOpening(row, peerRecords()) : `${target}本轮质量差异集中在${story.weakest}`,
       evidence: `${target}价值质量评分为 ${story.score}，结论为${diagnosis.signal}；后续章节将逐项验证差异来源。`
     },
     {
@@ -399,13 +399,17 @@ function buildExecutiveTakeawaysSlide() {
       <span>${clientFacingText(explainers[0]?.action || "优先确认低分位指标的形成机制，并设置下一季度复盘指标。", 62)}</span>
       <span>${clientFacingText(explainers[1]?.action || "将息差、核心营收、风险确认和资本消耗纳入同一张管理看板。", 62)}</span>
     </div>`;
+  const discussion = typeof boardroomDiscussionQuestions === "function" ? `
+    <div class="executive-discussion-strip">
+      ${boardroomDiscussionQuestions(row, peerRecords()).map((item) => `<div><b>${item.dimension}</b><span>${clientFacingText(item.question, 58)}</span></div>`).join("")}
+    </div>` : "";
   return rsmContentSlide(
     "executive-takeaways-slide",
     "执行摘要",
     "04",
     `${target}本轮结论应先回答质量差异和修复顺序`,
     `${story.client_question}｜基于 ${state.year} 年截面和所选对标组`,
-    `<div class="executive-takeaways-grid">${cards}</div>${actionStrip}`,
+    `<div class="executive-takeaways-grid">${cards}</div>${discussion}${actionStrip}`,
     ""
   );
 }
@@ -567,6 +571,9 @@ function buildVqaSlide(factPack, row) {
 
 function buildChartTransitionSlide(kicker, row, peerText) {
   const chapter = consultingChapterFor(kicker);
+  const facilitation = typeof boardroomDiscussionQuestions === "function"
+    ? boardroomDiscussionQuestions(row, peerRecords()).slice(0, 2).map((item) => item.question)
+    : [];
   return rsmSectionSlide(
     kicker,
     "08",
@@ -574,7 +581,7 @@ function buildChartTransitionSlide(kicker, row, peerText) {
     `${displayBankName(row?.bank || state.target)}｜${state.year} 年｜${peerText}`,
     chapter.answer,
     reportShortText(`${chapter.question} ${chapter.bridge}`, 170),
-    reportStoryNote("本章证明对象", [chapter.proof, "本章每页图表只保留一个判断、关键证据和管理含义。"])
+    reportStoryNote("讨论引导", [chapter.proof, ...facilitation])
   );
 }
 
@@ -2105,17 +2112,20 @@ function chapterStory(kicker) {
 function buildSideNav() {
   const nav = document.getElementById("sideNavContent");
   if (!nav) return;
-  const utilityLinks = [
-    ["#formalReportShell", "正式报告阅读版"],
-    ["#topicWorkbenchSection", "专题事实包"],
-    ["#dataCoverageSection", "数据覆盖与底稿"]
-  ].filter(([href]) => document.querySelector(href))
-    .map(([href, title]) => `<a href="${href}" title="${title}">${title}</a>`);
+  const mapItems = typeof analysisNavigationItems === "function" ? analysisNavigationItems() : [
+    { href: "#formalReportShell", label: "正式报告", desc: "报告阅读版", status: "可审阅" },
+    { href: "#topicWorkbenchSection", label: "专题", desc: "专题事实包", status: "可复核" },
+    { href: "#dataCoverageSection", label: "数据", desc: "数据覆盖与底稿", status: "待复核" }
+  ];
+  const utilityLinks = mapItems.filter((item) => document.querySelector(item.href))
+    .map((item) => `<a class="nav-work-card" href="${item.href}" title="${item.label}">
+      <span>${item.label}</span><b>${item.desc}</b><em>${item.status}</em>
+    </a>`);
   const formalSections = [...document.querySelectorAll("#formalReport header, #formalReport section")];
   const formalLinks = formalSections.map((section, idx) => {
     if (!section.id) section.id = `formal-section-${idx + 1}`;
     const title = section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`;
-    return `<a href="#${section.id}" title="${title}">${title}</a>`;
+    return `<a class="nav-sub" href="#${section.id}" title="${title}">${title}</a>`;
   });
   const slides = [...document.querySelectorAll("#printDeck .print-slide")];
   const deckLinks = formalLinks.length ? [] : slides.map((slide, idx) => {
@@ -2124,9 +2134,14 @@ function buildSideNav() {
       || slide.querySelector(".rsm-cover-title-panel h1")?.textContent?.trim()
       || slide.querySelector(".rsm-toc-sidebar h3")?.textContent?.trim()
       || `第 ${idx + 1} 页`;
-    return `<a href="#${slide.id}" title="${title}">${title}</a>`;
+    return `<a class="nav-sub" href="#${slide.id}" title="${title}">${title}</a>`;
   });
-  nav.innerHTML = [...utilityLinks, ...formalLinks, ...deckLinks].length ? [...utilityLinks, ...formalLinks, ...deckLinks].join("") : `<a href="#formalReportShell">报告生成后显示页导航</a>`;
+  const groups = [
+    utilityLinks.length ? `<div class="nav-group"><strong>工作区地图</strong>${utilityLinks.join("")}</div>` : "",
+    formalLinks.length ? `<div class="nav-group"><strong>正式报告目录</strong>${formalLinks.join("")}</div>` : "",
+    deckLinks.length ? `<div class="nav-group"><strong>PPT页序</strong>${deckLinks.join("")}</div>` : ""
+  ].filter(Boolean);
+  nav.innerHTML = groups.length ? groups.join("") : `<a href="#formalReportShell">报告生成后显示页导航</a>`;
   updateActiveNav();
 }
 

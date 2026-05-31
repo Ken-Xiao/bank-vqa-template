@@ -3,6 +3,101 @@
 var activeWorkspaceTab = "overview";
 var activeDataSubtab = "quality";
 
+function analysisNavigationItems() {
+  const confirmed = Boolean(state?.confirmed);
+  const quality = typeof criticalMetricCompleteness === "function" ? criticalMetricCompleteness() : null;
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  const qualityText = quality == null ? "待复核" : quality >= 0.8 ? "可信" : quality >= 0.6 ? "需脚注" : "需补数";
+  const diagnosisText = diagnosis?.score == null ? "待生成" : `${diagnosis.score}分`;
+  return [
+    { tab: "overview", href: "#clientBriefPanel", label: "总览答案", desc: "30秒判断与董事会议题", status: confirmed ? diagnosisText : "待确认" },
+    { tab: "overview", href: "#presidentSummaryPanel", label: "行长摘要", desc: "一页读懂关键发现", status: confirmed ? "已生成" : "待生成" },
+    { tab: "topics", href: "#topicWorkbenchSection", label: "专题归因", desc: "盈利、息差、风险、资本、估值", status: confirmed ? "可复核" : "待生成" },
+    { tab: "data", href: "#dataCoverageSection", label: "数据可信度", desc: "口径、完整性、字段矩阵", status: qualityText },
+    { tab: "report", href: "#formalReportShell", label: "正式报告", desc: "HTML/PDF/PPTX 同源母版", status: confirmed ? "可审阅" : "待生成" },
+    { tab: "review", href: "#boardReviewPanel", label: "交付复核", desc: "版式、语言、数据边界", status: confirmed ? "待检查" : "待生成" },
+    { tab: "governance", href: "#projectFlow", label: "项目管理", desc: "对标组、导出记录、版本留痕", status: "可管理" }
+  ];
+}
+
+function analysisStageItems() {
+  const confirmed = Boolean(state?.confirmed);
+  const quality = typeof criticalMetricCompleteness === "function" ? criticalMetricCompleteness() : null;
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  return [
+    { tab: "overview", label: "选口径", state: confirmed ? "done" : "active" },
+    { tab: "overview", label: "看结论", state: diagnosis ? "done" : confirmed ? "active" : "todo" },
+    { tab: "topics", label: "查证据", state: confirmed ? "active" : "todo" },
+    { tab: "report", label: "改报告", state: confirmed ? "active" : "todo" },
+    { tab: "review", label: "复核导出", state: quality != null && quality >= 0.8 && confirmed ? "active" : "todo" }
+  ];
+}
+
+function analysisNextAction(tab = activeWorkspaceTab) {
+  const map = {
+    overview: { tab: "topics", href: "#topicWorkbenchSection", label: "下一步：进入专题归因" },
+    topics: { tab: "data", href: "#dataCoverageSection", label: "下一步：核对数据口径" },
+    data: { tab: "report", href: "#formalReportShell", label: "下一步：审阅正式报告" },
+    report: { tab: "review", href: "#boardReviewPanel", label: "下一步：交付复核" },
+    review: { tab: "governance", href: "#projectFlow", label: "下一步：保存项目" },
+    governance: { tab: "overview", href: "#clientBriefPanel", label: "回到总览答案" }
+  };
+  return map[tab] || map.overview;
+}
+
+function renderAnalysisRoadmap() {
+  const host = document.getElementById("analysisRoadmap");
+  if (!host) return;
+  const title = document.getElementById("analysisRoadmapTitle");
+  const steps = document.getElementById("analysisRoadmapSteps");
+  const links = document.getElementById("analysisMapLinks");
+  const next = document.getElementById("analysisNextAction");
+  const row = typeof targetRecord === "function" ? targetRecord() : null;
+  if (title) {
+    const target = row?.bank || state?.target || "目标银行";
+    title.textContent = state?.confirmed
+      ? `${displayBankName(target)} ${state.year || ""}：按地图推进，不再从头盲拉`
+      : "先确认样本，再按路径推进分析";
+  }
+  if (steps) {
+    steps.innerHTML = analysisStageItems().map((item, index) => `
+      <button type="button" class="analysis-step is-${item.state}${item.tab === activeWorkspaceTab ? " is-current" : ""}" data-nav-target="${item.tab}">
+        <span>${index + 1}</span><b>${item.label}</b>
+      </button>`).join("");
+  }
+  if (links) {
+    links.innerHTML = analysisNavigationItems().map((item) => `
+      <a class="analysis-map-card${item.tab === activeWorkspaceTab ? " is-active" : ""}" href="${item.href}" data-nav-target="${item.tab}">
+        <span>${item.label}</span>
+        <b>${item.desc}</b>
+        <em>${item.status}</em>
+      </a>`).join("");
+  }
+  const action = analysisNextAction(activeWorkspaceTab);
+  if (next) {
+    next.textContent = action.label;
+    next.href = action.href;
+    next.dataset.navTarget = action.tab;
+  }
+  bindAnalysisRoadmap();
+}
+
+function bindAnalysisRoadmap() {
+  document.querySelectorAll("#analysisRoadmap [data-nav-target], .topic-next-actions [data-nav-target]").forEach((el) => {
+    if (el.dataset.navBound) return;
+    el.dataset.navBound = "1";
+    el.addEventListener("click", (event) => {
+      const tab = el.dataset.navTarget;
+      if (tab) setWorkspaceTab(tab);
+      const href = el.getAttribute("href");
+      if (href?.startsWith("#")) {
+        event.preventDefault();
+        setTimeout(() => document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" }), 30);
+      }
+    });
+  });
+}
+
 function setWorkspaceTab(tab = activeWorkspaceTab) {
   activeWorkspaceTab = tab;
   document.body.dataset.activeTab = tab;
@@ -14,6 +109,8 @@ function setWorkspaceTab(tab = activeWorkspaceTab) {
   });
   if (tab === "report" && typeof showDeckPage === "function") showDeckPage();
   if (tab === "review" && typeof renderBoardReview === "function") renderBoardReview();
+  if (typeof renderAnalysisRoadmap === "function") renderAnalysisRoadmap();
+  if (typeof updateActiveNav === "function") updateActiveNav();
 }
 
 function commandCenterDiagnosis() {
@@ -353,7 +450,6 @@ function updateBenchmarkWatchlist() {
 }
 
 function calibrationRiskItems() {
-  const selectedRows = selectedBankRecords();
   const riskDefs = [
     { key: "nim", label: "净息差", risk: "日均余额与期初期末均值可能不可比", high: true },
     { key: "nonInterestShare", label: "非息收入占比", risk: "部分银行可能含汇兑损益和公允价值变动", high: true },
@@ -363,17 +459,16 @@ function calibrationRiskItems() {
     { key: "pb", label: "市净率", risk: "估值指标需与经营质量联读，不能单独定义低估", high: false }
   ];
   return riskDefs.map((item) => {
-    const rate = completeness(selectedRows, item.key);
-    const level = rate == null || rate < 0.5 ? "red" : rate < 0.75 ? "orange" : item.high || rate < 0.9 ? "yellow" : "green";
-    const riskLabel = level === "green" ? "可直接对比" : level === "yellow" ? "可对比，需注意口径" : level === "orange" ? "仅供参考" : "数据不足，暂不使用";
-    const note = rate == null || rate < 0.55
-      ? `${item.risk}；当前样本覆盖不足，不进入主报告强结论。`
-      : level === "orange"
-        ? `${item.risk}；建议仅进入附录或辅助说明。`
-        : level === "yellow"
-        ? `${item.risk}；可进入主报告，但需要脚注说明。`
-        : "当前样本覆盖较好，可作为主报告证据。";
-    return { ...item, rate, level, riskLabel, note };
+    const risk = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(item.key) : null;
+    return {
+      ...item,
+      rate: risk?.selectedRate,
+      level: risk?.tone || "yellow",
+      riskLevel: risk?.level || "L2",
+      riskLabel: risk?.label || "L2 可比，需脚注",
+      note: `${item.risk}；${risk?.note || "可进入主报告，但需要脚注说明。"}`,
+      decisionUse: risk?.decisionUse || "主报告+脚注"
+    };
   });
 }
 
@@ -383,9 +478,9 @@ function updateCalibrationRiskPanel() {
   const items = state?.confirmed ? calibrationRiskItems() : [];
   host.innerHTML = items.length ? items.map((item) => `
     <div class="calibration-risk-card tone-${item.level}">
-      <span>${item.riskLabel}</span>
+      <span>${item.riskLevel}｜${item.riskLabel}</span>
       <b>${item.label}</b>
-      <em>${item.rate == null ? "覆盖暂无" : `覆盖 ${(item.rate * 100).toFixed(0)}%`}</em>
+      <em>${item.rate == null ? "覆盖暂无" : `覆盖 ${(item.rate * 100).toFixed(0)}%`}｜${item.decisionUse}</em>
       <p>${item.note}</p>
     </div>`).join("") : "<div class=\"empty-card\">确认分析后展示高风险指标可比性标签。</div>";
 }
@@ -477,6 +572,23 @@ function bindClientActionBar() {
   });
 }
 
+function setOverviewDepth(expanded = document.body.classList.contains("overview-expanded")) {
+  document.body.classList.toggle("overview-expanded", expanded);
+  const toggle = document.getElementById("overviewDepthToggle");
+  if (toggle) {
+    toggle.setAttribute("aria-pressed", expanded ? "true" : "false");
+    toggle.textContent = expanded ? "收起深层模块" : "展开深层模块";
+  }
+}
+
+function bindOverviewDepthToggle() {
+  const toggle = document.getElementById("overviewDepthToggle");
+  if (!toggle || toggle.dataset.bound) return;
+  toggle.dataset.bound = "1";
+  toggle.addEventListener("click", () => setOverviewDepth(!document.body.classList.contains("overview-expanded")));
+  setOverviewDepth(false);
+}
+
 function initProductWorkspace() {
   document.querySelectorAll("#workspaceTabs [data-tab-target]").forEach((button) => {
     button.addEventListener("click", () => setWorkspaceTab(button.dataset.tabTarget));
@@ -489,6 +601,7 @@ function initProductWorkspace() {
     document.getElementById("formalReportShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   bindClientActionBar();
+  bindOverviewDepthToggle();
   setWorkspaceTab("overview");
   setDataSubtab("quality");
   updateClientCommandCenter();
@@ -500,6 +613,7 @@ function initProductWorkspace() {
       updateClientCommandCenter();
       updateBenchmarkV1();
       setWorkspaceTab(activeWorkspaceTab);
+      renderAnalysisRoadmap();
       return result;
     };
     renderAll.__productWorkspaceWrapped = true;

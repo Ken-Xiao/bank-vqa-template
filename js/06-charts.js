@@ -387,6 +387,64 @@ function multiMetricFocusChart(metrics, titleText) {
   return svg(width, height, `<rect width="${width}" height="${height}" fill="#fff"/>${legend}<line x1="${pad.l}" x2="${width - pad.r}" y1="${zero}" y2="${zero}" stroke="#9aa8b4" stroke-width="2"/>${bars}<text x="${width / 2}" y="${height - 8}" text-anchor="middle" fill="#333" font-size="14" font-weight="700">${titleText}</text>`);
 }
 
+function benchmarkSampleSummary(key = "nim", peers = peerRecords()) {
+  const numeric = (row) => row?.[key] != null && Number.isFinite(Number(row[key]));
+  const typeRows = currentRecords().filter((row) => state.types.includes(row.type));
+  return {
+    peerN: peers.filter(numeric).length,
+    typeN: typeRows.filter(numeric).length,
+    allN: currentRecords().filter(numeric).length
+  };
+}
+
+function benchmarkLineChart(key = "nim", opts = {}) {
+  const width = 920, height = 260, pad = { l: 70, r: 70, t: 44, b: 74 };
+  const row = targetRecord();
+  const peers = peerRecords();
+  const targetValue = row?.[key];
+  const lines = typeof benchmarkLinesForMetric === "function" ? benchmarkLinesForMetric(key, peers) : [];
+  const values = [targetValue, ...lines.map((line) => line.value)].filter((value) => Number.isFinite(Number(value)));
+  if (!row || !Number.isFinite(Number(targetValue)) || values.length < 2) return emptySvg("暂无足够多基准线数据");
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const sx = (value) => pad.l + (Number(value) - min) / span * (width - pad.l - pad.r);
+  const colors = { peer: "#F59E0B", peerMedian: "#f97316", type: "#061B3A", all: "#64748b", regulatory: "#ef4444" };
+  const axisTicks = Array.from({ length: 5 }, (_, index) => {
+    const value = min + span * index / 4;
+    const x = sx(value);
+    return `<line x1="${x}" x2="${x}" y1="${pad.t + 16}" y2="${height - pad.b + 8}" stroke="#edf2f7"/><text x="${x}" y="${height - 36}" text-anchor="middle" fill="#64748b" font-size="11">${metricDisplayValue(key, value)}</text>`;
+  }).join("");
+  const lineMarks = lines.slice(0, 8).map((line, index) => {
+    const x = sx(line.value);
+    const color = colors[line.kind] || "#64748b";
+    const y = pad.t + 24 + (index % 2) * 42;
+    return `<g class="benchmark-line-mark kind-${line.kind}">
+      <line x1="${x}" x2="${x}" y1="${pad.t + 8}" y2="${height - pad.b}" stroke="${color}" stroke-width="2" stroke-dasharray="${line.kind === "regulatory" ? "0" : "5 4"}"/>
+      <circle cx="${x}" cy="${y}" r="5" fill="${color}"/>
+      <text x="${x + 8}" y="${y - 4}" fill="${color}" font-size="12" font-weight="800">${line.label}</text>
+      <text x="${x + 8}" y="${y + 12}" fill="#334155" font-size="11" font-weight="700">${metricDisplayValue(key, line.value)}</text>
+    </g>`;
+  }).join("");
+  const targetX = sx(targetValue);
+  const sample = benchmarkSampleSummary(key, peers);
+  const title = opts.title || `${displayBankName(row.bank)} ${fieldName(key)}多基准线`;
+  return svg(width, height, `
+    <rect width="${width}" height="${height}" fill="#fff"/>
+    <g class="benchmark-line-chart">
+      <text x="${pad.l}" y="24" fill="#061B3A" font-size="15" font-weight="900">${title}</text>
+      <text x="${width - pad.r}" y="24" text-anchor="end" fill="#64748b" font-size="12" font-weight="800">样本N：对标组N=${sample.peerN}｜类型N=${sample.typeN}｜全样本N=${sample.allN}</text>
+      ${axisTicks}
+      <line x1="${pad.l}" x2="${width - pad.r}" y1="${height - pad.b}" y2="${height - pad.b}" stroke="#94a3b8" stroke-width="2"/>
+      ${lineMarks}
+      <g class="benchmark-target">
+        <line x1="${targetX}" x2="${targetX}" y1="${pad.t}" y2="${height - pad.b + 14}" stroke="#0099D8" stroke-width="4"/>
+        <rect x="${targetX - 46}" y="${height - pad.b + 17}" width="92" height="24" fill="#0099D8"/>
+        <text x="${targetX}" y="${height - pad.b + 33}" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">目标银行 ${metricDisplayValue(key, targetValue)}</text>
+      </g>
+    </g>`);
+}
+
 function emptySvg(text) {
   return svg(920, 420, `<rect width="920" height="420" fill="#f8fbfd"/><text x="460" y="210" text-anchor="middle" fill="#718096" font-size="18" font-weight="700">${text}</text>`);
 }
@@ -430,6 +488,7 @@ function chartForTitle(title) {
     ["市净率验证", () => axisChart(rows, "pb", "roa")]
     ,["RWA增速", () => multiMetricFocusChart(["estimatedRwaGrowth", "netProfitGrowth", "assetGrowth"], "RWA增速、利润增速与资产增速")]
     ,["投资资产", () => multiMetricFocusChart(["bondAssetRatio", "fundAssetRatio", "trustWmAssetRatio"], "投资资产波动暴露")]
+    ,["多基准线", () => benchmarkLineChart("nim")]
   ];
   const hit = registry.find(([key]) => title.includes(key));
   if (hit) return hit[1]();
@@ -466,6 +525,7 @@ function chartForTitle(title) {
   if (title.includes("市净率")) return axisChart(rows, "pb", "roa");
   if (title.includes("RWA增速")) return multiMetricFocusChart(["estimatedRwaGrowth", "netProfitGrowth", "assetGrowth"], "RWA增速、利润增速与资产增速");
   if (title.includes("投资资产")) return multiMetricFocusChart(["bondAssetRatio", "fundAssetRatio", "trustWmAssetRatio"], "投资资产波动暴露");
+  if (title.includes("多基准线")) return benchmarkLineChart("nim");
   return axisChart(rows, "coreRevenueGrowth", "roa");
 }
 
@@ -501,8 +561,20 @@ function renderMainCharts() {
       el.innerHTML = axisChart(rows, "rwaDensity", "cet1Buffer");
     } else if (kind === "pbQuality") {
       el.innerHTML = axisChart(rows, "pb", "roa");
+    } else if (kind === "benchmarkLine") {
+      el.innerHTML = benchmarkLineChart(el.dataset.metric || "nim");
     }
   });
+}
+
+function chartAnnotationText(title, row = targetRecord()) {
+  const target = displayBankName(row?.bank || state.target);
+  if (/净利润|盈利|ROA|ROE|利润/.test(title)) return `${target}本图先看利润结果，再回到核心营收、费用和拨备节奏验证，避免把净利润变化直接等同于主业修复。`;
+  if (/息差|NIM|负债|存款|贷款|利差/.test(title)) return `${target}本图需要把资产收益率和负债成本分开读，避免只看净息差终值。`;
+  if (/风险|不良|拨备|逾期|零售/.test(title)) return `${target}本图要同时观察风险暴露和风险缓冲，避免单一不良率误判。`;
+  if (/PB|估值|市净率|资本市场/.test(title)) return `${target}本图把估值差异回收到经营质量、资本效率和风险确认，判断低估值是价值错配还是质量折价。`;
+  if (/资本|RWA|核心一级/.test(title)) return `${target}本图要同时看资本余量和风险加权资产消耗，判断扩表是否仍在创造价值。`;
+  return `${target}本图结论以选定目标银行、对标组和类型均值为边界，后续应回到数据口径复核。`;
 }
 
 function narrativeFor(title) {

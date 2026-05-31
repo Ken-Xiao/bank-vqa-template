@@ -108,7 +108,7 @@ document.querySelectorAll(".figure-thumb").forEach((card) => {
 });
 
 async function initApp() {
-  await Promise.all([loadAnalysisRules(), loadMetricDictionary(), loadLanguageDiscipline(), loadNarrativePrompts(), loadAiProviderConfig()]);
+  await Promise.all([loadAnalysisRules(), loadMetricDictionary(), loadFieldCoverageMatrix(), loadLanguageDiscipline(), loadNarrativePrompts(), loadAiProviderConfig()]);
   setupMetricModal();
   populateSelectors();
   initProjectsModule();

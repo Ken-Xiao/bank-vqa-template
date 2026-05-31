@@ -370,6 +370,7 @@ function updateSectionText(row, peers) {
   setHtml("actionTitle", `${target}后续行动优先级：${actions.join("、")}。`);
   setHtml("actionNote", `该优先级由 VQA 总分 ${diagnosis.score}、短板维度“${diagnosis.labels[diagnosis.weakest]}”、${peerText} 对标组均值和${typeText} 类型均值共同生成。当前规则结论：${warning.message}`);
   if (typeof renderV5ValuePanel === "function") renderV5ValuePanel(row);
+  if (typeof renderV6BoardroomLayer === "function") renderV6BoardroomLayer(row);
   updateRecommendations(diagnosis, row, peers);
   updateEnhancedInsights(row, peers);
   updateStoryText(row, peers, actions);
@@ -529,6 +530,7 @@ function topicFactPackRows(topicId = state.activeTopic) {
     const typeAvg = avg(typeRows, key);
     const yoy = row ? yoyValue(row.bank, key) : null;
     const fiveYear = row ? fiveYearValue(row.bank, key) : null;
+    const calibration = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(key, [row, ...peers].filter(Boolean)) : null;
     return {
       专题: topic.title,
       指标代码: key,
@@ -541,7 +543,11 @@ function topicFactPackRows(topicId = state.activeTopic) {
       一年变化: yoy == null ? "暂无" : metricDisplayValue(key, yoy),
       五年变化: fiveYear == null ? "暂无" : metricDisplayValue(key, fiveYear),
       分位: rankPercentile(value, allRows, key, metricDirection(key)),
-      完整性: completeness([row, ...peers].filter(Boolean), key) == null ? "暂无" : fmt(completeness([row, ...peers].filter(Boolean), key) * 100, 1)
+      完整性: completeness([row, ...peers].filter(Boolean), key) == null ? "暂无" : fmt(completeness([row, ...peers].filter(Boolean), key) * 100, 1),
+      口径风险等级: calibration?.level || "L2",
+      口径风险标签: calibration?.label || "L2 可比，需脚注",
+      报告使用建议: calibration?.decisionUse || "主报告+脚注",
+      口径脚注: calibration?.note || "建议保留指标口径、样本覆盖和数据来源说明。"
     };
   });
 }
@@ -646,6 +652,122 @@ function topicCitationTags(facts) {
   return facts.map((fact) => `<span class="topic-citation-tag">${fact.指标名称} ${fact.目标值}</span>`).join("");
 }
 
+function chartAnnotationBlock(title) {
+  const text = typeof chartAnnotationText === "function"
+    ? chartAnnotationText(title, targetRecord())
+    : `${displayBankName(state.target)}本图需要结合目标银行、对标组和类型均值共同阅读。`;
+  return `
+    <div class="chart-annotation">
+      <b>读图结论</b>
+      <p>${text}</p>
+    </div>`;
+}
+
+function topicMechanismModuleKeys(topicId = state.activeTopic) {
+  const map = {
+    profit: ["dupont", "profit"],
+    nim: ["nim", "benchmark"],
+    risk: ["benchmark"],
+    capital: ["dupont", "benchmark"],
+    valuation: ["dupont", "benchmark"],
+    capitalMarket: ["dupont", "benchmark"],
+    retailRisk: ["benchmark"],
+    depositLoanDeepDive: ["nim", "benchmark"]
+  };
+  return map[topicId] || ["benchmark"];
+}
+
+function topicMechanismRows(topicId = state.activeTopic) {
+  const pack = typeof buildMechanismFactPackObject === "function" ? buildMechanismFactPackObject() : null;
+  if (!pack?.modules) return [];
+  const topic = topicDefinitions().find((item) => item.id === topicId);
+  const topicMetricSet = new Set(topic?.metrics || []);
+  const moduleKeys = topicMechanismModuleKeys(topicId);
+  const rows = moduleKeys.flatMap((key) => pack.modules[key]?.rows || []);
+  const exactRows = rows.filter((row) => topicMetricSet.has(row.指标代码));
+  const selected = exactRows.length >= 3 ? exactRows : rows;
+  return selected.slice(0, 8);
+}
+
+function topicMechanismPanelHtml(topicId = state.activeTopic) {
+  const rows = topicMechanismRows(topicId);
+  const modules = [...new Set(rows.map((row) => row.分析模块).filter(Boolean))];
+  return `
+    <div class="topic-mechanism-panel">
+      <div class="topic-mechanism-head">
+        <b>机制归因</b>
+        <span>${modules.join(" / ") || "待补归因模块"}</span>
+      </div>
+      <div class="topic-mechanism-list">${rows.map((row) => `
+        <div class="topic-mechanism-row">
+          <span>${row.分析模块}</span>
+          <b>${metricLink(row.指标代码, row.指标名称 || row.指标代码)}</b>
+          <em>目标 ${row.目标值 || "暂无"}｜基准 ${row.对标值 || "暂无"}</em>
+          <p>${row.判断 || row.模块结论 || "用于解释本专题差距来源。"}</p>
+          <small>口径风险 ${row.口径风险等级 || "L2"}｜${row.报告使用建议 || "主报告+脚注"}</small>
+        </div>
+      `).join("") || `<p class="topic-mechanism-empty">机制归因数据不足，暂不形成专题侧栏。</p>`}</div>
+    </div>`;
+}
+
+function topicProfitWaterfallPanelHtml() {
+  const row = targetRecord();
+  const pack = typeof netProfitAttribution === "function" ? netProfitAttribution(row) : null;
+  const items = (pack?.items || []).slice(0, 6);
+  if (!items.length) return "";
+  const max = Math.max(...items.map((item) => Math.abs(Number(item.value) || 0)), 1);
+  const lead = items
+    .slice()
+    .sort((a, b) => Math.abs(Number(b.value) || 0) - Math.abs(Number(a.value) || 0))[0];
+  const leadText = lead
+    ? `${lead.label}是本轮利润变化中最需要解释的驱动，贡献为${metricDisplayValue("netProfit", lead.value)}。`
+    : "当前利润变化仍需补充驱动项。";
+  return `
+    <div class="topic-mechanism-chart topic-profit-waterfall">
+      <div class="topic-chart-head">
+        <span>机制图表</span>
+        <b>净利润归因瀑布</b>
+        <em>正贡献和拖累项分开看，避免只解释净利润结果。</em>
+      </div>
+      <div class="topic-waterfall-bars">${items.map((item) => {
+        const value = Number(item.value) || 0;
+        const tone = value > 0 ? "positive" : value < 0 ? "negative" : "neutral";
+        const width = Math.max(8, Math.min(100, Math.abs(value) / max * 100));
+        return `
+          <div class="topic-waterfall-row tone-${tone}">
+            <span>${item.label}</span>
+            <i><em style="width:${width}%"></em></i>
+            <b>${metricDisplayValue("netProfit", value)}</b>
+          </div>`;
+      }).join("")}</div>
+      ${chartAnnotationBlock("净利润归因瀑布")}
+      <p><b>经营含义：</b>${leadText}后续专题应继续复核核心营收、费用刚性与拨备节奏是否同向支撑。</p>
+    </div>`;
+}
+
+function topicBenchmarkLinePanelHtml(key = "nim") {
+  if (typeof benchmarkLineChart !== "function") return "";
+  const sample = typeof benchmarkSampleSummary === "function" ? benchmarkSampleSummary(key, peerRecords()) : null;
+  return `
+    <div class="topic-mechanism-chart topic-benchmark-line">
+      <div class="topic-chart-head">
+        <span>机制图表</span>
+        <b>${fieldName(key)}多基准线</b>
+        <em>同一指标同时看对标组、类型均值、全样本和监管线，减少单一均值误判。</em>
+      </div>
+      <div class="topic-benchmark-svg">${benchmarkLineChart(key, { title: `${displayBankName(state.target)} ${fieldName(key)}多基准线` })}</div>
+      ${chartAnnotationBlock(`${fieldName(key)}多基准线`)}
+      ${sample ? `<p><b>样本N：</b>对标组N=${sample.peerN}｜类型N=${sample.typeN}｜全样本N=${sample.allN}</p>` : ""}
+    </div>`;
+}
+
+function topicMechanismChartPanelHtml(topicId = state.activeTopic) {
+  if (topicId === "profit") return topicProfitWaterfallPanelHtml();
+  if (["nim", "depositLoanDeepDive"].includes(topicId)) return topicBenchmarkLinePanelHtml("nim");
+  if (["capital", "valuation", "capitalMarket"].includes(topicId)) return topicBenchmarkLinePanelHtml("pb");
+  return "";
+}
+
 function topicAiDraft(topic, facts) {
   const row = targetRecord();
   if (!row) return {
@@ -720,7 +842,9 @@ function renderTopicWorkbench() {
         <b>一句话结论</b>
         <p class="topic-headline">${judgement.headline}</p>
       </div>
+      ${topicMechanismPanelHtml(topic.id)}
     </div>
+    ${topicMechanismChartPanelHtml(topic.id)}
     <table class="topic-fact-table">
       <thead><tr><th>指标</th><th>目标银行</th><th>对标均值</th><th>类型均值</th><th>变化与分位</th></tr></thead>
       <tbody>${facts.map((fact) => `
@@ -753,6 +877,10 @@ function renderTopicWorkbench() {
       </div>
     </div>
     <ul class="topic-action-list">${topic.actions.map((action) => `<li>${action}</li>`).join("")}</ul>
+    <div class="topic-next-actions">
+      <a href="#dataCoverageSection" data-nav-target="data"><span>下一步</span><b>查看数据口径</b><em>确认本专题指标是否足以进入主报告</em></a>
+      <a href="#formalReportShell" data-nav-target="report"><span>交付</span><b>审阅正式报告</b><em>检查专题结论在报告中的表达和页序</em></a>
+    </div>
   `;
   bindMetricLinks(host);
   if (typeof bindTopicNarrativeEditors === "function") bindTopicNarrativeEditors(host, topic.id);
@@ -777,7 +905,8 @@ function topicWorkbenchExportRows() {
       { 专题: topic.title, 类型: "资本市场版解读", 内容: marketText },
       { 专题: topic.title, 类型: "管理层行动版", 内容: actionText },
       { 专题: topic.title, 类型: "引用指标", 内容: citations.map((fact) => `${fact.指标名称}${fact.目标值}`).join("；") },
-      ...facts.map((fact) => ({ 专题: topic.title, 类型: "指标事实", ...fact }))
+      ...facts.map((fact) => ({ 专题: topic.title, 类型: "指标事实", ...fact })),
+      ...topicMechanismRows(topic.id).map((row) => ({ 专题: topic.title, 类型: "机制归因", ...row }))
     ];
   });
 }

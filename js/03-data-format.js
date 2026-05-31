@@ -10,6 +10,14 @@ function fmtBp(value) {
   return `${sign}${Number(value).toFixed(1)} 基点`;
 }
 
+function fmtMoney(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "暂无";
+  const sign = Number(value) < 0 ? "-" : "";
+  const abs = Math.abs(Number(value));
+  if (abs >= 10000) return `${sign}${(abs / 10000).toFixed(1)}亿元`;
+  return `${sign}${abs.toFixed(0)}万元`;
+}
+
 function ratioText(num, den, digits = 2) {
   if (num === null || num === undefined || den === null || den === undefined || den === 0 || Number.isNaN(num) || Number.isNaN(den)) return "暂无";
   return fmt((Number(num) / Number(den)) * 100, digits);
@@ -133,6 +141,14 @@ function metricTheme(key) {
   return analysisRules?.metrics?.[key]?.theme || "基础指标";
 }
 
+function htmlSafe(text = "") {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function fieldName(key) {
   if (metricLabel[key]) return metricLabel[key];
   return String(key)
@@ -151,6 +167,362 @@ function fieldName(key) {
     .replace(/\bratio\b/i, "比率")
     .replace(/\bshare\b/i, "占比")
     .trim() || key;
+}
+
+function metricExplorerTypeRows() {
+  return currentRecords().filter((row) => !state.types.length || state.types.includes(row.type));
+}
+
+function metricHighCalibrationRisk(key) {
+  const highRisk = new Set([
+    "nim",
+    "nimGapBp",
+    "nimGapPoint",
+    "nonInterestShare",
+    "feeAssetRatio",
+    "creditCostRatio",
+    "overdueNplDeviation",
+    "hiddenNplExposure",
+    "personalLoanNpl",
+    "retailRiskMax",
+    "rwaDensity",
+    "cet1Buffer",
+    "pb",
+    "theoreticalPb",
+    "pbDiscount"
+  ]);
+  return highRisk.has(key) || !!metricDictionaryEntry(key)?.is_critical || !!analysisRules?.metrics?.[key]?.calibrationHighRisk;
+}
+
+function metricCalibrationRisk(key, rows = selectedBankRecords()) {
+  const hasMetric = records.some((row) => row[key] !== undefined) || !!metricDictionaryEntry(key) || !!analysisRules?.metrics?.[key];
+  const selectedRate = hasMetric ? completeness(rows, key) : null;
+  const allRate = hasMetric ? completeness(records, key) : null;
+  const highRisk = metricHighCalibrationRisk(key);
+  let level = "L1";
+  if (!hasMetric || selectedRate == null || selectedRate < 0.5) level = "L4";
+  else if (selectedRate < 0.75) level = "L3";
+  else if (selectedRate < 0.9 || highRisk) level = "L2";
+  const meta = {
+    L1: {
+      label: "L1 可直接对比",
+      tone: "green",
+      decisionUse: "主报告",
+      note: "当前样本覆盖较好，且口径风险未触发高风险标签，可作为主报告证据。"
+    },
+    L2: {
+      label: "L2 可比，需脚注",
+      tone: "yellow",
+      decisionUse: "主报告+脚注",
+      note: "指标可以进入主报告，但需要同步披露口径边界、样本覆盖或业务含义限制。"
+    },
+    L3: {
+      label: "L3 仅供参考",
+      tone: "orange",
+      decisionUse: "附录",
+      note: "选定样本覆盖不足以支撑强结论，建议放入附录或作为辅助证据。"
+    },
+    L4: {
+      label: "L4 数据不足",
+      tone: "red",
+      decisionUse: "待补",
+      note: "当前指标缺少足够可用数据或字典映射，暂不进入正式报告结论。"
+    }
+  }[level];
+  return {
+    key,
+    level,
+    ...meta,
+    selectedRate,
+    allRate,
+    highRisk,
+    coverageText: selectedRate == null ? "覆盖暂无" : `选定样本覆盖 ${(selectedRate * 100).toFixed(0)}%`,
+    allCoverageText: allRate == null ? "全样本覆盖暂无" : `全样本覆盖 ${(allRate * 100).toFixed(0)}%`
+  };
+}
+
+function metricExplorerTrend(key) {
+  const years = [...new Set(records.map((row) => row.year))].sort((a, b) => a - b);
+  return years.map((year) => {
+    const target = latest(state.target, year);
+    const peers = state.peers.map((bank) => latest(bank, year)).filter(Boolean);
+    const typeRows = records.filter((row) => row.year === year && (!state.types.length || state.types.includes(row.type)));
+    return {
+      year,
+      target: target?.[key],
+      peer: avg(peers, key),
+      type: avg(typeRows, key)
+    };
+  }).filter((item) => item.target != null || item.peer != null || item.type != null);
+}
+
+function metricExplorerDeltaText(key, targetValue, peerValue) {
+  if (targetValue == null || peerValue == null || Number.isNaN(targetValue) || Number.isNaN(peerValue)) return "差距暂无";
+  const diff = targetValue - peerValue;
+  const better = (analysisRules?.metrics?.[key]?.direction || metricDictionaryEntry(key)?.direction) === "lowerBetter" ? diff <= 0 : diff >= 0;
+  return `${better ? "优于或不弱于对标" : "弱于对标"} ${metricDisplayValue(key, Math.abs(diff))}`;
+}
+
+function metricExplorerSnapshot(key = state.dataMetric) {
+  const row = targetRecord();
+  const peers = peerRecords();
+  const typeRows = metricExplorerTypeRows();
+  const targetValue = row?.[key];
+  const peerValue = avg(peers, key);
+  const typeValue = avg(typeRows, key);
+  const trend = metricExplorerTrend(key);
+  const risk = metricCalibrationRisk(key);
+  return {
+    metricKey: key,
+    label: fieldName(key),
+    theme: metricTheme(key),
+    unit: metricDictionaryEntry(key)?.unit || analysisRules?.metrics?.[key]?.unit || "按指标口径",
+    target: { value: targetValue, valueText: metricDisplayValue(key, targetValue) },
+    peer: { value: peerValue, valueText: metricDisplayValue(key, peerValue) },
+    type: { value: typeValue, valueText: metricDisplayValue(key, typeValue) },
+    percentileText: rankPercentile(targetValue, currentRecords(), key, (analysisRules?.metrics?.[key]?.direction || metricDictionaryEntry(key)?.direction) !== "lowerBetter"),
+    gapText: metricExplorerDeltaText(key, targetValue, peerValue),
+    trend,
+    risk,
+    decisionUse: risk.decisionUse,
+    meaning: metricBusinessMeaning(key),
+    sourceField: metricDictionaryEntry(key)?.source_field || "暂无原始字段映射",
+    formula: metricDictionaryEntry(key)?.formula || analysisRules?.metrics?.[key]?.formula || "由页面规则库维护，详见 analysis_rules.json"
+  };
+}
+
+function metricExplorerTrendTable(snapshot) {
+  const rows = snapshot.trend.slice(-6);
+  return `<table class="metric-explorer-trend-table">
+    <thead><tr><th>年份</th><th>目标银行</th><th>对标组</th><th>类型均值</th></tr></thead>
+    <tbody>${rows.map((item) => `<tr>
+      <td>${item.year}</td>
+      <td>${metricDisplayValue(snapshot.metricKey, item.target)}</td>
+      <td>${metricDisplayValue(snapshot.metricKey, item.peer)}</td>
+      <td>${metricDisplayValue(snapshot.metricKey, item.type)}</td>
+    </tr>`).join("") || `<tr><td colspan="4">暂无年度趋势。</td></tr>`}</tbody>
+  </table>`;
+}
+
+function metricExplorerHtml(snapshot) {
+  return `
+    <div class="metric-explorer-hero tone-${snapshot.risk.tone}">
+      <div>
+        <span>${htmlSafe(snapshot.theme)}｜${htmlSafe(snapshot.unit)}</span>
+        <h3>${htmlSafe(displayBankName(state.target))}${htmlSafe(snapshot.label)}：${htmlSafe(snapshot.target.valueText)}</h3>
+        <p>${htmlSafe(snapshot.gapText)}；全样本位置${htmlSafe(snapshot.percentileText)}。报告使用建议：${htmlSafe(snapshot.decisionUse)}。</p>
+      </div>
+      <div class="metric-risk-badge">
+        <b>${htmlSafe(snapshot.risk.level)}</b>
+        <span>${htmlSafe(snapshot.risk.label)}</span>
+        <em>${htmlSafe(snapshot.risk.coverageText)}</em>
+      </div>
+    </div>
+    <div class="metric-explorer-kpis">
+      <div><span>目标银行</span><b>${htmlSafe(snapshot.target.valueText)}</b><em>${htmlSafe(displayBankName(state.target))}</em></div>
+      <div><span>对标均值</span><b>${htmlSafe(snapshot.peer.valueText)}</b><em>${htmlSafe(displayBankList(state.peers, "对标组"))}</em></div>
+      <div><span>类型均值</span><b>${htmlSafe(snapshot.type.valueText)}</b><em>${htmlSafe(state.types.join("、") || "全部类型")}</em></div>
+      <div><span>分位与用途</span><b>${htmlSafe(snapshot.percentileText)}</b><em>${htmlSafe(snapshot.decisionUse)}</em></div>
+    </div>
+    <div class="metric-explorer-grid">
+      <div class="metric-explorer-card">
+        <span>年度趋势</span>
+        ${metricExplorerTrendTable(snapshot)}
+      </div>
+      <div class="metric-explorer-card">
+        <span>口径说明</span>
+        <p>${htmlSafe(snapshot.risk.note)}</p>
+        <dl>
+          <dt>来源字段</dt><dd>${htmlSafe(snapshot.sourceField)}</dd>
+          <dt>计算公式</dt><dd>${htmlSafe(snapshot.formula)}</dd>
+          <dt>业务含义</dt><dd>${htmlSafe(snapshot.meaning)}</dd>
+        </dl>
+      </div>
+    </div>`;
+}
+
+function fieldCoverageHeatmapRows(keys = metricKeysForCoverage()) {
+  const fieldRows = fieldCoverageMatrixRows();
+  if (fieldRows.length) return fieldRows;
+  return dataCategories(keys).map((category) => {
+    const rates = category.keys.map((key) => completeness(selectedBankRecords(), key)).filter((rate) => rate != null);
+    const rate = rates.length ? rates.reduce((sum, item) => sum + item, 0) / rates.length : null;
+    const level = rate == null || rate < 0.5 ? "L4" : rate < 0.75 ? "L3" : rate < 0.9 ? "L2" : "L1";
+    const tone = level === "L1" ? "green" : level === "L2" ? "yellow" : level === "L3" ? "orange" : "red";
+    return {
+      theme: category.theme,
+      count: category.keys.length,
+      rate,
+      rateText: rate == null ? "暂无" : `${(rate * 100).toFixed(0)}%`,
+      level,
+      tone
+    };
+  });
+}
+
+function fieldCoverageStatusMeta(status = "") {
+  const text = String(status || "");
+  if (text.includes("已接入")) return { connected: true, level: "L1", tone: "green" };
+  if (text.includes("派生")) return { connected: true, level: "L2", tone: "yellow" };
+  return { connected: false, level: "L4", tone: "red" };
+}
+
+function fieldCoveragePriorityRank(priority = "") {
+  const text = String(priority || "");
+  if (text.includes("高")) return 3;
+  if (text.includes("中")) return 2;
+  if (text.includes("低")) return 1;
+  return 0;
+}
+
+function fieldCoverageMatrixRows(matrix = fieldCoverageMatrix) {
+  if (!Array.isArray(matrix) || !matrix.length) return [];
+  const groups = matrix.reduce((acc, item) => {
+    const theme = item.source_group || "未分组字段";
+    if (!acc[theme]) acc[theme] = [];
+    acc[theme].push(item);
+    return acc;
+  }, {});
+  return Object.entries(groups).map(([theme, items]) => {
+    const connected = items.filter((item) => fieldCoverageStatusMeta(item.status).connected).length;
+    const pendingItems = items.filter((item) => !fieldCoverageStatusMeta(item.status).connected);
+    const pending = pendingItems.length;
+    const rate = items.length ? connected / items.length : null;
+    const maxPriority = Math.max(...items.map((item) => fieldCoveragePriorityRank(item.priority)), 0);
+    const level = rate == null ? "L4" : rate >= 0.9 ? "L1" : rate >= 0.6 ? "L2" : rate >= 0.3 ? "L3" : "L4";
+    const tone = level === "L1" ? "green" : level === "L2" ? "yellow" : level === "L3" ? "orange" : "red";
+    const recommendation = pendingItems
+      .sort((a, b) => fieldCoveragePriorityRank(b.priority) - fieldCoveragePriorityRank(a.priority))
+      .map((item) => item.recommendation || item.source_field)
+      .find(Boolean) || items[0]?.recommendation || "当前字段组已满足主流程，后续按专题扩展。";
+    return {
+      theme,
+      count: items.length,
+      connected,
+      pending,
+      rate,
+      rateText: rate == null ? "暂无" : `${(rate * 100).toFixed(0)}%`,
+      level,
+      tone,
+      maxPriority,
+      recommendation,
+      pendingFields: pendingItems.slice(0, 3).map((item) => item.source_field).filter(Boolean)
+    };
+  }).sort((a, b) => {
+    if (b.maxPriority !== a.maxPriority) return b.maxPriority - a.maxPriority;
+    return a.rate - b.rate || b.pending - a.pending || a.theme.localeCompare(b.theme, "zh-CN");
+  });
+}
+
+function sprintBaselineRows() {
+  const hasRecords = Array.isArray(records) && records.length > 0;
+  const hasRules = !!analysisRules?.vqaEngine || !!analysisRules?.formalReport;
+  const hasDictionary = metricDictionary && Object.keys(metricDictionary).length > 0;
+  const hasFieldMatrix = Array.isArray(fieldCoverageMatrix) && fieldCoverageMatrix.length >= 200;
+  return [
+    { key: "resources", label: "静态资源与脚本顺序", status: hasRecords ? "pass" : "warn", note: hasRecords ? "底表已加载，核心脚本可读取 records。" : "底表未加载，需检查 data.js。" },
+    { key: "rules", label: "规则版本与报告契约", status: hasRules ? "pass" : "warn", note: hasRules ? "analysis_rules 已加载，可驱动 VQA 和正式报告。" : "规则文件未完整加载。" },
+    { key: "dictionary", label: "指标字典", status: hasDictionary ? "pass" : "warn", note: hasDictionary ? `已加载 ${Object.keys(metricDictionary).length} 个指标口径。` : "指标字典未加载。" },
+    { key: "fieldMatrix", label: "字段矩阵", status: hasFieldMatrix ? "pass" : "warn", note: hasFieldMatrix ? `已加载 ${fieldCoverageMatrix.length} 个原始字段。` : "字段矩阵不足，需检查 data_governance。" },
+    { key: "tests", label: "自动化回归", status: "manual", note: "运行 tests/sprint*.test.js、syntax-ok、ids-ok、resources-ok 和 git diff --check。" }
+  ];
+}
+
+function renderSprintBaselinePanel() {
+  const host = document.getElementById("sprintBaselineGrid");
+  if (!host) return;
+  host.innerHTML = sprintBaselineRows().map((row) => `
+    <div class="sprint-baseline-card tone-${htmlSafe(row.status)}">
+      <span>${htmlSafe(row.status === "pass" ? "通过" : row.status === "manual" ? "需人工运行" : "需复核")}</span>
+      <b>${htmlSafe(row.label)}</b>
+      <p>${htmlSafe(row.note)}</p>
+    </div>`).join("");
+}
+
+function fieldCoverageMatrixDetailRows(filter = "all", matrix = fieldCoverageMatrix) {
+  if (!Array.isArray(matrix)) return [];
+  return matrix.map((item, index) => {
+    const meta = fieldCoverageStatusMeta(item.status);
+    const priority = String(item.priority || "");
+    return {
+      序号: index + 1,
+      字段组: item.source_group || "未分组字段",
+      字段: item.source_field || "",
+      接入状态: meta.connected ? "connected" : "pending",
+      原始状态: item.status || "",
+      优先级: priority || "-",
+      处理建议: item.recommendation || "",
+      覆盖等级: meta.level
+    };
+  }).filter((row) => {
+    if (filter === "connected") return row.接入状态 === "connected";
+    if (filter === "pending") return row.接入状态 === "pending";
+    if (filter === "medium") return row.接入状态 === "pending" && row.优先级.includes("中");
+    if (filter === "paused") return row.优先级.includes("暂缓");
+    return true;
+  });
+}
+
+function renderFieldCoverageMatrixDetail(filter = "all") {
+  const body = document.getElementById("fieldCoverageMatrixBody");
+  const select = document.getElementById("fieldCoverageMatrixFilter");
+  if (!body) return;
+  const currentFilter = select?.value || filter;
+  const rows = fieldCoverageMatrixDetailRows(currentFilter);
+  body.innerHTML = rows.slice(0, 80).map((row) => `
+    <tr class="tone-${htmlSafe(row.覆盖等级)}">
+      <td>${htmlSafe(row.字段组)}</td>
+      <td>${htmlSafe(row.字段)}</td>
+      <td>${htmlSafe(row.接入状态)}</td>
+      <td>${htmlSafe(row.优先级)}</td>
+      <td>${htmlSafe(row.处理建议)}</td>
+    </tr>`).join("") || `<tr><td colspan="5">当前筛选条件下暂无字段。</td></tr>`;
+  if (select && !select.dataset.bound) {
+    select.dataset.bound = "1";
+    select.addEventListener("change", () => renderFieldCoverageMatrixDetail(select.value));
+  }
+}
+
+function renderFieldCoverageHeatmap(keys = metricKeysForCoverage()) {
+  const host = document.getElementById("fieldCoverageHeatmap");
+  if (!host) return;
+  const rows = fieldCoverageHeatmapRows(keys);
+  host.innerHTML = `
+    <div class="field-coverage-head">
+      <span>字段可用性热力图</span>
+      <b>${fieldCoverageMatrixRows().length ? "按原始字段组判断哪些专项已接入，哪些仍需数据扩展。" : "按主题判断哪些指标可进入主报告，哪些需要附录或待补。"}</b>
+    </div>
+    <div class="field-coverage-grid">${rows.map((row) => `
+      <div class="field-coverage-cell tone-${row.tone}">
+        <span>${htmlSafe(row.level)}</span>
+        <b>${htmlSafe(row.theme)}</b>
+        <em>${htmlSafe(row.rateText)}｜${row.connected ?? 0}/${row.count} 已接入</em>
+        ${row.pendingFields?.length ? `<p>${htmlSafe(row.pendingFields.join("、"))}</p>` : ""}
+      </div>`).join("")}</div>`;
+}
+
+function renderMetricExplorer(keys = metricKeysForCoverage()) {
+  const select = document.getElementById("metricExplorerSelect");
+  const content = document.getElementById("metricExplorerContent");
+  if (!select || !content) return;
+  const usableKeys = keys.filter((key) => records.some((row) => row[key] !== undefined));
+  if (!usableKeys.includes(state.dataMetric)) state.dataMetric = usableKeys.includes("roa") ? "roa" : usableKeys[0];
+  const categories = dataCategories(usableKeys);
+  select.innerHTML = categories.map((category) => `
+    <optgroup label="${htmlSafe(category.theme)}">
+      ${category.keys.map((key) => `<option value="${htmlSafe(key)}" ${key === state.dataMetric ? "selected" : ""}>${htmlSafe(fieldName(key))}</option>`).join("")}
+    </optgroup>`).join("");
+  if (!select.dataset.bound) {
+    select.dataset.bound = "1";
+    select.addEventListener("change", () => {
+      state.dataMetric = select.value;
+      state.dataTheme = metricTheme(select.value);
+      state.dataStep = "trend";
+      renderMetricExplorer(keys);
+      renderDataExplorer(keys);
+    });
+  }
+  content.innerHTML = state.confirmed ? metricExplorerHtml(metricExplorerSnapshot(state.dataMetric)) : metricExplorerHtml(metricExplorerSnapshot(state.dataMetric));
 }
 
 function updateDataCoverage() {
@@ -200,6 +572,10 @@ function updateDataCoverage() {
     bindMetricLinks(body);
   }
   renderDataExplorer(keys);
+  renderMetricExplorer(keys);
+  renderFieldCoverageHeatmap(keys);
+  renderFieldCoverageMatrixDetail();
+  renderSprintBaselinePanel();
   setHtml("coverageExportStory", `<b>底稿导出说明：</b>选定数据会生成“选择摘要、目标银行、对标银行、类型均值、指标完整性、指标口径、图表事实包”等工作表；全部数据会额外包含全样本明细。建议董事会汇报使用选定版，财务与战略复核使用全量版。`);
   setHtml("coverageDataStory", `<b>董办使用建议：</b>当前核心指标完整性为 ${coreRate == null ? "暂无" : `${(coreRate * 100).toFixed(1)}%`}。完整性高的指标可进入主报告；完整性不足的指标建议进入附录或作为待补数据清单，并在汇报中明确结论边界。`);
 }
@@ -478,7 +854,31 @@ function updateProjectFlow() {
 function metricDisplayValue(key, value) {
   if (value === null || value === undefined || Number.isNaN(value)) return "暂无";
   if (["pb", "pbMid", "theoreticalPb", "pbDiscount"].includes(key)) return `${Number(value).toFixed(2)}x`;
-  if (key === "economicProfit") return typeof v5FormatMoney === "function" ? v5FormatMoney(value) : `${Number(value).toFixed(0)}万元`;
+  const moneyKeys = new Set([
+    "economicProfit",
+    "revenue",
+    "coreRevenue",
+    "netProfit",
+    "ppop",
+    "netInterestIncome",
+    "feeIncome",
+    "adminExpense",
+    "interestIncome",
+    "interestExpense",
+    "incomeTax",
+    "operatingCashFlow",
+    "assets",
+    "liabilities",
+    "equity",
+    "loans",
+    "deposits",
+    "earningAssets",
+    "interestLiabilities",
+    "assetsChange",
+    "estimatedRwa",
+    "estimatedRwaChange"
+  ]);
+  if (moneyKeys.has(key)) return typeof v5FormatMoney === "function" ? v5FormatMoney(value) : fmtMoney(value);
   if (key.includes("Buffer") || key === "nimGapBp") return fmtBp(value);
   return fmt(value);
 }

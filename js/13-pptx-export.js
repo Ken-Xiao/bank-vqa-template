@@ -100,6 +100,89 @@ function pptxBulletLines(items = [], max = 3, limit = 78) {
   return pptxKeyLines(items, max, limit).map((item) => `• ${item}`);
 }
 
+function pptxMechanismSlideRows(limitPerModule = 3) {
+  const pack = typeof buildMechanismFactPackObject === "function" ? buildMechanismFactPackObject() : null;
+  if (!pack?.modules) return [];
+  return Object.values(pack.modules).flatMap((module) => (module.rows || []).slice(0, limitPerModule).map((row) => ({
+    module: module.title,
+    headline: module.headline,
+    metric: row.指标名称 || row.指标代码,
+    target: row.目标值 || "暂无",
+    benchmark: row.对标值 || "暂无",
+    gap: row.差距 || "暂无",
+    readout: row.判断 || module.headline || "用于解释差距来源。",
+    risk: row.口径风险等级 || "L2"
+  })));
+}
+
+function pptxMechanismModuleGroups(limitPerModule = 3) {
+  const rows = pptxMechanismSlideRows(limitPerModule);
+  const grouped = rows.reduce((acc, row) => {
+    if (!acc[row.module]) acc[row.module] = { module: row.module, headline: row.headline, rows: [] };
+    acc[row.module].rows.push(row);
+    return acc;
+  }, {});
+  return Object.values(grouped);
+}
+
+function pptxProfitWaterfallRows(row = targetRecord()) {
+  const pack = typeof netProfitAttribution === "function" ? netProfitAttribution(row) : null;
+  if (!pack?.items?.length) return [];
+  let running = pack.from || 0;
+  return pack.items.map((item) => {
+    const start = running;
+    const value = Number(item.value) || 0;
+    running += value;
+    return {
+      key: item.key,
+      label: item.label,
+      value,
+      start,
+      end: running,
+      share: item.share,
+      tone: value > 0 ? "positive" : value < 0 ? "negative" : "neutral"
+    };
+  });
+}
+
+function pptxBenchmarkLineRows(key = "nim", row = targetRecord(), peers = peerRecords()) {
+  const value = row?.[key];
+  const lines = typeof benchmarkLinesForMetric === "function" ? benchmarkLinesForMetric(key, peers) : [];
+  return {
+    key,
+    target: {
+      label: fieldName(key),
+      value,
+      text: metricDisplayValue(key, value)
+    },
+    lines: lines.map((line) => ({
+      label: line.label,
+      kind: line.kind,
+      value: line.value,
+      text: metricDisplayValue(key, line.value)
+    })).filter((line) => Number.isFinite(line.value))
+  };
+}
+
+function pptxNimBridgeRows(row = targetRecord(), peers = peerRecords()) {
+  return ["nim", "earningAssetYield", "interestLiabilityCost", "timeDepositShare"].map((key) => {
+    const value = row?.[key];
+    const peer = avg(peers, key);
+    const gap = value == null || peer == null ? null : value - peer;
+    return {
+      key,
+      label: fieldName(key),
+      value,
+      peer,
+      gap,
+      valueText: metricDisplayValue(key, value),
+      peerText: metricDisplayValue(key, peer),
+      gapText: metricDisplayValue(key, gap),
+      tone: gap == null ? "neutral" : (metricDirection(key) ? gap >= 0 : gap <= 0) ? "positive" : "negative"
+    };
+  });
+}
+
 function pptxStripLeadLabel(text = "") {
   return pptxCleanText(text)
     .replace(/^[-•\d\s.、]+/, "")
@@ -168,8 +251,18 @@ function pptxEvidenceLines(blocks, deckType = "content") {
   return pptxUniqueLines([blocks.story, blocks.subtitle, blocks.title], 3, 78);
 }
 
-function pptxImplicationLines(blocks, deckType = "content") {
+function pptxManagementImplication(blocks = {}, deckType = "content") {
   const target = pptxCurrentTarget();
+  const titleText = `${blocks.title || ""} ${blocks.subtitle || ""} ${blocks.story || ""}`;
+  if (deckType === "chart") return `若本页差异持续存在，应将${target}纳入季度复盘口径，并明确责任部门。`;
+  if (/风险|不良|拨备|逾期/.test(titleText)) return `${target}下一步应把风险确认、拨备缓冲和利润释放放在同一张复盘表里。`;
+  if (/息差|NIM|负债|存款|贷款/.test(titleText)) return `${target}下一步应把资产收益率、负债成本和存款结构拆成月度 ALM 动作。`;
+  if (/盈利|利润|营收|ROA|ROE/.test(titleText)) return `${target}下一步应先验证核心营收、费用刚性和拨备节奏是否同向支撑净利润。`;
+  if (/PB|估值|资本市场|市净率/.test(titleText)) return `${target}下一步应把估值沟通绑定到经营质量、资本效率和风险确认证据。`;
+  return `${target}后续应把本页判断转化为可跟踪指标、阈值和责任机制。`;
+}
+
+function pptxImplicationLines(blocks, deckType = "content") {
   const source = [
     ...(blocks.actionCards || []),
     ...(blocks.comments || []),
@@ -182,11 +275,7 @@ function pptxImplicationLines(blocks, deckType = "content") {
     return `对董事会的含义是：${line}`;
   });
   if (implications.length >= 2) return implications.slice(0, 2);
-  if (deckType === "chart") {
-    implications.push(`若本页差异持续存在，应将${target}纳入季度复盘口径，并明确责任部门。`);
-  } else {
-    implications.push(`后续应把本页判断转化为可跟踪指标、阈值和责任机制。`);
-  }
+  implications.push(pptxManagementImplication(blocks, deckType));
   return pptxUniqueLines(implications, 2, 82);
 }
 
@@ -200,6 +289,20 @@ function pptxSlideBrief(blocks, deckType = "content") {
     implication,
     note: "口径提示：本页基于已选目标银行、对标银行与类型银行均值计算；敏感结论需回到数据来源复核。"
   };
+}
+
+function pptxRiskFooterNote(blocks = {}, theme = rsmPptxTheme()) {
+  const risks = (blocks.riskFootnotes || [])
+    .map((item) => pptxCleanText(item))
+    .filter(Boolean);
+  if (!risks.length) return typeof rsmSourceLine === "function" ? rsmSourceLine() : theme.sourceLine;
+  const levelRank = { L4: 4, L3: 3, L2: 2, L1: 1 };
+  const sorted = risks.sort((a, b) => {
+    const aLevel = a.match(/L[1-4]/)?.[0] || "L1";
+    const bLevel = b.match(/L[1-4]/)?.[0] || "L1";
+    return (levelRank[bLevel] || 0) - (levelRank[aLevel] || 0);
+  });
+  return pptxShortText(`口径提示：${sorted.slice(0, 2).join("；")}`, 95);
 }
 
 function addConsultingTextBlock(slide, pptx, theme, x, y, w, h, heading, lines, accent = "0099D8") {
@@ -233,12 +336,16 @@ function addConsultingTextBlock(slide, pptx, theme, x, y, w, h, heading, lines, 
 
 function slideTextBlocks(slideEl) {
   const moduleLabel = slideEl.querySelector(".rsm-module-bar-label")?.textContent?.trim() || "";
+  const figureTitle = slideEl.matches?.(".figure-thumb, .formal-figure-card") ? slideEl.querySelector("b")?.textContent?.trim() || slideEl.querySelector("img")?.alt || "" : "";
+  const figureStory = slideEl.matches?.(".figure-thumb, .formal-figure-card") ? slideEl.querySelector("span")?.textContent?.trim() || slideEl.querySelector("figcaption span")?.textContent?.trim() || "" : "";
   const title = slideEl.querySelector(".rsm-slide-head h2")?.textContent?.trim()
     || slideEl.querySelector(".print-head h2")?.textContent?.trim()
     || slideEl.querySelector("h1")?.textContent?.trim()
+    || figureTitle
     || "";
   const subtitle = slideEl.querySelector(".rsm-slide-head p")?.textContent?.trim()
     || slideEl.querySelector(".print-head p")?.textContent?.trim()
+    || figureStory
     || "";
   const chapterStory = slideEl.querySelector(".chapter-agenda-story p")?.textContent?.trim() || "";
   const story = chapterStory
@@ -332,9 +439,10 @@ function slideTextBlocks(slideEl) {
 }
 
 function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
-  const title = sectionEl.querySelector("h1, h2")?.textContent?.trim() || `${displayBankName(state.target)}正式报告`;
+  const title = sectionEl.dataset.sectionTitle || sectionEl.querySelector("h1, h2")?.textContent?.trim() || `${displayBankName(state.target)}正式报告`;
   const subtitle = sectionEl.querySelector(".formal-lead, header p, .formal-callout p")?.textContent?.trim() || "";
-  const moduleLabel = sectionEl.querySelector(".formal-section-kicker")?.textContent?.trim()
+  const moduleLabel = sectionEl.dataset.moduleLabel
+    || sectionEl.querySelector(".formal-section-kicker")?.textContent?.trim()
     || (sectionEl.matches(".formal-cover") ? "董事会经营诊断报告" : "正式报告");
   const metrics = [...sectionEl.querySelectorAll(".formal-metric-hero")].slice(0, 6).map((el) => {
     const label = el.querySelector("span")?.textContent?.trim() || "";
@@ -343,14 +451,17 @@ function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
     return `${label} ${value}${note ? `｜${note}` : ""}`;
   });
   const facts = [...sectionEl.querySelectorAll(".formal-fact-table tbody tr")].slice(0, 5).map((tr) => [...tr.children].map((td) => td.textContent.trim()).filter(Boolean).join("｜"));
-  const cards = [...sectionEl.querySelectorAll(".formal-action-card, .formal-consistency-card, .formal-drill-card, .formal-guided-step, .formal-whatif-strip > div, .formal-risk-card, .formal-sequence-card")].slice(0, 6).map((el) => {
+  const cards = [...sectionEl.querySelectorAll(".formal-action-card, .formal-consistency-card, .formal-drill-card, .formal-guided-step, .formal-whatif-strip > div, .formal-risk-card, .formal-sequence-card, .formal-mechanism-card, .formal-mechanism-table tbody tr")].slice(0, 8).map((el) => {
     const label = el.querySelector("span")?.textContent?.trim() || "";
     const head = el.querySelector("b, h3")?.textContent?.trim() || "";
-    const note = [...el.querySelectorAll("p, em")].map((p) => p.textContent.trim()).filter(Boolean).join("；");
+    const note = el.matches("tr")
+      ? [...el.children].map((td) => td.textContent.trim()).filter(Boolean).join("｜")
+      : [...el.querySelectorAll("p, em")].map((p) => p.textContent.trim()).filter(Boolean).join("；");
     return `${label} ${head}${note ? `：${note}` : ""}`.trim();
   });
   const paragraphs = [...sectionEl.querySelectorAll("p")].map((p) => p.textContent.trim()).filter(Boolean);
-  const tocItems = sections.slice(0, 9).map((el, i) => `${String(i + 1).padStart(2, "0")} ${el.querySelector("h1, h2")?.textContent?.trim() || "报告章节"}`);
+  const riskFootnotes = [...sectionEl.querySelectorAll(".formal-risk-footnotes p")].map((p) => p.textContent.trim()).filter(Boolean);
+  const tocItems = sections.slice(0, 9).map((el, i) => `${String(i + 1).padStart(2, "0")} ${el.dataset.sectionTitle || el.querySelector("h1, h2")?.textContent?.trim() || "报告章节"}`);
   return {
     moduleLabel,
     className: sectionEl.className || "",
@@ -368,6 +479,7 @@ function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
     topics: pptxKeyLines(cards, 8, 78),
     actionCards: pptxKeyLines(cards, 6, 78),
     consultingCards: pptxKeyLines([...cards, ...paragraphs], 8, 82),
+    riskFootnotes: pptxKeyLines(riskFootnotes, 4, 90),
     coverTitle: sectionEl.matches(".formal-cover") ? title : "",
     coverSub: sectionEl.matches(".formal-cover") ? subtitle : "",
     coverVqa: sectionEl.matches(".formal-cover") ? sectionEl.querySelector("aside")?.textContent?.trim() || "" : "",
@@ -377,10 +489,20 @@ function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
 
 function formalReportSlidesForPptx() {
   if (typeof renderFormalReport === "function") renderFormalReport();
-  const sections = [...document.querySelectorAll("#formalReport > header, #formalReport > section")];
+  const sections = typeof applyFormalReportContract === "function"
+    ? applyFormalReportContract()
+    : [...document.querySelectorAll("#formalReport > header, #formalReport > section")];
   if (sections.length) return sections;
   if (typeof buildPrintDeck === "function") buildPrintDeck();
   return [...document.querySelectorAll("#printDeck .print-slide")];
+}
+
+function slideRasterImageUrl(slideEl) {
+  const img = slideEl.querySelector("img");
+  if (!img) return "";
+  const src = img.dataset?.src || img.currentSrc || img.src || "";
+  if (!src || src.startsWith("data:image/svg+xml")) return "";
+  return src;
 }
 
 function parseMetricForPptx(line = "") {
@@ -571,7 +693,221 @@ function addFormalHtmlAlignedSlide(slide, pptx, theme, blocks, page, total) {
     bold: true,
     fit: "shrink"
   });
-  addRsmFooter(slide, pptx, theme, page, total);
+  addRsmFooter(slide, pptx, theme, page, total, pptxRiskFooterNote(blocks, theme));
+}
+
+function addPptxProfitWaterfall(slide, pptx, theme, x, y, w, h) {
+  const c = theme.colors;
+  const rows = pptxProfitWaterfallRows().slice(0, 6);
+  if (!rows.length) return;
+  const max = Math.max(...rows.map((row) => Math.abs(row.value)), 1);
+  rows.forEach((row, index) => {
+    const rowY = y + index * (h / Math.max(rows.length, 1));
+    const barW = Math.max(0.18, Math.min(1, Math.abs(row.value) / max) * (w - 2.25));
+    const fill = row.tone === "positive" ? (c.secondary || "0099D8") : row.tone === "negative" ? "F59E0B" : "94A3B8";
+    slide.addText(row.label, {
+      x,
+      y: rowY,
+      w: 1.55,
+      h: 0.22,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 8.6,
+      color: c.text,
+      fit: "shrink"
+    });
+    slide.addShape(pptx.ShapeType.rect, { x: x + 1.68, y: rowY + 0.05, w: w - 2.2, h: 0.1, fill: { color: "EEF3F7" }, line: { color: "EEF3F7", transparency: 100 } });
+    slide.addShape(pptx.ShapeType.rect, { x: x + 1.68, y: rowY + 0.05, w: barW, h: 0.1, fill: { color: fill }, line: { color: fill, transparency: 100 } });
+    slide.addText(row.value >= 0 ? "+" : "-", {
+      x: x + w - 0.35,
+      y: rowY - 0.01,
+      w: 0.22,
+      h: 0.18,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 8.2,
+      color: fill,
+      bold: true,
+      fit: "shrink"
+    });
+  });
+}
+
+function addPptxBenchmarkLineChart(slide, pptx, theme, x, y, w, h, key = "nim") {
+  const c = theme.colors;
+  const chart = pptxBenchmarkLineRows(key);
+  const values = [chart.target.value, ...chart.lines.map((line) => line.value)].filter((value) => Number.isFinite(value));
+  if (values.length < 2) return;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  slide.addShape(pptx.ShapeType.line, { x, y: y + h * 0.48, w, h: 0, line: { color: "D9E4EF", width: 1 } });
+  chart.lines.slice(0, 5).forEach((line, index) => {
+    const pos = x + ((line.value - min) / span) * w;
+    slide.addShape(pptx.ShapeType.line, { x: pos, y: y + 0.12, w: 0, h: h - 0.34, line: { color: index === 0 ? c.navy : "94A3B8", width: 0.8, dash: index > 1 ? "dash" : "solid" } });
+    slide.addText(line.label, {
+      x: Math.max(x, Math.min(x + w - 1.0, pos - 0.5)),
+      y: y + h - 0.18,
+      w: 1.0,
+      h: 0.16,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 6.9,
+      color: c.slate,
+      fit: "shrink",
+      align: "center"
+    });
+  });
+  const targetPos = x + ((chart.target.value - min) / span) * w;
+  slide.addShape(pptx.ShapeType.ellipse, { x: targetPos - 0.08, y: y + h * 0.48 - 0.08, w: 0.16, h: 0.16, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", width: 0.8 } });
+  slide.addText(`目标 ${chart.target.text}`, {
+    x: Math.max(x, Math.min(x + w - 1.35, targetPos - 0.68)),
+    y,
+    w: 1.35,
+    h: 0.18,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 7.8,
+    color: c.navy,
+    bold: true,
+    fit: "shrink",
+    align: "center"
+  });
+}
+
+function addPptxNimBridge(slide, pptx, theme, x, y, w, h) {
+  const c = theme.colors;
+  const rows = pptxNimBridgeRows().slice(0, 4);
+  rows.forEach((row, index) => {
+    const cardW = (w - 0.3) / 4;
+    const cardX = x + index * (cardW + 0.1);
+    const fill = row.tone === "positive" ? "ECFDF5" : row.tone === "negative" ? "FFF7ED" : "F8FAFC";
+    const accent = row.tone === "positive" ? "10B981" : row.tone === "negative" ? "F59E0B" : "94A3B8";
+    slide.addShape(pptx.ShapeType.rect, { x: cardX, y, w: cardW, h, fill: { color: fill }, line: { color: "DCE5EE", width: 0.5 } });
+    slide.addShape(pptx.ShapeType.rect, { x: cardX, y, w: cardW, h: 0.06, fill: { color: accent }, line: { color: accent, transparency: 100 } });
+    slide.addText(row.label, {
+      x: cardX + 0.08,
+      y: y + 0.12,
+      w: cardW - 0.16,
+      h: 0.2,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 7.8,
+      color: c.slate,
+      bold: true,
+      fit: "shrink"
+    });
+    slide.addText(row.valueText, {
+      x: cardX + 0.08,
+      y: y + 0.42,
+      w: cardW - 0.16,
+      h: 0.28,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 12,
+      color: c.navy,
+      bold: true,
+      fit: "shrink",
+      align: "center"
+    });
+    slide.addText(`对标 ${row.peerText}`, {
+      x: cardX + 0.08,
+      y: y + 0.78,
+      w: cardW - 0.16,
+      h: 0.18,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 7,
+      color: c.text,
+      fit: "shrink",
+      align: "center"
+    });
+  });
+}
+
+function addMechanismAttributionSlide(slide, pptx, theme, blocks, page, total) {
+  const c = theme.colors;
+  const groups = pptxMechanismModuleGroups(3).slice(0, 4);
+  slide.background = { color: c.bgSoft || "F7F9FB" };
+  addRsmModuleBar(slide, pptx, theme, "机制归因总览", 0.18);
+  slide.addText(blocks.title || "差距来自哪里：先归因，再进入专题行动", {
+    x: 0.62,
+    y: 0.86,
+    w: 18.6,
+    h: 0.7,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 29,
+    color: c.secondary || "0099D8",
+    bold: true,
+    fit: "shrink"
+  });
+  slide.addText(blocks.subtitle || blocks.story || "本页把 DuPont、净利润归因、NIM归因和多基准线压缩为四个机制证据块。", {
+    x: 0.62,
+    y: 1.58,
+    w: 18.4,
+    h: 0.42,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 14.5,
+    color: c.slate,
+    fit: "shrink"
+  });
+  groups.forEach((group, index) => {
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    const x = 0.62 + col * 9.55;
+    const y = 2.32 + row * 3.48;
+    const accent = index === 1 ? c.secondary || "0099D8" : index === 2 ? "F59E0B" : c.navy;
+    slide.addShape(pptx.ShapeType.rect, { x, y, w: 9.05, h: 3.12, fill: { color: c.white }, line: { color: "DCE5EE", width: 0.8 } });
+    slide.addShape(pptx.ShapeType.rect, { x, y, w: 0.12, h: 3.12, fill: { color: accent }, line: { color: accent, transparency: 100 } });
+    slide.addText(group.module, {
+      x: x + 0.28,
+      y: y + 0.18,
+      w: 8.48,
+      h: 0.32,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 15.5,
+      color: c.navy,
+      bold: true,
+      fit: "shrink"
+    });
+    slide.addText(pptxShortText(group.headline || "机制归因待补充。", 86), {
+      x: x + 0.28,
+      y: y + 0.58,
+      w: 8.48,
+      h: 0.5,
+      fontFace: rsmPptxFont(theme),
+      fontSize: 11.5,
+      color: c.slate,
+      fit: "shrink"
+    });
+    if (group.module === "净利润归因瀑布") {
+      addPptxProfitWaterfall(slide, pptx, theme, x + 0.28, y + 1.22, 8.42, 1.55);
+    } else if (group.module === "NIM归因") {
+      addPptxNimBridge(slide, pptx, theme, x + 0.28, y + 1.24, 8.42, 1.18);
+    } else if (group.module === "多基准线") {
+      addPptxBenchmarkLineChart(slide, pptx, theme, x + 0.55, y + 1.38, 7.72, 1.2, "nim");
+    } else {
+      const lines = group.rows.slice(0, 3).map((item) => `${item.metric}｜目标 ${item.target}｜基准 ${item.benchmark}｜${item.risk}`);
+      slide.addText(pptxBulletLines(lines, 3, 74).join("\n"), {
+        x: x + 0.28,
+        y: y + 1.18,
+        w: 8.48,
+        h: 1.55,
+        fontFace: rsmPptxFont(theme),
+        fontSize: 12.2,
+        color: c.text,
+        valign: "top",
+        fit: "shrink",
+        breakLine: false
+      });
+    }
+  });
+  slide.addShape(pptx.ShapeType.rect, { x: 0.62, y: 9.44, w: 18.6, h: 0.42, fill: { color: c.navy }, line: { color: c.navy, transparency: 100 } });
+  slide.addText("使用边界：L2 指标可进入主报告但需脚注；L3/L4 指标仅作为附录或待补数据，不支撑强结论。", {
+    x: 0.88,
+    y: 9.54,
+    w: 18.05,
+    h: 0.24,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 12.5,
+    color: c.white,
+    bold: true,
+    fit: "shrink"
+  });
+  addRsmFooter(slide, pptx, theme, page, total, pptxRiskFooterNote(blocks, theme));
 }
 
 function addChapterAgendaSlide(slide, pptx, theme, blocks, page, total) {
@@ -669,7 +1005,7 @@ function addChapterAgendaSlide(slide, pptx, theme, blocks, page, total) {
       fit: "shrink"
     });
   }
-  addRsmFooter(slide, pptx, theme, page, total);
+  addRsmFooter(slide, pptx, theme, page, total, pptxRiskFooterNote(blocks, theme));
 }
 
 function addChartPptxSlide(slide, pptx, theme, blocks, page, total, svg) {
@@ -715,7 +1051,7 @@ function addChartPptxSlide(slide, pptx, theme, blocks, page, total, svg) {
     color: c.muted,
     fit: "shrink"
   });
-  addRsmFooter(slide, pptx, theme, page, total);
+  addRsmFooter(slide, pptx, theme, page, total, pptxRiskFooterNote(blocks, theme));
 }
 
 function svgElementToDataUrl(svg) {
@@ -1099,7 +1435,7 @@ function addTocSlide(slide, pptx, theme, blocks, page, total) {
       fit: "shrink"
     });
   }
-  addRsmFooter(slide, pptx, theme, page, total);
+  addRsmFooter(slide, pptx, theme, page, total, pptxRiskFooterNote(blocks, theme));
 }
 
 function addTableLikePanel(slide, pptx, theme, x, y, w, h, title, lines, accent = "0099D8") {
@@ -1252,7 +1588,7 @@ function addContentSlide(slide, pptx, theme, blocks, page, total, svg) {
       fit: "shrink"
     });
   }
-  addRsmFooter(slide, pptx, theme, page, total);
+  addRsmFooter(slide, pptx, theme, page, total, pptxRiskFooterNote(blocks, theme));
 }
 
 async function downloadPptxReport() {
@@ -1281,12 +1617,15 @@ async function downloadPptxReport() {
       const isFormal = slideEl.closest("#formalReport");
       const blocks = isFormal ? formalSlideTextBlocks(slideEl, index, slides) : slideTextBlocks(slideEl);
       const deckType = isFormal
-        ? (index === 0 ? "cover" : "content")
+        ? (slideEl.dataset.deckType || (index === 0 ? "cover" : "content"))
         : (slideEl.dataset.deckType || "content");
       const page = Number(slideEl.dataset.slideIndex || index + 1);
       const total = Number(slideEl.dataset.slideTotal || slides.length);
       const svgEl = slideEl.querySelector("svg");
       const svg = svgEl ? await slideChartImageData(svgEl) : null;
+      const rasterUrl = slideRasterImageUrl(slideEl);
+      const raster = rasterUrl ? await imageUrlToDataUrl(rasterUrl) : null;
+      const visual = raster || svg;
 
       if (deckType === "cover") {
         addCoverSlide(slide, pptx, theme, blocks, page, total);
@@ -1294,30 +1633,37 @@ async function downloadPptxReport() {
         addTocSlide(slide, pptx, theme, blocks, page, total);
       } else if (deckType === "chapter-agenda") {
         addChapterAgendaSlide(slide, pptx, theme, blocks, page, total);
+      } else if (deckType === "mechanism") {
+        addMechanismAttributionSlide(slide, pptx, theme, blocks, page, total);
       } else if (deckType === "chart") {
-        addChartPptxSlide(slide, pptx, theme, blocks, page, total, svg);
+        addChartPptxSlide(slide, pptx, theme, blocks, page, total, visual);
+      } else if (isFormal && visual) {
+        addContentSlide(slide, pptx, theme, blocks, page, total, visual);
       } else if (isFormal) {
         addFormalHtmlAlignedSlide(slide, pptx, theme, blocks, page, total);
       } else {
-        addContentSlide(slide, pptx, theme, blocks, page, total, svg);
+        addContentSlide(slide, pptx, theme, blocks, page, total, visual);
       }
     }
 
-    const filename = `${safeFilename(state.target)}_${state.year}_正式诊断报告_同HTML结构.pptx`;
+    const meta = typeof formalReportExportMeta === "function"
+      ? formalReportExportMeta("PPTX")
+      : { format: "正式报告 PPTX", filename: `${safeFilename(state.target)}_${state.year}_正式报告.pptx`, note: "页序和内容读取正式报告 HTML" };
+    const filename = meta.filename;
     await pptx.writeFile({ fileName: filename });
-    if (typeof recordExportHistory === "function") recordExportHistory("PPTX");
-    setProjectStatus(`PPTX 已导出：${filename}，页序和内容读取正式报告 HTML。`);
+    if (typeof recordExportHistory === "function") recordExportHistory("正式报告 PPTX");
+    setProjectStatus(`${meta.format} 已导出：${filename}。${meta.note}。`);
   } catch (error) {
     console.error("PPTX export failed", error);
     const message = error?.message ? `（${error.message}）` : "";
-    setProjectStatus(`PPTX 导出失败${message}。已内置本地 PPTX 引擎；如仍失败，请先导出 HTML 汇报稿或查看控制台错误。`);
+    setProjectStatus(`正式报告 PPTX 导出失败${message}。已内置本地 PPTX 引擎；如仍失败，请先导出正式报告 HTML 或查看控制台错误。`);
   }
 }
 
 function initPptxExport() {
   document.getElementById("exportReportPptx")?.addEventListener("click", () => {
     renderAll();
-    if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出可编辑 PPT", { version: state.reportVersion });
+    if (typeof recordAnalysisSession === "function") recordAnalysisSession("导出正式报告 PPTX", { version: state.reportVersion });
     downloadPptxReport();
   });
 }

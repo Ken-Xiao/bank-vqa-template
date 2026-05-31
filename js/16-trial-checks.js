@@ -52,6 +52,33 @@ function missingImageCount() {
   return [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).length;
 }
 
+function formalReportExportHealth() {
+  if (typeof renderFormalReport === "function") renderFormalReport();
+  const sections = typeof applyFormalReportContract === "function"
+    ? applyFormalReportContract()
+    : [...document.querySelectorAll("#formalReport > header, #formalReport > section")];
+  const figures = [...document.querySelectorAll("#formalReport .formal-figure-card img")];
+  const missingFigureImages = figures.filter((img) => {
+    const src = img.dataset?.src || img.currentSrc || img.src || "";
+    return !src || (!src.startsWith("data:") && !img.complete) || img.naturalWidth === 0;
+  });
+  const roles = sections.reduce((acc, section) => {
+    const role = section.dataset?.pageRole || "content";
+    acc[role] = (acc[role] || 0) + 1;
+    return acc;
+  }, {});
+  return {
+    sections: sections.length,
+    figures: figures.length,
+    missingFigureImages: missingFigureImages.length,
+    roles,
+    hasContract: sections.length > 0 && sections.every((section) => section.dataset?.slideIndex && section.dataset?.sectionTitle && section.dataset?.pageRole),
+    hasCover: roles.cover > 0,
+    hasExecutive: roles.executive > 0,
+    hasAppendix: roles.appendix > 0
+  };
+}
+
 function criticalMetricCompleteness() {
   const keys = ["roa", "coreRevenueGrowth", "nim", "feeAssetRatio", "npl", "hiddenNplExposure", "provisionCoverage", "cet1Buffer", "rwaDensity", "pb"];
   const rows = selectedBankRecords();
@@ -66,6 +93,7 @@ function trialReadinessChecks() {
   const criticalRate = criticalMetricCompleteness();
   const slides = document.querySelectorAll("#printDeck .print-slide").length;
   const missingImgs = missingImageCount();
+  const formal = formalReportExportHealth();
   const rows = [];
   rows.push({
     key: "scope",
@@ -93,15 +121,27 @@ function trialReadinessChecks() {
   });
   rows.push({
     key: "assets",
-    status: missingImgs === 0 ? "ok" : "bad",
-    title: "图表和图片资源",
-    text: missingImgs === 0 ? "未发现图片加载失败。" : `发现 ${missingImgs} 个图片资源未加载。`
+    status: formal.missingFigureImages === 0 ? "ok" : "bad",
+    title: "正式报告图片资源",
+    text: formal.missingFigureImages === 0 ? `正式报告图表证据 ${formal.figures} 张，未发现图片资源失败。` : `正式报告发现 ${formal.missingFigureImages} 个图表图片未加载。`
   });
   rows.push({
-    key: "deck",
-    status: slides > 45 ? "warn" : slides >= 8 ? "ok" : slides >= 4 ? "warn" : "bad",
-    title: "报告页数",
-    text: `当前 HTML/PPTX 中间稿共 ${slides} 页；试点汇报建议控制在 20-45 页。`
+    key: "formal-contract",
+    status: formal.hasContract && formal.hasCover && formal.hasExecutive ? "ok" : "bad",
+    title: "正式报告 contract",
+    text: formal.hasContract ? `正式报告 ${formal.sections} 个章节，已写入页序、标题和页型。` : "正式报告章节元数据不完整。"
+  });
+  rows.push({
+    key: "formal-pages",
+    status: formal.sections > 45 ? "warn" : formal.sections >= 12 ? "ok" : formal.sections >= 6 ? "warn" : "bad",
+    title: "正式报告页数",
+    text: `正式报告共 ${formal.sections} 个章节；旧版中间稿 ${slides} 页仅作兼容参考。`
+  });
+  rows.push({
+    key: "formal-figures",
+    status: formal.figures >= 4 ? "ok" : formal.figures > 0 ? "warn" : "bad",
+    title: "图表证据章节",
+    text: formal.figures ? `正式报告已纳入 ${formal.figures} 张图表证据。` : "正式报告尚未纳入图表证据。"
   });
   return rows;
 }
@@ -133,7 +173,7 @@ function preflightExport(format) {
     return false;
   }
   renderAll();
-  buildPrintDeck();
+  if (typeof buildPrintDeck === "function") buildPrintDeck();
   const checks = trialReadinessChecks();
   const blockers = checks.filter((item) => item.status === "bad");
   updateTrialCheckPanel();

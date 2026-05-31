@@ -106,22 +106,25 @@ function dupontBreakdown(row = targetRecord(), peers = peerRecords()) {
 function netProfitAttribution(row = targetRecord()) {
   const prev = proPrevRecord(row);
   if (!row || !prev || row.netProfit == null || prev.netProfit == null) return null;
-  const scale = prev.netProfit * ((row.assetGrowth || 0) / 100);
-  const nim = row.assets && row.nim != null && prev.nim != null ? row.assets * ((row.nim - prev.nim) / 100) : 0;
-  const fee = (row.feeIncome || 0) - (prev.feeIncome || 0);
-  const cost = -((row.adminExpense || 0) - (prev.adminExpense || 0));
-  const ppopGap = (row.ppop || 0) - (prev.ppop || 0);
-  const provision = ((row.netProfit || 0) - (prev.netProfit || 0)) - ppopGap;
-  const known = scale + nim + fee + cost + provision;
   const total = row.netProfit - prev.netProfit;
-  const other = total - known;
+  const delta = (key) => row[key] == null || prev[key] == null ? null : row[key] - prev[key];
+  const ppopDelta = delta("ppop");
+  if (ppopDelta == null) return null;
+  const netInterestIncome = delta("netInterestIncome") || 0;
+  const feeIncome = delta("feeIncome") || 0;
+  const revenueDelta = delta("revenue");
+  const otherRevenue = revenueDelta == null ? 0 : revenueDelta - netInterestIncome - feeIncome;
+  const adminExpense = delta("adminExpense") == null ? 0 : -delta("adminExpense");
+  const operatingSubtotal = netInterestIncome + feeIncome + otherRevenue + adminExpense;
+  const operatingOther = ppopDelta - operatingSubtotal;
+  const creditTaxOther = total - ppopDelta;
   const items = [
-    { key: "scale", label: "规模驱动", value: scale },
-    { key: "nim", label: "息差驱动", value: nim },
-    { key: "fee", label: "中收驱动", value: fee },
-    { key: "cost", label: "成本驱动", value: cost },
-    { key: "provision", label: "拨备及税费驱动", value: provision },
-    { key: "other", label: "其他", value: other }
+    { key: "netInterestIncome", label: "利息净收入变化", value: netInterestIncome, layer: "ppop" },
+    { key: "feeIncome", label: "手续费及佣金变化", value: feeIncome, layer: "ppop" },
+    { key: "otherRevenue", label: "其他收入变化", value: otherRevenue, layer: "ppop" },
+    { key: "adminExpense", label: "管理费用变化", value: adminExpense, layer: "ppop" },
+    { key: "operatingOther", label: "其他经营收支变化", value: operatingOther, layer: "ppop" },
+    { key: "creditTaxOther", label: "拨备、税费及其他变化", value: creditTaxOther, layer: "belowPpop" }
   ].map((item) => ({ ...item, share: total ? item.value / Math.abs(total) : null }));
   const positive = [...items].filter((item) => item.value > 0).sort((a, b) => b.value - a.value)[0] || null;
   const negative = [...items].filter((item) => item.value < 0).sort((a, b) => a.value - b.value)[0] || null;
@@ -129,6 +132,7 @@ function netProfitAttribution(row = targetRecord()) {
     from: prev.netProfit,
     to: row.netProfit,
     total,
+    ppopDelta,
     items,
     positive,
     negative,
