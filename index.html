@@ -79,6 +79,18 @@
             <select id="targetBank" hidden>
               <option>苏州农商行</option>
             </select>
+            <div class="target-drilldown">
+              <div class="target-drill-head">
+                <span>先选银行类型，再选区域和具体银行</span>
+                <b id="targetDrillCount">待加载</b>
+              </div>
+              <div class="target-type-tabs" id="targetTypeTabs" aria-label="目标银行类型"></div>
+              <div class="target-region-tabs" id="targetRegionTabs" aria-label="目标银行区域"></div>
+              <div class="target-search-row">
+                <input id="targetBankSearch" type="search" placeholder="搜索银行名称" autocomplete="off" />
+                <button class="btn secondary" id="targetClearSearch" type="button">清空</button>
+              </div>
+            </div>
             <div class="choice-panel target-panel" id="targetBankChecks"></div>
           </div>
           <div class="field-label selector-field peer-field">对标银行
@@ -1107,6 +1119,7 @@
   <script src="js/18-board-workbench.js?v=20260530-client-language"></script>
   <script src="js/19-product-workspace.js?v=20260530-benchmarkiq-v2"></script>
   <script src="js/24-prd-v3-workbench.js?v=20260531-prd-v3"></script>
+  <script src="js/25-v4-deep-dive.js?v=20260531-prd-v4"></script>
   <script src="js/10-bootstrap.js"></script>
 </body>
 </html>

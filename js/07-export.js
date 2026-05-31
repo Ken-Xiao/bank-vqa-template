@@ -913,6 +913,15 @@ function collectChartSlides() {
       slides.push({ title, subtitle, chartHtml: chart.innerHTML, storyHtml: slideStoryHtml(title, slides.length) });
     }
   });
+  document.querySelectorAll(".v4-chart-card").forEach((card) => {
+    if (card.closest("#formalReport")) return;
+    const title = card.dataset.chartTitle || card.querySelector("h4, b")?.textContent?.trim();
+    const subtitle = card.closest(".v4-deep-dive-panel")?.querySelector(".v4-deep-head h4")?.textContent?.trim() || "专题深钻图表";
+    const chartHtml = card.innerHTML?.trim();
+    if (title && chartHtml) {
+      slides.push({ title, subtitle, chartHtml, storyHtml: slideStoryHtml(title, slides.length) });
+    }
+  });
   return slides;
 }
 

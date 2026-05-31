@@ -1122,6 +1122,33 @@ function rsm2TopicConfig(topicKey) {
       finding: byNeedle("估值").logic || "PB 需要与 ROA、核心营收、风险确认和资本余量联读。",
       action: byNeedle("估值").action || "将估值沟通从单一 PB 切换为经营质量证据链。",
       keys: [["pb", "PB"], ["pbMid", "年中 PB"], ["roa", "ROA"], ["coreRevenueGrowth", "核心营收增速"]]
+    },
+    capitalMarket: {
+      module: "PB归因",
+      num: "08B",
+      title: "PB 归因要把市场折价拆到 ROE、风险、效率和资本四类可管理因子",
+      question: "PB 折价来自市场认知滞后，还是经营质量因子本身偏弱？",
+      finding: "资本市场专题不再停留在低 PB 描述，而是通过拟合 PB、实际 PB 和残差判断折价性质。",
+      action: "围绕贡献最大的两项因子建立季度改善证据，并将风险确认、回报修复和资本纪律写入沟通材料。",
+      keys: [["pb", "PB"], ["roe", "ROE"], ["npl", "不良率"], ["costIncomeRatio", "成本收入比"]]
+    },
+    retailRisk: {
+      module: "零售风险",
+      num: "09",
+      title: "零售风险必须拆到住房、消费和经营贷，避免综合不良率掩盖产品迁徙",
+      question: "零售风险压力集中在哪类产品，是否已经早于整体不良暴露？",
+      finding: "零售风险专题通过产品占比、不良率、同比变化和同业均值识别风险前移位置。",
+      action: "对高占比且高不良的产品建立客群、逾期、迁徙和贷后清收复盘，区分压降、定价和清收动作。",
+      keys: [["personalLoanNpl", "个贷不良率"], ["housingLoanNpl", "住房贷款不良率"], ["consumerLoanNpl", "消费贷款不良率"], ["businessLoanNpl", "经营贷款不良率"]]
+    },
+    depositLoanDeepDive: {
+      module: "存贷深钻",
+      num: "10",
+      title: "存贷深钻要把息差压力拆成资产收益、负债成本和存款期限结构",
+      question: "息差压力的主因是资产端让价、负债端刚性，还是定期化拖累？",
+      finding: "存贷专题通过活期/定期结构、生息资产收益率、计息负债成本率和真实存贷利差定位压力来源。",
+      action: "把高成本定期存款压降、对公结算沉淀和贷款定价纪律纳入资产负债管理月度复盘。",
+      keys: [["timeDepositShare", "定期存款占比"], ["demandDepositShare", "活期存款占比"], ["earningAssetYield", "生息资产收益率"], ["interestLiabilityCost", "计息负债成本率"]]
     }
   };
   return configs[topicKey];
@@ -1519,10 +1546,10 @@ function rsm2TopicSequenceSlides(topicKeys = []) {
 }
 
 function rsm2MainReportTopics() {
-  const fallback = ["profit", "nim", "risk"];
+  const fallback = ["profit", "nim", "risk", "capitalMarket", "retailRisk", "depositLoanDeepDive"];
   const included = fallback.filter((key) => typeof isTopicIncluded === "function" ? isTopicIncluded(key) : true);
   const candidates = included.length ? included : fallback;
-  return candidates.slice(0, 3);
+  return candidates.slice(0, 6);
 }
 
 function rsm2ChartProofSlides() {

@@ -382,6 +382,7 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
       </section>
       ${formalWatchSection(row)}
       ${formalV3SubjectSections(row)}
+      ${typeof formalV4DeepDiveSections === "function" ? formalV4DeepDiveSections(row) : ""}
       ${typeof investmentEvidenceHtmlForFormal === "function" ? investmentEvidenceHtmlForFormal() : ""}
       ${formalWhatIfSection(row)}
       ${formalPeerMatrixSection(row)}

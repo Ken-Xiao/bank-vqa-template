@@ -733,6 +733,7 @@ function renderTopicWorkbench() {
       `).join("")}</tbody>
     </table>
     ${citationNote}
+    ${typeof v4TopicDeepDiveHtml === "function" ? v4TopicDeepDiveHtml(topic.id) : ""}
     <div class="topic-ai-grid">
       <div class="topic-ai-card">
         <b>董事会版解读${draft.board?.source === "edited" ? "（已编辑）" : ""}</b>

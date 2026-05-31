@@ -3,7 +3,7 @@
     "name": "银行董办对标分析工具",
     "audience": ["董事会办公室", "战略管理部", "财务管理部", "资本市场沟通团队"],
     "defaultOutput": "董事会汇报版",
-    "rulesVersion": "2026.05.4-v3"
+    "rulesVersion": "2026.05.4-v4"
   },
   "sparc_vqa_mapping": {
     "scale": {
@@ -87,7 +87,7 @@
       "label": "股份行分析方案",
       "bankTypeIncludes": "股份行",
       "peerTemplate": "sameType",
-      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation"],
+      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation", "capitalMarket", "retailRisk", "depositLoanDeepDive"],
       "reportVersion": "资本市场沟通版",
       "rationale": "以全部股份行作为对标组，完整展开五类专题。"
     },
@@ -572,6 +572,61 @@
       "question": "当前阶段应先修底盘、写入纪律，还是可以交付转型投入。"
     }
   },
+  "layout": {
+    "spacingScale": {
+      "space1": 8,
+      "space2": 16,
+      "space3": 24,
+      "space4": 32,
+      "space5": 48,
+      "space6": 64,
+      "space7": 96
+    },
+    "contentMaxWidth": 960,
+    "moduleCard": {
+      "borderLeft": "4px solid #0099D8",
+      "padding": 32,
+      "gap": 64
+    }
+  },
+  "narrativeModes": {
+    "claimFirst": {
+      "label": "判断先行型",
+      "pattern": "{target}本页判断应先回答管理含义，再列示关键证据和对标差距。"
+    },
+    "causalChain": {
+      "label": "因果解释型",
+      "pattern": "先说明驱动因子，再说明结果变量，最后落到管理动作。"
+    },
+    "counterintuitiveAlert": {
+      "label": "反直觉警示型",
+      "pattern": "先承认表观改善，再拆解底层驱动是否支持该改善。"
+    },
+    "prioritizedAction": {
+      "label": "优先级排序型",
+      "pattern": "把建议压缩为三项优先级，并绑定指标、时间窗口和复核口径。"
+    }
+  },
+  "v4Modules": {
+    "capitalMarket": {
+      "title": "资本市场智能",
+      "metrics": ["pb", "roe", "roa", "npl", "costIncomeRatio", "provisionCoverage", "cet1Buffer"],
+      "views": ["pbAttribution", "pbRoeQuadrant", "marketValueAction"],
+      "preferredNarrativeMode": "claimFirst"
+    },
+    "retailRisk": {
+      "title": "零售风险分产品",
+      "metrics": ["housingLoanShare", "consumerLoanShare", "businessLoanShare", "housingLoanNpl", "consumerLoanNpl", "businessLoanNpl", "personalLoanNpl"],
+      "views": ["productRiskMatrix", "retailScissors"],
+      "preferredNarrativeMode": "counterintuitiveAlert"
+    },
+    "depositLoanDeepDive": {
+      "title": "存贷结构深度拆解",
+      "metrics": ["timeDepositShare", "demandDepositShare", "earningAssetYield", "interestLiabilityCost", "realLoanDepositSpread", "nimGapBp"],
+      "views": ["depositWaterfall", "timeDepositTrend", "loanYieldQuality"],
+      "preferredNarrativeMode": "causalChain"
+    }
+  },
   "reportProfiles": {
     "董事会完整汇报版": {
       "includeSections": ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "action", "appendix"],
@@ -580,17 +635,17 @@
     },
     "资本市场沟通版": {
       "includeSections": ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "appendix"],
-      "defaultTopics": ["valuation", "profit", "capital"],
+      "defaultTopics": ["valuation", "capitalMarket", "profit", "capital", "depositLoanDeepDive"],
       "tone": "market"
     },
     "管理层行动版": {
       "includeSections": ["scope", "executive", "storyline", "topics", "action"],
-      "defaultTopics": ["profit", "nim", "risk", "capital"],
+      "defaultTopics": ["profit", "nim", "risk", "capital", "retailRisk", "depositLoanDeepDive"],
       "tone": "action"
     },
     "专项分析版": {
       "includeSections": ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "action", "appendix"],
-      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation"],
+      "defaultTopics": ["profit", "nim", "risk", "capital", "valuation", "capitalMarket", "retailRisk", "depositLoanDeepDive"],
       "tone": "board"
     },
     "一页摘要版": {
@@ -739,6 +794,87 @@
       ],
       "requiredCitations": ["pb", "roa", "coreRevenueGrowth"],
       "forbiddenPhrases": ["明确低估", "必然上涨", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    },
+    "capitalMarket": {
+      "id": "capitalMarket",
+      "title": "PB归因与资本市场专题",
+      "question": "董事会需要判断：目标银行 PB 折价究竟来自 ROE、风险确认、成本效率、资本余量中的哪一类因素，而不是停留在“估值偏低”的表述。",
+      "mechanism": "PB 归因必须把市场定价拆到可管理的经营因子。若实际 PB 低于模型拟合 PB，重点是证明市场认知滞后；若低于同业且拟合值也偏低，则应优先修复回报、风险和效率证据。",
+      "actions": [
+        "建立 PB-ROE-风险三维归因表，把估值折价拆为回报因子、风险因子、效率因子和资本因子。",
+        "对影响 PB 最大的两项因子设置季度改善口径，并同步写入投资者沟通材料。",
+        "用“经营质量证据链”替代单点估值陈述，避免形成不可验证的价值判断。"
+      ],
+      "metrics": [
+        { "key": "pb", "weight": 0.22, "direction": "contextual" },
+        { "key": "roe", "weight": 0.2, "direction": "higherBetter" },
+        { "key": "roa", "weight": 0.16, "direction": "higherBetter" },
+        { "key": "npl", "weight": 0.14, "direction": "lowerBetter" },
+        { "key": "costIncomeRatio", "weight": 0.12, "direction": "lowerBetter" },
+        { "key": "provisionCoverage", "weight": 0.08, "direction": "higherBetter" },
+        { "key": "cet1Buffer", "weight": 0.08, "direction": "higherBetter" }
+      ],
+      "requiredCitations": ["pb", "roe", "npl"],
+      "forbiddenPhrases": ["明确低估", "必然上涨", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    },
+    "retailRisk": {
+      "id": "retailRisk",
+      "title": "零售风险分产品专题",
+      "question": "董事会需要判断：零售风险压力来自住房、消费、经营贷中的哪一类产品，风险上行是否已经早于综合不良率暴露。",
+      "mechanism": "零售风险不能只看个贷不良率。产品占比和产品不良率同时上行时，意味着利润表后续可能承受拨备和清收双重压力；若占比高但不良率稳定，则重点转向定价、客群和贷后策略。",
+      "actions": [
+        "把住房、消费、经营贷拆成“规模占比、风险水平、同比变化、对标均值”四格矩阵。",
+        "对不良率高于对标且占比扩张的产品建立迁徙率、逾期率和客群切片复盘。",
+        "在行动建议中区分压降风险敞口、优化定价和强化贷后清收三类动作。"
+      ],
+      "metrics": [
+        { "key": "housingLoanShare", "weight": 0.12, "direction": "contextual" },
+        { "key": "consumerLoanShare", "weight": 0.12, "direction": "contextual" },
+        { "key": "businessLoanShare", "weight": 0.12, "direction": "contextual" },
+        { "key": "housingLoanNpl", "weight": 0.18, "direction": "lowerBetter" },
+        { "key": "consumerLoanNpl", "weight": 0.18, "direction": "lowerBetter" },
+        { "key": "businessLoanNpl", "weight": 0.18, "direction": "lowerBetter" },
+        { "key": "personalLoanNpl", "weight": 0.1, "direction": "lowerBetter" }
+      ],
+      "requiredCitations": ["personalLoanNpl", "consumerLoanNpl", "businessLoanNpl"],
+      "forbiddenPhrases": ["必然改善", "保证修复"],
+      "thresholds": {
+        "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
+        "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },
+        "green": { "strongPercentileAbove": 70, "minStrongMetrics": 2 }
+      }
+    },
+    "depositLoanDeepDive": {
+      "id": "depositLoanDeepDive",
+      "title": "存贷结构深钻专题",
+      "question": "董事会需要判断：息差压力是资产收益下行、负债成本刚性、存款定期化，还是贷款定价质量共同导致。",
+      "mechanism": "存贷结构深钻要把 NIM 拆成资产收益、负债成本、存款期限结构和真实存贷利差。只有识别压力来源，才能决定是压降高成本存款、优化贷款投向，还是重做客群结算沉淀。",
+      "actions": [
+        "把活期、定期和其他存款结构做成负债成本瀑布，识别可降本空间。",
+        "跟踪定期存款占比趋势，与对标组均值同步比较，判断负债弹性是否持续弱化。",
+        "用生息资产收益率、计息负债成本率和真实存贷利差形成资产负债管理复盘页。"
+      ],
+      "metrics": [
+        { "key": "timeDepositShare", "weight": 0.18, "direction": "lowerBetter" },
+        { "key": "demandDepositShare", "weight": 0.14, "direction": "higherBetter" },
+        { "key": "corporateDemandDepositShare", "weight": 0.12, "direction": "higherBetter" },
+        { "key": "personalDemandDepositShare", "weight": 0.1, "direction": "higherBetter" },
+        { "key": "earningAssetYield", "weight": 0.18, "direction": "higherBetter" },
+        { "key": "interestLiabilityCost", "weight": 0.16, "direction": "lowerBetter" },
+        { "key": "realLoanDepositSpread", "weight": 0.12, "direction": "higherBetter" }
+      ],
+      "requiredCitations": ["timeDepositShare", "earningAssetYield", "interestLiabilityCost"],
+      "forbiddenPhrases": ["必然改善", "保证修复"],
       "thresholds": {
         "red": { "weakPercentileBelow": 40, "minWeakMetrics": 2, "avgScoreBelow": 45 },
         "yellow": { "weakPercentileBelow": 60, "minWeakMetrics": 1, "avgScoreBelow": 60 },

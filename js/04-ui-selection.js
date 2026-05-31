@@ -1,16 +1,127 @@
 /* Bank VQA module: 04-ui-selection.js */
+function bankTypeBucket(type = "") {
+  const text = String(type || "");
+  if (text.includes("国有")) return "大行";
+  if (text.includes("股份")) return "股份行";
+  if (text.includes("城市商业")) return "城商行";
+  if (text.includes("农村商业")) return "农商行";
+  return "其他";
+}
+
+function targetTypeOptions() {
+  const preferred = ["全部", "大行", "股份行", "城商行", "农商行"];
+  const available = new Set(banks.map((bank) => bankTypeBucket(bank.type)).filter(Boolean));
+  return preferred.filter((item) => item === "全部" || available.has(item));
+}
+
+function targetNeedsRegion(type = state.targetTypeFilter) {
+  return ["城商行", "农商行"].includes(type);
+}
+
+function targetRegionsForType(type = state.targetTypeFilter) {
+  const rows = banks.filter((bank) => type === "全部" || bankTypeBucket(bank.type) === type);
+  const regions = [...new Set(rows.map((bank) => bank.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
+  return ["全部", ...regions];
+}
+
+function filteredTargetBanks() {
+  const search = String(state.targetSearch || "").trim().toLowerCase();
+  return banks.filter((bank) => {
+    const bucket = bankTypeBucket(bank.type);
+    const typeOk = state.targetTypeFilter === "全部" || bucket === state.targetTypeFilter;
+    const regionOk = !targetNeedsRegion() || state.targetRegionFilter === "全部" || bank.region === state.targetRegionFilter;
+    const text = `${displayBankName(bank.bank)} ${bank.bank} ${bank.region || ""} ${bank.type || ""}`.toLowerCase();
+    const searchOk = !search || text.includes(search);
+    return typeOk && regionOk && searchOk;
+  });
+}
+
+function ensureTargetInFilter() {
+  const rows = filteredTargetBanks();
+  if (!rows.length) return;
+  if (!rows.some((bank) => bank.bank === state.target)) {
+    state.target = rows[0].bank;
+    refreshDefaultPeersForTarget();
+  }
+}
+
+function renderTargetDrillControls() {
+  const typeTabs = document.getElementById("targetTypeTabs");
+  const regionTabs = document.getElementById("targetRegionTabs");
+  const count = document.getElementById("targetDrillCount");
+  const search = document.getElementById("targetBankSearch");
+  const clear = document.getElementById("targetClearSearch");
+  if (typeTabs) {
+    typeTabs.innerHTML = targetTypeOptions().map((type) => `
+      <button type="button" class="${state.targetTypeFilter === type ? "is-active" : ""}" data-target-type="${type}">
+        ${type}<span>${type === "全部" ? banks.length : banks.filter((bank) => bankTypeBucket(bank.type) === type).length}</span>
+      </button>
+    `).join("");
+    typeTabs.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+      state.targetTypeFilter = button.dataset.targetType;
+      state.targetRegionFilter = "全部";
+      state.targetSearch = "";
+      ensureTargetInFilter();
+      renderChoicePanels();
+      syncHiddenSelects();
+      updateSelectionSummary();
+      if (state.confirmed) renderAll();
+    }));
+  }
+  if (regionTabs) {
+    const shouldShow = targetNeedsRegion();
+    regionTabs.hidden = !shouldShow;
+    regionTabs.innerHTML = shouldShow ? targetRegionsForType().map((region) => `
+      <button type="button" class="${state.targetRegionFilter === region ? "is-active" : ""}" data-target-region="${region}">
+        ${region}<span>${region === "全部" ? "" : banks.filter((bank) => bankTypeBucket(bank.type) === state.targetTypeFilter && bank.region === region).length}</span>
+      </button>
+    `).join("") : "";
+    regionTabs.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+      state.targetRegionFilter = button.dataset.targetRegion;
+      ensureTargetInFilter();
+      renderChoicePanels();
+      syncHiddenSelects();
+      updateSelectionSummary();
+      if (state.confirmed) renderAll();
+    }));
+  }
+  if (search && search.value !== state.targetSearch) search.value = state.targetSearch || "";
+  if (search && !search.dataset.bound) {
+    search.dataset.bound = "1";
+    search.addEventListener("input", () => {
+      state.targetSearch = search.value;
+      renderChoicePanels();
+    });
+  }
+  if (clear && !clear.dataset.bound) {
+    clear.dataset.bound = "1";
+    clear.addEventListener("click", () => {
+      state.targetSearch = "";
+      renderChoicePanels();
+      search?.focus();
+    });
+  }
+  if (count) {
+    const rows = filteredTargetBanks();
+    const regionText = targetNeedsRegion() ? `｜${state.targetRegionFilter === "全部" ? "全部区域" : state.targetRegionFilter}` : "";
+    count.textContent = `${state.targetTypeFilter}${regionText} · ${rows.length} 家`;
+  }
+}
+
 function renderChoicePanels() {
   const targetBox = document.getElementById("targetBankChecks");
   const peerBox = document.getElementById("peerBankChecks");
   const typeBox = document.getElementById("typeChecks");
   const maxPeers = analysisRules?.inputs?.peerBanks?.recommendedMax || 8;
+  renderTargetDrillControls();
   if (targetBox) {
-    targetBox.innerHTML = banks.map((b) => `
+    const targetRows = filteredTargetBanks();
+    targetBox.innerHTML = targetRows.length ? targetRows.map((b) => `
       <label class="choice-item ${b.bank === state.target ? "is-selected" : ""}">
         <input type="radio" name="targetBankChoice" value="${b.bank}" ${b.bank === state.target ? "checked" : ""}>
         <span>${displayBankName(b.bank)}<em>${b.region || "区域未标注"}｜${b.type || "银行样本"}</em></span>
       </label>
-    `).join("");
+    `).join("") : `<div class="choice-empty">当前筛选下暂无银行，请切换类型、区域或清空搜索。</div>`;
     targetBox.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => {
       state.target = input.value;
       refreshDefaultPeersForTarget();
@@ -130,6 +241,7 @@ function populateSelectors() {
   }
   if (confirm) {
     confirm.addEventListener("click", () => {
+      ensureTargetInFilter();
       const checkedTarget = document.querySelector('input[name="targetBankChoice"]:checked');
       const checkedPeers = [...document.querySelectorAll('input[name="peerBankChoice"]:checked')].map((input) => input.value);
       const checkedTypes = [...document.querySelectorAll('input[name="typeChoice"]:checked')].map((input) => input.value);

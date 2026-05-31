@@ -4,17 +4,17 @@ function fallbackReportProfiles() {
   return {
     "董事会完整汇报版": {
       includeSections: ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "action", "appendix"],
-      defaultTopics: ["profit", "nim", "risk", "capital", "valuation"],
+      defaultTopics: ["profit", "nim", "risk", "capital", "valuation", "capitalMarket", "retailRisk", "depositLoanDeepDive"],
       tone: "board"
     },
     "资本市场沟通版": {
       includeSections: ["scope", "methodology", "executive", "vqa", "storyline", "topics", "charts", "appendix"],
-      defaultTopics: ["valuation", "profit", "capital"],
+      defaultTopics: ["valuation", "capitalMarket", "profit", "capital", "depositLoanDeepDive"],
       tone: "market"
     },
     "管理层行动版": {
       includeSections: ["scope", "executive", "storyline", "topics", "action"],
-      defaultTopics: ["profit", "nim", "risk", "capital"],
+      defaultTopics: ["profit", "nim", "risk", "capital", "retailRisk", "depositLoanDeepDive"],
       tone: "action"
     }
   };
