@@ -178,6 +178,34 @@ function bindAnalysisRoadmap() {
   });
 }
 
+function appModeForWorkspaceTab(tab = activeWorkspaceTab) {
+  if (tab === "report") return "report";
+  if (state?.confirmed) return "analysis";
+  return "setup";
+}
+
+function setAppMode(mode = state?.appMode || "setup", options = {}) {
+  const allowed = ["setup", "analysis", "report"];
+  const nextMode = allowed.includes(mode) ? mode : "setup";
+  state.appMode = nextMode;
+  document.body.dataset.appState = nextMode;
+  document.querySelectorAll("[data-app-mode-target]").forEach((button) => {
+    const isActive = button.dataset.appModeTarget === nextMode;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-current", isActive ? "step" : "false");
+    if (!state.confirmed && button.dataset.appModeTarget !== "setup") {
+      button.setAttribute("aria-disabled", "true");
+    } else {
+      button.removeAttribute("aria-disabled");
+    }
+  });
+  if (!options.skipRouting) {
+    if (nextMode === "report") setWorkspaceTab("report");
+    if (nextMode === "analysis" && activeWorkspaceTab === "report") setWorkspaceTab("overview");
+  }
+  if (typeof renderGlobalBar === "function") renderGlobalBar();
+}
+
 function setWorkspaceTab(tab = activeWorkspaceTab) {
   activeWorkspaceTab = tab;
   state.activeWorkspaceTab = tab;
@@ -192,6 +220,9 @@ function setWorkspaceTab(tab = activeWorkspaceTab) {
   if (tab === "review" && typeof renderBoardReview === "function") renderBoardReview();
   if (typeof renderAnalysisRoadmap === "function") renderAnalysisRoadmap();
   if (typeof updateActiveNav === "function") updateActiveNav();
+  const nextMode = appModeForWorkspaceTab(tab);
+  if (state.appMode !== nextMode) setAppMode(nextMode, { skipRouting: true });
+  else if (typeof renderGlobalBar === "function") renderGlobalBar();
 }
 
 function commandCenterDiagnosis() {
