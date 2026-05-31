@@ -13,7 +13,10 @@
 </head>
 <body>
   <aside class="side-nav analysis-content" id="sideNav" aria-label="章节导航">
-    <h3>页面导航</h3>
+    <div class="side-nav-head">
+      <h3>页面导航</h3>
+      <button class="layout-collapse-toggle" id="toggleSideNav" type="button" data-layout-collapse-target="sideNav" aria-controls="sideNav" aria-expanded="true" aria-label="收起页面导航">收起</button>
+    </div>
     <div id="sideNavContent"></div>
   </aside>
   <main class="app">
@@ -363,6 +366,7 @@
             <span>分析地图</span>
             <b id="analysisRoadmapTitle">先确认样本，再按路径推进分析</b>
           </div>
+          <button class="layout-collapse-toggle" id="toggleAnalysisRoadmap" type="button" data-layout-collapse-target="analysisRoadmap" aria-controls="analysisRoadmap" aria-expanded="true" aria-label="收起分析地图">收起</button>
           <a id="analysisNextAction" href="#topicWorkbenchSection" data-nav-target="topics">下一步</a>
         </div>
         <div class="analysis-roadmap-steps" id="analysisRoadmapSteps"></div>
@@ -756,6 +760,7 @@
         </div>
 
         <aside class="report-control-rail" id="reportControlRail" aria-label="报告交付控制台">
+          <button class="layout-collapse-toggle rail-toggle" id="toggleReportControlRail" type="button" data-layout-collapse-target="reportControlRail" aria-controls="reportControlRail" aria-expanded="true" aria-label="收起交付控制台">收起交付控制台</button>
           <section class="board-review-panel" id="boardReviewPanel" aria-label="董办复核">
             <div class="board-review-head">
               <div>

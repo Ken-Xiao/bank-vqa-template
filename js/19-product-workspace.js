@@ -2,6 +2,86 @@
 
 var activeWorkspaceTab = "report";
 var activeDataSubtab = "quality";
+var layoutPanelStorageKey = "bankVqaLayoutPanelState";
+var layoutPanelConfig = {
+  sideNav: {
+    bodyClass: "layout-nav-collapsed",
+    elementId: "sideNav",
+    collapsedLabel: "展开",
+    expandedLabel: "收起",
+    collapsedAria: "展开页面导航",
+    expandedAria: "收起页面导航"
+  },
+  analysisRoadmap: {
+    bodyClass: "layout-map-collapsed",
+    elementId: "analysisRoadmap",
+    collapsedLabel: "展开",
+    expandedLabel: "收起",
+    collapsedAria: "展开分析地图",
+    expandedAria: "收起分析地图"
+  },
+  reportControlRail: {
+    bodyClass: "layout-rail-collapsed",
+    elementId: "reportControlRail",
+    collapsedLabel: "展开控制台",
+    expandedLabel: "收起交付控制台",
+    collapsedAria: "展开交付控制台",
+    expandedAria: "收起交付控制台"
+  }
+};
+
+function readLayoutPanelState() {
+  try {
+    return JSON.parse(localStorage.getItem(layoutPanelStorageKey) || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function writeLayoutPanelState(nextState) {
+  try {
+    localStorage.setItem(layoutPanelStorageKey, JSON.stringify(nextState));
+  } catch (error) {
+    // Local storage can be unavailable in restricted previews; layout still works for the session.
+  }
+}
+
+function setLayoutPanelCollapsed(panelKey, collapsed, persist = true) {
+  const config = layoutPanelConfig[panelKey];
+  if (!config) return;
+  const element = document.getElementById(config.elementId);
+  const toggle = document.querySelector(`[data-layout-collapse-target="${panelKey}"]`);
+  document.body.classList.toggle(config.bodyClass, collapsed);
+  element?.classList.toggle("is-collapsed", collapsed);
+  if (toggle) {
+    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    toggle.setAttribute("aria-label", collapsed ? config.collapsedAria : config.expandedAria);
+    toggle.textContent = collapsed ? config.collapsedLabel : config.expandedLabel;
+  }
+  if (persist) {
+    const saved = readLayoutPanelState();
+    saved[panelKey] = collapsed;
+    writeLayoutPanelState(saved);
+  }
+}
+
+function toggleLayoutPanel(panelKey) {
+  const config = layoutPanelConfig[panelKey];
+  const element = config ? document.getElementById(config.elementId) : null;
+  setLayoutPanelCollapsed(panelKey, !element?.classList.contains("is-collapsed"));
+}
+
+function bindLayoutPanelToggles() {
+  const saved = readLayoutPanelState();
+  Object.keys(layoutPanelConfig).forEach((panelKey) => {
+    setLayoutPanelCollapsed(panelKey, Boolean(saved[panelKey]), false);
+  });
+  document.querySelectorAll("[data-layout-collapse-target]").forEach((button) => {
+    if (button.dataset.layoutCollapseBound) return;
+    button.dataset.layoutCollapseBound = "1";
+    button.addEventListener("click", () => toggleLayoutPanel(button.dataset.layoutCollapseTarget));
+  });
+}
 
 function analysisNavigationItems() {
   const confirmed = Boolean(state?.confirmed);
@@ -603,6 +683,7 @@ function initProductWorkspace() {
   });
   bindClientActionBar();
   bindOverviewDepthToggle();
+  bindLayoutPanelToggles();
   state.activeWorkspaceTab = "report";
   setWorkspaceTab("report");
   setDataSubtab("quality");

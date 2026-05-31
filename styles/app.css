@@ -12,6 +12,7 @@
       --warn: #F59E0B;
       --risk: #EF4444;
       --good: #10B981;
+      --green: #10B981;
       --cyan: #0099D8;
       --shadow: 0 18px 55px rgba(6, 27, 58, .12);
       --shadow-soft: 0 10px 28px rgba(6, 27, 58, .08);
@@ -66,10 +67,73 @@
 
     body.analysis-ready .side-nav { display: block; }
 
+    .side-nav-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
     .side-nav h3 {
       color: var(--navy-2);
       font-size: 15px;
-      margin: 0 0 12px;
+      margin: 0;
+    }
+
+    .layout-collapse-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 6px 9px;
+      border: 1px solid #cfdbe7;
+      border-radius: 4px;
+      background: #f7fbfe;
+      color: var(--navy-2);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .layout-collapse-toggle:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #edf8fd;
+    }
+
+    body.layout-nav-collapsed .side-nav,
+    .side-nav.is-collapsed {
+      width: 54px;
+      padding: 10px 8px;
+      overflow: hidden;
+      border-top-color: var(--navy-2);
+    }
+
+    .side-nav.is-collapsed .side-nav-head {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 0;
+    }
+
+    .side-nav.is-collapsed h3,
+    .side-nav.is-collapsed #sideNavContent {
+      display: none;
+    }
+
+    .side-nav.is-collapsed::after {
+      content: "页面导航";
+      display: block;
+      margin-top: 8px;
+      color: var(--navy-2);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.15;
+      text-align: center;
+      writing-mode: vertical-rl;
+      letter-spacing: 0;
     }
 
     .side-nav .nav-group strong {
@@ -4189,6 +4253,10 @@
       margin-top: 16px;
     }
 
+    body.layout-rail-collapsed .report-first-workspace {
+      grid-template-columns: minmax(0, 1fr) 58px;
+    }
+
     .report-first-main {
       min-width: 0;
     }
@@ -4238,6 +4306,48 @@
       min-width: 0;
       overflow: auto;
       padding-right: 3px;
+    }
+
+    .report-control-rail .rail-toggle {
+      width: 100%;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .report-control-rail.is-collapsed {
+      width: 58px;
+      min-width: 58px;
+      max-width: 58px;
+      overflow: hidden;
+      padding-right: 0;
+    }
+
+    .report-control-rail.is-collapsed .rail-toggle {
+      min-height: 38px;
+      padding: 6px;
+      white-space: normal;
+    }
+
+    .report-control-rail.is-collapsed .board-review-panel {
+      display: none;
+    }
+
+    .report-control-rail.is-collapsed::after {
+      content: "交付控制台";
+      display: grid;
+      place-items: center;
+      min-height: 190px;
+      border: 1px solid #d9e4ef;
+      border-top: 5px solid var(--green);
+      background: #fff;
+      color: var(--navy-2);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.2;
+      text-align: center;
+      writing-mode: vertical-rl;
+      letter-spacing: 0;
+      box-shadow: 0 12px 30px rgba(6,27,58,.06);
     }
 
     .report-control-rail .board-review-panel {
@@ -4320,7 +4430,7 @@
 
     .analysis-roadmap-head {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr auto;
       gap: 12px;
       margin-bottom: 10px;
     }
@@ -4344,6 +4454,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      grid-column: 1 / -1;
       padding: 8px 11px;
       background: #061b3a;
       color: #fff;
@@ -4351,6 +4462,42 @@
       font-size: 12px;
       font-weight: 900;
       border-radius: 4px;
+    }
+
+    body.layout-map-collapsed .analysis-roadmap,
+    .analysis-roadmap.is-collapsed {
+      width: 56px;
+      min-height: 210px;
+      padding: 8px;
+      overflow: hidden;
+      border-top-color: var(--navy-2);
+    }
+
+    .analysis-roadmap.is-collapsed .analysis-roadmap-head {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 0;
+    }
+
+    .analysis-roadmap.is-collapsed .analysis-roadmap-head > div,
+    .analysis-roadmap.is-collapsed .analysis-roadmap-head a,
+    .analysis-roadmap.is-collapsed .analysis-roadmap-steps,
+    .analysis-roadmap.is-collapsed .analysis-map-links {
+      display: none;
+    }
+
+    .analysis-roadmap.is-collapsed::after {
+      content: "分析地图";
+      display: grid;
+      place-items: center;
+      min-height: 150px;
+      color: var(--navy-2);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.2;
+      text-align: center;
+      writing-mode: vertical-rl;
+      letter-spacing: 0;
     }
 
     .analysis-roadmap-steps {
