@@ -214,6 +214,22 @@ function bindGlobalBar() {
     document.getElementById("clientExportToggle")?.click();
   });
   document.getElementById("openToolDrawer")?.addEventListener("click", () => openToolDrawer("data"));
+  document.getElementById("closeToolDrawer")?.addEventListener("click", closeToolDrawer);
+  document.querySelectorAll("[data-drawer-tab-target]").forEach((button) => {
+    if (button.dataset.drawerBound) return;
+    button.dataset.drawerBound = "1";
+    button.addEventListener("click", () => setDrawerTab(button.dataset.drawerTabTarget));
+  });
+  document.getElementById("toolDrawerPanel")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-drawer-jump]");
+    if (!button) return;
+    const tab = button.dataset.drawerWorkspace;
+    const target = button.dataset.drawerJump;
+    if (tab) setWorkspaceTab(tab);
+    setAppMode(tab === "report" ? "report" : "analysis");
+    closeToolDrawer();
+    setTimeout(() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  });
 }
 
 function drawerContent(tab = state.activeDrawerTab || "data") {
