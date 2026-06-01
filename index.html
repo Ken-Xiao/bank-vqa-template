@@ -54,7 +54,7 @@
         <div class="meta-panel">
           <div class="meta-row"><span>报告属性</span><b>董事会专题汇报</b></div>
           <div class="meta-row"><span>报告期</span><b>2020 - 2025</b></div>
-          <div class="meta-row"><span>分析对象</span><b>苏农银行，可切换</b></div>
+          <div class="meta-row"><span>分析对象</span><b>目标银行，可切换</b></div>
           <div class="meta-row"><span>对标样本</span><b>自定义银行组 + 同类型样本</b></div>
           <div class="meta-row"><span>估值样本</span><b>57 家上市银行，6 年面板</b></div>
           <div class="meta-row"><span>数据来源</span><b>上市公司年报、iFinD、RSM 研究汇总</b></div>
@@ -298,18 +298,18 @@
           <b id="v5DataFreshness">数据时效待确认</b>
         </div>
         <div class="v5-value-grid" id="v5ValueGrid"></div>
-        <div class="v5-two-column">
+        <div class="v5-two-column is-stacked">
           <div class="v5-card">
-            <div class="v5-card-head"><span>PB估值答案页</span><b>DDM + 回归归因</b></div>
+            <div class="v5-card-head"><span>估值证据页</span><b>PB 是否由经营质量解释</b></div>
             <div id="v5PbAnchorPanel"></div>
           </div>
           <div class="v5-card">
-            <div class="v5-card-head"><span>异动雷达</span><b>Top Changes & Deviations</b></div>
+            <div class="v5-card-head"><span>异动证据页</span><b>扰动还是结构性偏离</b></div>
             <div id="v5DeviationRadar"></div>
           </div>
         </div>
         <div class="v5-card">
-          <div class="v5-card-head"><span>PB提升路径</span><b>按边际贡献排序</b></div>
+          <div class="v5-card-head"><span>行动证据页</span><b>先修哪个因子才影响 PB</b></div>
           <div id="v5TornadoPanel"></div>
         </div>
       </section>
@@ -377,39 +377,50 @@
         <button type="button" data-tab-target="governance"><span>6</span>管理</button>
       </nav>
       <section class="step-shell step2-content analysis-content" id="step2Content" data-step-shell="analysis" aria-label="诊断结论">
+        <nav class="step2-path-nav" aria-label="Step 2 诊断路径">
+          <a class="is-active" href="#step2SummarySection" data-step2-jump="summary"><span>1</span>30秒诊断</a>
+          <a href="#step2PeerPosition" data-step2-jump="peer"><span>2</span>同业位置</a>
+          <a href="#step2TopChanges" data-step2-jump="changes"><span>3</span>异动偏离</a>
+          <a href="#step2PbAnswer" data-step2-jump="pb"><span>4</span>估值答案</a>
+          <a href="#step2TopicCards" data-step2-jump="topics"><span>5</span>专题深钻</a>
+          <a href="#step2ActionPath" data-step2-jump="actions"><span>6</span>行动路径</a>
+        </nav>
         <section class="step-focus-section step2-diagnosis-hero" id="step2SummarySection" aria-label="30秒总结">
           <span>Step 2 · 30 秒诊断</span>
           <h2 id="step2DiagnosisTitle">确认口径后生成价值质量总答案</h2>
           <p id="step2DiagnosisLead">这里将合并客户摘要、行长摘要和交付控制台，先用一句话说明当前价值质量约束，再给出董事会应优先讨论的三个问题。</p>
+          <div class="step2-decision-brief" id="step2DecisionBrief" aria-label="董事会默认答案"></div>
           <div class="step2-kpi-strip" id="step2KpiStrip" aria-label="关键诊断指标"></div>
           <div class="step2-board-questions" id="step2BoardQuestions" aria-label="董事会讨论问题"></div>
         </section>
-        <div class="section-bridge">先用总答案定调，再用三类证据判断结论是否可上会。</div>
+        <div class="section-bridge" id="step2BridgeEvidence">先用总答案定调，再用三类证据判断结论是否可上会。</div>
         <div class="step2-evidence-grid" aria-label="三类核心证据">
           <section class="step-focus-section step2-evidence-section" id="step2PeerPosition" aria-label="同业位置证据">
             <span>Evidence 01 · 同业位置</span>
-            <h3>SPARC 五灯号显示哪些能力支撑或拖累价值质量</h3>
+            <h3 id="step2PeerTitle">SPARC 五灯号显示哪些能力支撑或拖累价值质量</h3>
             <div class="step2-evidence-body" id="step2PeerPositionBody">确认分析后生成同业位置卡。</div>
           </section>
-          <section class="step-focus-section step2-evidence-section" id="step2TopChanges" aria-label="异动与偏离证据">
+          <section class="step-focus-section step2-evidence-section is-vertical" id="step2TopChanges" aria-label="异动与偏离证据">
             <span>Evidence 02 · Top Changes & Deviations</span>
-            <h3>先看本期变化，再看相对对标组的偏离</h3>
+            <h3 id="step2ChangesTitle">先看本期变化，再看相对对标组的偏离</h3>
             <div class="step2-evidence-body" id="step2TopChangesBody">确认分析后生成异动与偏离。</div>
           </section>
-          <section class="step-focus-section step2-evidence-section" id="step2PbAnswer" aria-label="估值答案证据">
+          <section class="step-focus-section step2-evidence-section is-vertical" id="step2PbAnswer" aria-label="估值答案证据">
             <span>Evidence 03 · PB 估值锚</span>
-            <h3>低 PB 是价值错配，还是经营质量折价</h3>
+            <h3 id="step2PbTitle">低 PB 是价值错配，还是经营质量折价</h3>
             <div class="step2-evidence-body" id="step2PbAnswerBody">确认分析后生成 PB 估值答案。</div>
           </section>
         </div>
+        <div class="section-bridge" id="step2BridgeTopics">完成三类证据核验后，再决定哪些专题需要进入正式报告。</div>
         <section class="step-focus-section step2-topic-section" id="step2TopicCards" aria-label="专题入口">
           <span>N · 专题深钻入口</span>
-          <h3>专题默认折叠为问题、证据、机制和行动</h3>
+          <h3 id="step2TopicsTitle">专题默认折叠为问题、证据、机制和行动</h3>
           <div class="step2-topic-grid" id="step2TopicGrid"></div>
         </section>
+        <div class="section-bridge" id="step2BridgeActions">最后把诊断翻译成管理层可承接的时间表，而不是停留在指标解释。</div>
         <section class="step-focus-section step2-action-section" id="step2ActionPath" aria-label="行动路径">
           <span>Action Path</span>
-          <h3>把诊断转成 0-3、3-6、6-12 个月行动顺序</h3>
+          <h3 id="step2ActionsTitle">把诊断转成 0-3、3-6、6-12 个月行动顺序</h3>
           <div class="step2-action-path" id="step2ActionPathGrid"></div>
         </section>
       </section>
@@ -539,6 +550,22 @@
             <div><b>1. 当前数据</b><span id="aiProductEvidence">等待选择目标银行和对标银行。</span></div>
             <div><b>2. 事实包约束</b><span id="aiProductGuardrail">所有文字必须回到指标、分位、对标均值和时间变化。</span></div>
             <div><b>3. 报告输出</b><span id="aiProductOutput">HTML、PPTX、PDF 和 Excel 底稿共享同一套事实口径。</span></div>
+          </div>
+          <div class="ai-commentary-panel" id="aiCommentaryPanel">
+            <div class="ai-commentary-head">
+              <b>自然语言模型评论层</b>
+              <span id="aiCommentaryStatus">本地模板待命</span>
+            </div>
+            <p id="aiCommentaryPreview">确认分析后生成当前银行的董事会版评论；接入后端模型接口后，可自动改写为更自然的咨询语言。</p>
+            <div class="ai-commentary-channel" aria-label="评论版本">
+              <button type="button" class="is-active" data-bank-commentary-channel="board">董事会版</button>
+              <button type="button" data-bank-commentary-channel="market">资本市场版</button>
+              <button type="button" data-bank-commentary-channel="action">管理层行动版</button>
+            </div>
+            <div class="ai-commentary-actions">
+              <button type="button" id="regenerateBankCommentary">重新生成评论</button>
+              <button type="button" id="regenerateBankCommentaryAi">调用模型接口</button>
+            </div>
           </div>
         </div>
       </div>
@@ -814,7 +841,7 @@
           </section>
         </div>
 
-        <aside class="report-control-rail" id="reportControlRail" aria-label="报告交付控制台">
+        <aside class="report-control-rail is-docked is-collapsed" id="reportControlRail" aria-label="报告交付控制台">
           <button class="layout-collapse-toggle rail-toggle" id="toggleReportControlRail" type="button" data-layout-collapse-target="reportControlRail" aria-controls="reportControlRail" aria-expanded="true" aria-label="收起交付控制台">收起交付控制台</button>
           <section class="board-review-panel" id="boardReviewPanel" aria-label="董办复核">
             <div class="board-review-head">
@@ -1332,6 +1359,8 @@
   <script src="js/29-ai-governance.js?v=20260531-governance"></script>
   <script src="js/30-export-sequence-qa.js?v=20260531-export-qa-v2"></script>
   <script src="js/31-ceam-structure-editor.js?v=20260531-ceam-v2"></script>
+  <script src="js/32-pb-pricing-model.js?v=20260601-pb-pricing"></script>
+  <script src="js/33-llm-commentary.js?v=20260601-llm-commentary"></script>
   <script src="js/10-bootstrap.js"></script>
 </body>
 </html>

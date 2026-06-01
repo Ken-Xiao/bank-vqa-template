@@ -11,15 +11,18 @@
 
   .formal-report {
     color: #172331;
+    background: #fff !important;
+    border-top: 8px solid #0099d8 !important;
   }
 
   .formal-report > header,
   .formal-report > section {
     page-break-before: always;
     break-before: page;
-    page-break-inside: avoid;
-    break-inside: avoid;
+    page-break-inside: auto;
+    break-inside: auto;
     min-height: auto;
+    box-shadow: none !important;
   }
 
   .formal-report > header:first-child {
@@ -30,6 +33,62 @@
   .formal-section table {
     page-break-inside: auto;
     break-inside: auto;
+  }
+
+  .formal-cover {
+    min-height: 245mm !important;
+    background: linear-gradient(135deg, #061b3a 0%, #0b3d6a 58%, #0099d8 100%) !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .formal-section,
+  .formal-executive {
+    border-top: 1px solid #d9e4ef !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .formal-section::before,
+  .formal-executive::before {
+    background: linear-gradient(90deg, #6a6f76 0 28%, #10b981 28% 48%, #0099d8 48% 100%) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .formal-lead,
+  .formal-callout,
+  .formal-so-what div,
+  .formal-chart-readout,
+  .formal-metric-hero,
+  .formal-risk-card,
+  .formal-sequence-card,
+  .formal-action-card,
+  .formal-consistency-card,
+  .formal-drill-card,
+  .formal-whatif-strip > div,
+  .formal-risk-footnotes {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .formal-so-what,
+  .formal-two-column,
+  .formal-risk-grid,
+  .formal-sequence-grid,
+  .formal-action-grid,
+  .formal-metric-grid,
+  .formal-whatif-strip {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .formal-so-what {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .formal-section thead {
@@ -44,9 +103,24 @@
   .formal-section svg,
   .formal-section .v4-chart-card,
   .formal-section .v5-card,
-  .formal-section .v6-anomaly-grid {
+  .formal-section .v6-anomaly-grid,
+  .formal-section .formal-benchmark-line,
+  .formal-section .formal-profit-waterfall,
+  .formal-section .formal-nim-bridge:not(table) {
     max-height: 160mm;
     overflow: hidden;
+  }
+
+  .formal-fact-table,
+  .formal-peer-matrix {
+    font-size: 10.5px;
+  }
+
+  .formal-fact-table th,
+  .formal-fact-table td,
+  .formal-peer-matrix th,
+  .formal-peer-matrix td {
+    padding: 5px 6px;
   }
 
   .formal-report::after {

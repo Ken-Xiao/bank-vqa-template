@@ -77,6 +77,87 @@ function formalAssertionTitle(topicKey, row = targetRecord()) {
   return map[topicKey] || `${target}本页结论需要回到选定样本和口径边界验证`;
 }
 
+function formalLanguageReadout(topicKey = "executive", row = targetRecord(), peers = peerRecords()) {
+  const intensity = typeof step2LanguageIntensity === "function"
+    ? step2LanguageIntensity(row, peers)
+    : { level: "L2", tone: "warn", label: "审慎判断", reason: "信号需要经过同业、趋势和口径风险交叉验证。" };
+  const topic = typeof topicDefinitions === "function" ? topicDefinitions().find((item) => item.id === topicKey) : null;
+  const facts = topic && typeof topicFactPackRows === "function" ? topicFactPackRows(topic.id) : [];
+  const judgement = topic && typeof topicJudgement === "function" ? topicJudgement(topic.id, facts) : null;
+  const evidence = judgement?.evidence?.[0] || facts[0] || null;
+  const evidenceText = evidence
+    ? `${evidence.指标名称}为${evidence.目标值}，对标均值${evidence.对标均值 || "暂无"}，${evidence.分位 || "分位待补"}`
+    : "当前证据不足，需回到底稿补齐关键指标。";
+  const soWhat = topicKey === "valuation" || topicKey === "capitalMarket"
+    ? "管理含义：估值页不能直接使用“低估”叙事，必须先证明经营质量、风险确认和资本效率能够共同支撑重估。"
+    : topicKey === "risk" || topicKey === "retailRisk"
+      ? "管理含义：风险页应把领先风险指标前移到经营会，而不是等综合不良率被动确认。"
+      : topicKey === "nim" || topicKey === "depositLoanDeepDive"
+        ? "管理含义：息差页要把资产定价、负债成本和存款结构拆成 ALM 动作，避免只描述 NIM 下行。"
+        : topicKey === "profit"
+          ? "管理含义：盈利页应区分核心营收修复、拨备节奏和波动型非息，避免用净利润增速替代质量判断。"
+          : "管理含义：本页应服务于管理层排序，凡不能改变行动优先级的指标应降级到附录。";
+  return { ...intensity, topic, facts, judgement, evidenceText, soWhat };
+}
+
+function formalSoWhatStrip(topicKey, row = targetRecord(), peers = peerRecords()) {
+  const readout = formalLanguageReadout(topicKey, row, peers);
+  return `
+    <div class="formal-so-what tone-${formalEscape(readout.level)}">
+      <div><span>表达强度</span><b>${formalEscape(readout.level)}｜${formalEscape(readout.label)}</b><p>${formalEscape(readout.reason)}</p></div>
+      <div><span>证据锚点</span><b>${formalEscape(readout.judgement?.signal || "待判断")}</b><p>${formalEscape(readout.evidenceText)}</p></div>
+      <div><span>So What</span><b>管理含义</b><p>${formalEscape(readout.soWhat)}</p></div>
+    </div>`;
+}
+
+function formalBankCommentaryHtml(row = targetRecord()) {
+  if (!row || typeof getBankCommentary !== "function") return "";
+  const channels = [
+    ["board", "董事会版"],
+    ["market", "资本市场版"],
+    ["action", "管理层行动版"]
+  ];
+  return `
+    <div class="formal-ai-commentary" aria-label="银行级自然语言模型评论">
+      <span>Sprint 8A｜银行级评论层</span>
+      <h3>同一事实包生成三种汇报语气，避免报告只停留在模板化陈述</h3>
+      <div>
+        ${channels.map(([channel, label]) => {
+          const commentary = getBankCommentary(channel);
+          return `
+            <article>
+              <b>${formalEscape(label)}</b>
+              <p>${formalParagraph(commentary.text, 360)}</p>
+              <em>${formalEscape(commentary.source || "local-preview")}</em>
+            </article>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+
+function formalChartInterpretation(topicKey, row = targetRecord(), peers = peerRecords()) {
+  const titleMap = {
+    profit: "净利润归因瀑布",
+    nim: "多基准线｜净息差样本坐标",
+    risk: "偏离度与拨备覆盖率定位",
+    capital: "资本效率四象限",
+    valuation: "市净率价值质量验证",
+    capitalMarket: "PB归因地图",
+    retailRisk: "零售风险剪刀差",
+    depositLoanDeepDive: "存贷深钻"
+  };
+  const chartTitle = titleMap[topicKey] || formalAssertionTitle(topicKey, row);
+  const readout = typeof chartAnnotationText === "function"
+    ? chartAnnotationText(chartTitle, row, peers)
+    : formalLanguageReadout(topicKey, row, peers).soWhat;
+  return `
+    <div class="formal-chart-readout">
+      <span>读图结论</span>
+      <b>${formalEscape(chartTitle)}</b>
+      <p>${formalParagraph(readout, 240)}</p>
+    </div>`;
+}
+
 function formalV3SubjectSections(row = targetRecord()) {
   if (!row) return "";
   const macro = typeof v3MacroTransmission === "function" ? v3MacroTransmission(row, peerRecords()) : null;
@@ -214,22 +295,33 @@ function formalBenchmarkLineHtml(key = "nim", row = targetRecord(), peers = peer
 }
 
 function formalNimBridgeHtml(row = targetRecord(), peers = peerRecords()) {
-  const keys = ["nim", "earningAssetYield", "interestLiabilityCost", "timeDepositShare"];
+  const keys = ["nim", "earningAssetYield", "interestLiabilityCost", "timeDepositShare", "nimGapBp"];
+  const rows = keys.map((key) => {
+    const value = row?.[key];
+    const peer = avg(peers, key);
+    const gap = value == null || peer == null ? null : value - peer;
+    const positive = gap == null ? null : metricDirection(key) ? gap >= 0 : gap <= 0;
+    const readout = gap == null
+      ? "样本不足，暂不形成差距判断。"
+      : positive
+        ? "相对对标更稳，可作为息差防守支撑证据。"
+        : "相对对标承压，应进入资产负债月度复核。";
+    return { key, value, peer, gap, readout, positive };
+  });
   return `
-    <div class="formal-nim-bridge" aria-label="NIM四段式桥">
-      ${keys.map((key) => {
-        const value = row?.[key];
-        const peer = avg(peers, key);
-        const gap = value == null || peer == null ? null : value - peer;
-        const tone = gap == null ? "neutral" : (metricDirection(key) ? gap >= 0 : gap <= 0) ? "positive" : "negative";
-        return `
-          <div class="formal-nim-bridge-card tone-${tone}">
-            <span>${formalEscape(fieldName(key))}</span>
-            <b>${formalEscape(metricDisplayValue(key, value))}</b>
-            <em>对标 ${formalEscape(metricDisplayValue(key, peer))}</em>
-          </div>`;
-      }).join("")}
-    </div>`;
+    <table class="formal-nim-bridge formal-nim-bridge-table" aria-label="NIM息差防守数据表">
+      <thead><tr><th>指标</th><th>目标银行</th><th>对标均值</th><th>差距</th><th>读法</th></tr></thead>
+      <tbody>
+        ${rows.map((item) => `
+          <tr class="${item.positive == null ? "tone-neutral" : item.positive ? "tone-positive" : "tone-negative"}">
+            <td>${formalEscape(fieldName(item.key))}</td>
+            <td>${formalEscape(metricDisplayValue(item.key, item.value))}</td>
+            <td>${formalEscape(metricDisplayValue(item.key, item.peer))}</td>
+            <td>${item.gap == null ? "暂无" : formalEscape(metricDisplayValue(item.key, item.gap))}</td>
+            <td>${formalEscape(item.readout)}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
 }
 
 function formalMechanismChartHtml(module) {
@@ -375,9 +467,11 @@ function formalTopicSection(topicKey, index) {
     <section class="formal-section" id="formal-topic-${formalEscape(topicKey)}">
       <div class="formal-section-kicker">专题 ${String(index + 1).padStart(2, "0")}｜${formalEscape(config.module)}｜置信度 ${formalEscape(confidence.level)}</div>
       <h2>${formalEscape(formalAssertionTitle(topicKey, row))}</h2>
+      ${formalSoWhatStrip(topicKey, row, peerRecords())}
       <div class="formal-two-column">
         <div>
           <p class="formal-lead">${formalParagraph(`${targetRecord()?.bank ? formalBankName(row) : "目标银行"}本页要回答的不是“${config.title}是否好看”，而是该专题是否会改变管理层下一步排序。${confidence.prefix}，${judgement?.headline || config.finding} ${confidence.suffix}`, 320)}</p>
+          ${formalChartInterpretation(topicKey, row, peerRecords())}
           <h3>1. 证据基础</h3>
           <p>${formalParagraph(facts.slice(0, 3).map((fact) => `${fact.指标名称}为${fact.目标值}，对标均值${fact.对标均值}，分位为${fact.分位}`).join("；") || "本专题缺少足够可用指标。", 520)}</p>
           ${formalFactTable(facts)}
@@ -582,6 +676,88 @@ function applyFormalReportContract(root = document) {
   return sections;
 }
 
+function formalReportModel(root = document) {
+  const scope = root?.querySelectorAll ? root : document;
+  const sections = typeof applyFormalReportContract === "function"
+    ? applyFormalReportContract(scope)
+    : formalReportSections(scope);
+  if (typeof applyReportStructureContract === "function") applyReportStructureContract(scope);
+  return sections
+    .filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden)
+    .map((section, index) => {
+      const title = section.dataset.sectionTitle || formalReportSectionTitle(section, index);
+      const role = section.dataset.pageRole || formalReportPageRole(section);
+      const deckType = section.dataset.deckType || formalReportDeckType(section);
+      return {
+        index: index + 1,
+        indexText: String(index + 1).padStart(2, "0"),
+        id: section.id || `formal-section-${index + 1}`,
+        title,
+        moduleLabel: section.dataset.moduleLabel || formalReportModuleLabel(section),
+        pageRole: role,
+        deckType,
+        included: true,
+        htmlRoute: "formalReport",
+        pdfRoute: "browserPrintFormalReport",
+        pptxRoute: `pptx:${deckType}`,
+        section
+      };
+    });
+}
+
+function formalStoryRoleForSection(item) {
+  const id = item.id || "";
+  const role = item.pageRole || "";
+  const title = item.title || "";
+  if (role === "cover") return "opening";
+  if (role === "executive" || id.includes("guided-path")) return "answer";
+  if (role === "mechanism" || id.includes("mechanism")) return "mechanism";
+  if (role === "scenario" || id.includes("whatif") || id.includes("sensitivity")) return "scenario";
+  if (role === "action" || id.includes("action")) return "action";
+  if (role === "appendix" || id.includes("appendix")) return "appendix";
+  if (id.includes("topic") || /专题|风险|息差|盈利|估值/.test(title)) return "topic";
+  if (id.includes("peer") || id.includes("matrix") || id.includes("watch") || id.includes("v6-anomaly") || id.includes("v5")) return "evidence";
+  return "evidence";
+}
+
+function formalPptxLayoutForStoryRole(storyRole, deckType = "content") {
+  const map = {
+    opening: "cover",
+    answer: "executive-answer",
+    evidence: deckType === "chart" ? "chart-evidence" : "evidence-brief",
+    mechanism: "mechanism-evidence",
+    topic: "topic-scr",
+    scenario: "scenario-check",
+    action: "action-roadmap",
+    appendix: "appendix"
+  };
+  return map[storyRole] || deckType || "content";
+}
+
+function formalDeliveryStorylineModel(root = document) {
+  return formalReportModel(root).map((item) => {
+    const storyRole = formalStoryRoleForSection(item);
+    const pptxLayout = formalPptxLayoutForStoryRole(storyRole, item.deckType);
+    if (item.section) {
+      item.section.dataset.storyRole = storyRole;
+      item.section.dataset.layoutIntent = storyRole === "opening" ? "establish-scope" : storyRole === "answer" ? "state-answer" : storyRole === "action" ? "commit-actions" : "prove-claim";
+      item.section.dataset.evidenceDensity = ["mechanism", "topic", "scenario"].includes(storyRole) ? "high" : storyRole === "opening" ? "low" : "medium";
+      item.section.dataset.htmlLayout = storyRole === "opening" ? "hero-cover" : "longform-section";
+      item.section.dataset.pdfLayout = ["mechanism", "topic", "scenario"].includes(storyRole) ? "page-safe-evidence" : "standard-page";
+      item.section.dataset.pptxLayout = pptxLayout;
+    }
+    return {
+      ...item,
+      storyRole,
+      layoutIntent: storyRole === "opening" ? "establish-scope" : storyRole === "answer" ? "state-answer" : storyRole === "action" ? "commit-actions" : "prove-claim",
+      evidenceDensity: ["mechanism", "topic", "scenario"].includes(storyRole) ? "high" : storyRole === "opening" ? "low" : "medium",
+      htmlLayout: storyRole === "opening" ? "hero-cover" : "longform-section",
+      pdfLayout: ["mechanism", "topic", "scenario"].includes(storyRole) ? "page-safe-evidence" : "standard-page",
+      pptxLayout
+    };
+  });
+}
+
 function buildFormalReportHtml({ exportMode = false } = {}) {
   const row = targetRecord();
   if (!row) return `<article class="formal-report empty">请先确认目标银行和对标样本。</article>`;
@@ -612,6 +788,7 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
         <div class="formal-section-kicker">执行摘要</div>
         <h2>${formalEscape(story.client_answer)}</h2>
         <p class="formal-lead">${formalParagraph(formalConsultingReadout("executive", row), 480)}</p>
+        ${formalBankCommentaryHtml(row)}
         <div class="formal-metric-grid">
           ${["roa", "nim", "npl", "pb"].map((key) => formalMetricHero(key, row)).join("")}
         </div>

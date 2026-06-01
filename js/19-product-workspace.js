@@ -23,6 +23,7 @@ var layoutPanelConfig = {
   reportControlRail: {
     bodyClass: "layout-rail-collapsed",
     elementId: "reportControlRail",
+    defaultCollapsed: true,
     collapsedLabel: "展开控制台",
     expandedLabel: "收起交付控制台",
     collapsedAria: "展开交付控制台",
@@ -74,7 +75,11 @@ function toggleLayoutPanel(panelKey) {
 function bindLayoutPanelToggles() {
   const saved = readLayoutPanelState();
   Object.keys(layoutPanelConfig).forEach((panelKey) => {
-    setLayoutPanelCollapsed(panelKey, Boolean(saved[panelKey]), false);
+    const config = layoutPanelConfig[panelKey];
+    const collapsed = Object.prototype.hasOwnProperty.call(saved, panelKey)
+      ? Boolean(saved[panelKey])
+      : Boolean(config.defaultCollapsed);
+    setLayoutPanelCollapsed(panelKey, collapsed, false);
   });
   document.querySelectorAll("[data-layout-collapse-target]").forEach((button) => {
     if (button.dataset.layoutCollapseBound) return;
@@ -176,6 +181,20 @@ function bindAnalysisRoadmap() {
       }
     });
   });
+  bindStep2PathNav();
+}
+
+function bindStep2PathNav() {
+  document.querySelectorAll("[data-step2-jump]").forEach((link) => {
+    if (link.dataset.step2Bound) return;
+    link.dataset.step2Bound = "1";
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      document.querySelectorAll("[data-step2-jump]").forEach((item) => item.classList.toggle("is-active", item === link));
+      const target = document.querySelector(link.getAttribute("href"));
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 function renderGlobalBar() {
@@ -234,10 +253,42 @@ function bindGlobalBar() {
 
 function drawerContent(tab = state.activeDrawerTab || "data") {
   const map = {
-    data: { title: "数据工作台", text: "打开指标探索器、字段覆盖、口径说明和底表导出。", target: "dataCoverageSection", workspaceTab: "data" },
-    review: { title: "交付复核", text: "检查导出页序、口径风险、PRD 覆盖和 AI 写稿治理。", target: "boardReviewPanel", workspaceTab: "review" },
-    project: { title: "项目管理", text: "管理项目保存、对标组治理、版本记录和导出留痕。", target: "projectFlow", workspaceTab: "governance" },
-    ai: { title: "AI 辅助", text: "查看叙事生成、CEAM 结构和后续云端 AI 接入口。", target: "aiGovernancePanel", workspaceTab: "governance" }
+    data: {
+      title: "数据工作台",
+      text: "把指标、字段、口径和底稿放在复核层，不占用董事会默认视野。",
+      items: [
+        { label: "指标探索器", desc: "趋势、对标、分位和口径风险", target: "metricExplorerPanel", workspaceTab: "data" },
+        { label: "字段覆盖矩阵", desc: "确认 257 字段可用性", target: "fieldCoverageMatrixPanel", workspaceTab: "data" },
+        { label: "数据底稿导出", desc: "导出选定样本或全量底表", target: "dataCoverageSection", workspaceTab: "data" }
+      ]
+    },
+    review: {
+      title: "交付复核",
+      text: "检查报告是否可上会：页序、语言、口径风险和导出状态放在这里统一处理。",
+      items: [
+        { label: "董办复核", desc: "结构、语言和数据边界", target: "boardReviewPanel", workspaceTab: "review" },
+        { label: "导出页序 QA", desc: "HTML/PDF/PPTX 页序一致性", target: "exportSequenceQaPanel", workspaceTab: "review" },
+        { label: "PRD 覆盖", desc: "对照需求池查看遗漏", target: "prdCoverageDashboard", workspaceTab: "review" }
+      ]
+    },
+    project: {
+      title: "项目管理",
+      text: "对标组、版本、导出记录和项目状态属于执行层能力，默认收进工具箱。",
+      items: [
+        { label: "项目流水", desc: "保存、加载和版本留痕", target: "projectFlow", workspaceTab: "governance" },
+        { label: "对标组治理", desc: "查看选择理由和复用口径", target: "projectFlow", workspaceTab: "governance" },
+        { label: "报告结构编辑", desc: "章节开关和 CEAM 结构", target: "reportStructureEditor", workspaceTab: "report" }
+      ]
+    },
+    ai: {
+      title: "AI 辅助",
+      text: "AI 先作为写稿和治理层能力，保留入口但不干扰主分析链路。",
+      items: [
+        { label: "AI 写稿治理", desc: "检查引用、语气和限制", target: "aiGovernancePanel", workspaceTab: "governance" },
+        { label: "CEAM 结构", desc: "Challenge 到 Meaning 的故事线", target: "reportStructureEditor", workspaceTab: "report" },
+        { label: "专题叙事", desc: "进入专题后按 SCR 改写", target: "topicWorkbenchSection", workspaceTab: "topics" }
+      ]
+    }
   };
   return map[tab] || map.data;
 }
@@ -254,7 +305,13 @@ function setDrawerTab(tab = state.activeDrawerTab || "data") {
       <div class="tool-drawer-card">
         <span>${content.title}</span>
         <p>${content.text}</p>
-        <button type="button" data-drawer-jump="${content.target}" data-drawer-workspace="${content.workspaceTab}">进入</button>
+        <div class="tool-drawer-link-list">
+          ${content.items.map((item) => `
+            <button type="button" data-drawer-jump="${item.target}" data-drawer-workspace="${item.workspaceTab}">
+              <b>${step2Esc(item.label)}</b>
+              <em>${step2Esc(item.desc)}</em>
+            </button>`).join("")}
+        </div>
       </div>`;
   }
 }
@@ -333,12 +390,67 @@ function step2Metric(key, value) {
   return typeof metricDisplayValue === "function" ? metricDisplayValue(key, value) : (value ?? "暂无");
 }
 
+function step2ToneFromScore(score) {
+  if (score == null) return "neutral";
+  if (score >= 75) return "good";
+  if (score >= 60) return "warn";
+  return "bad";
+}
+
+function step2LanguageIntensity(row = typeof targetRecord === "function" ? targetRecord() : null, peers = typeof peerRecords === "function" ? peerRecords() : []) {
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  const quality = typeof criticalMetricCompleteness === "function" ? criticalMetricCompleteness() : null;
+  const radar = row && typeof v6AnomalyRadar === "function" ? v6AnomalyRadar(row, peers) : null;
+  const crossCount = radar?.cross?.length || 0;
+  const negativeCount = radar?.negative?.length || 0;
+  const score = diagnosis?.score ?? null;
+  const level = score != null && score < 60 || crossCount >= 2 || negativeCount >= 3 || quality != null && quality < 0.7
+    ? "L3"
+    : score != null && score >= 75 && crossCount === 0 && negativeCount <= 1 && (quality == null || quality >= 0.85)
+      ? "L1"
+      : "L2";
+  const tone = level === "L3" ? "bad" : level === "L2" ? "warn" : "good";
+  const label = level === "L3" ? "强判断" : level === "L2" ? "审慎判断" : "观察判断";
+  const reason = level === "L3"
+    ? "偏离或数据约束已足以进入董事会议题，但需保留口径边界。"
+    : level === "L2"
+      ? "信号存在但仍需用同业位置、变化趋势和口径风险交叉验证。"
+      : "当前更适合表达为优势延续或常规跟踪，不宜过度放大。";
+  return { level, tone, label, reason, crossCount, negativeCount, score, quality };
+}
+
+function step2StorylinePack(row = typeof targetRecord === "function" ? targetRecord() : null, peers = typeof peerRecords === "function" ? peerRecords() : []) {
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  const weakest = diagnosis?.labels?.[diagnosis.weakest] || "价值质量约束";
+  const target = row ? displayBankName(row.bank) : "目标银行";
+  const intensity = step2LanguageIntensity(row, peers);
+  const pbBrief = row && typeof pbPricingBrief === "function" ? pbPricingBrief(row, peers) : "PB估值需要在确认口径后生成。";
+  return {
+    intensity,
+    evidenceBridge: `${target}的总判断先不急于写进报告，必须经过同业位置、异动偏离和估值锚三道证据复核；当前语气建议为${intensity.label}。`,
+    topicsBridge: `如果三类证据都指向${weakest}，专题深钻就不再是指标堆叠，而是解释“差异为何形成、管理层能否改变”。`,
+    actionsBridge: `${target}的行动建议需要跟随证据强度分层：先处理可验证短板，再把改善证据转成报告和资本市场沟通语言。`,
+    peerTitle: `${target}的同业位置要先回答${weakest}是否是真约束`,
+    changesTitle: `异动和偏离决定${target}的短板是阶段扰动还是结构问题`,
+    pbTitle: pbBrief.replace(/。.*$/, "") || `${target}的PB需要与经营质量联读`,
+    topicsTitle: `专题深钻应围绕${weakest}形成问题、证据、机制和行动`,
+    actionsTitle: `${target}下一步要把${weakest}转成可追踪的 0-12 个月动作`
+  };
+}
+
 function step2DiagnosisModel(row = typeof targetRecord === "function" ? targetRecord() : null, peers = typeof peerRecords === "function" ? peerRecords() : []) {
   if (!state?.confirmed || !row) {
     return {
       ready: false,
       title: "确认口径后生成价值质量总答案",
       lead: "Step 2 将先回答本次分析最重要的一句话，再用同业位置、异动偏离和PB估值锚证明结论。",
+      decision: {
+        answer: "先确认分析口径，再形成董事会可讨论的默认答案。",
+        constraint: "关键约束待生成",
+        pb: "PB答案待生成",
+        action: "确认目标银行、对标组和报告版本后进入诊断。",
+        tone: "neutral"
+      },
       kpis: [
         { label: "VQA", value: "待生成", tone: "neutral" },
         { label: "最弱维度", value: "待生成", tone: "neutral" },
@@ -355,13 +467,29 @@ function step2DiagnosisModel(row = typeof targetRecord === "function" ? targetRe
   const weakest = diagnosis?.labels?.[diagnosis.weakest] || [...scores].filter((item) => item.score != null).sort((a, b) => a.score - b.score)[0]?.label || "关键质量维度";
   const action = diagnosis?.dimensions?.[diagnosis.weakest]?.actionTitle || "形成专项修复动作";
   const pbGap = pb?.actual == null || pb?.pb == null ? null : pb.actual - pb.pb;
+  const pbAnswer = typeof pbPricingBrief === "function"
+    ? pbPricingBrief(row, peers)
+    : pbGap == null
+      ? "PB 数据不足，估值判断需先降级为待复核。"
+      : pbGap < 0
+        ? `实际 PB 低于理论锚 ${Math.abs(pbGap).toFixed(2)}x，市场折价更像在定价经营质量和风险透明度。`
+        : `实际 PB 高于理论锚 ${Math.abs(pbGap).toFixed(2)}x，当前估值需要持续经营改善来支撑。`;
+  const qualityText = quality == null ? "数据完整性待复核" : `关键指标完整性 ${(quality * 100).toFixed(0)}%`;
+  const scoreTone = step2ToneFromScore(diagnosis?.score);
   return {
     ready: true,
     diagnosis,
-    title: `${displayBankName(row.bank)}VQA ${diagnosis?.score ?? "--"}分：${diagnosis?.signal || "价值质量待判断"}`,
-    lead: `当前首要议题不是继续堆指标，而是判断${weakest}是否已经成为价值质量约束。建议先围绕“${action}”形成 3-12 个月闭环，再进入报告编排。`,
+    title: `${displayBankName(row.bank)}：本次董事会应先讨论${weakest}是否拖累价值质量`,
+    lead: `${diagnosis?.signal || "价值质量待判断"}不是一个抽象评分，而是需要被拆成同业位置、异动偏离和估值答案三类证据。${qualityText}，强结论需随口径风险同步校准。`,
+    decision: {
+      answer: `${displayBankName(row.bank)}当前 VQA ${diagnosis?.score ?? "--"} 分，默认判断为${diagnosis?.signal || "价值质量待判断"}。`,
+      constraint: `核心约束：${weakest}，下一步不应继续堆指标，而是先证明该约束是否真实影响经营质量。`,
+      pb: pbAnswer,
+      action: `建议动作：围绕“${action}”形成 0-3 / 3-6 / 6-12 个月闭环，再进入报告编排。`,
+      tone: scoreTone
+    },
     kpis: [
-      { label: "VQA信号", value: diagnosis?.signal || "待判断", tone: diagnosis?.score >= 75 ? "good" : diagnosis?.score >= 60 ? "warn" : "bad" },
+      { label: "VQA信号", value: diagnosis?.signal || "待判断", tone: scoreTone },
       { label: "SPARC位置", value: overall == null ? "待补" : `${overall.toFixed(0)}分`, tone: overall == null ? "neutral" : overall >= 70 ? "good" : overall >= 45 ? "warn" : "bad" },
       { label: "PB折价", value: pbGap == null ? "待补" : `${pbGap >= 0 ? "+" : ""}${pbGap.toFixed(2)}x`, tone: pbGap == null ? "neutral" : pbGap >= 0 ? "good" : "bad" },
       { label: "数据完整性", value: quality == null ? "待复核" : `${(quality * 100).toFixed(0)}%`, tone: quality == null ? "neutral" : quality >= 0.8 ? "good" : quality >= 0.6 ? "warn" : "bad" }
@@ -386,19 +514,50 @@ function step2TopChangesModel(row = typeof targetRecord === "function" ? targetR
   return v6AnomalyRadar(row, peers);
 }
 
+function step2ChangeCardModel(item = {}, mode = "momentum") {
+  const semantic = typeof v6AnomalySemanticTag === "function"
+    ? v6AnomalySemanticTag(item)
+    : { label: item.tag || "待判断", tone: "neutral", help: "保留跟踪。" };
+  const actionBySignal = {
+    "结构性信号": "进入专题解释",
+    "同业偏离": "解释差距来源",
+    "周期扰动": "观察是否延续",
+    "待验证混合信号": "复核口径与样本"
+  };
+  const evidence = mode === "peer"
+    ? `${step2Metric(item.key, item.current)} / 对标 ${step2Metric(item.key, item.peer)}`
+    : [item.momentum?.direction, item.momentum?.acceleration].filter(Boolean).join(" / ") || "变化待判";
+  return {
+    label: item.label || fieldName(item.key),
+    evidence,
+    signal: semantic.label,
+    tone: semantic.tone || "neutral",
+    action: actionBySignal[semantic.label] || semantic.help || "保留跟踪"
+  };
+}
+
 function step2TopicCards(row = typeof targetRecord === "function" ? targetRecord() : null) {
   const topics = typeof topicDefinitions === "function" ? topicDefinitions().slice(0, 6) : [];
+  const intensity = step2LanguageIntensity(row);
   return topics.map((topic) => {
     const facts = state?.confirmed && typeof topicFactPackRows === "function" ? topicFactPackRows(topic.id) : [];
     const judgement = state?.confirmed && typeof topicJudgement === "function" ? topicJudgement(topic.id, facts) : null;
+    const ceam = state?.confirmed && typeof ceamNarrativeBlock === "function" ? ceamNarrativeBlock(topic, facts, "board") : null;
     const evidence = judgement?.evidence?.[0];
+    const primaryMetric = evidence ? `${evidence.指标名称} ${evidence.目标值}，${evidence.分位}` : "确认分析后补充关键证据";
     return {
       ...topic,
       signal: judgement?.signal || "待生成",
       level: judgement?.level || "neutral",
-      headline: judgement?.headline || topic.question || "确认口径后生成专题判断。",
-      evidenceText: evidence ? `${evidence.指标名称} ${evidence.目标值}｜${evidence.分位}` : "确认分析后补充关键证据。",
-      action: topic.actions?.[0] || "进入专题深钻，补齐证据、机制和行动。"
+      languageLevel: intensity.level,
+      languageLabel: intensity.label,
+      languageReason: intensity.reason,
+      headline: judgement?.headline || ceam?.Claim || topic.question || "确认口径后生成专题判断。",
+      situation: ceam?.Challenge || topic.question || `判断${topic.title}是否影响价值质量。`,
+      complication: ceam?.Claim || judgement?.headline || topic.mechanism || "确认分析后生成该专题的关键矛盾。",
+      evidenceText: ceam?.Evidence || primaryMetric,
+      mechanismText: ceam?.Attribution || topic.mechanism || "确认专题机制后补充归因解释。",
+      action: ceam?.Meaning || topic.actions?.[0] || "进入专题深钻，补齐证据、机制和行动。"
     };
   });
 }
@@ -411,6 +570,20 @@ function renderStep2Kpis(model) {
     </div>`).join("");
 }
 
+function renderStep2DecisionBrief(model) {
+  const decision = model.decision || {};
+  return `
+    <div class="step2-decision-main tone-${decision.tone || "neutral"}">
+      <span>董事会默认答案</span>
+      <b>${step2Esc(decision.answer || "确认口径后生成默认答案。")}</b>
+    </div>
+    <div class="step2-decision-points">
+      <div><span>约束</span><p>${step2Esc(decision.constraint || "关键约束待生成。")}</p></div>
+      <div><span>估值</span><p>${step2Esc(decision.pb || "PB答案待生成。")}</p></div>
+      <div><span>动作</span><p>${step2Esc(decision.action || "确认口径后生成行动顺序。")}</p></div>
+    </div>`;
+}
+
 function renderStep2Questions(items) {
   return items.map((item, index) => `
     <a class="step2-question-card" href="${item.link ? `#${item.link}` : "#step2PeerPosition"}">
@@ -420,6 +593,18 @@ function renderStep2Questions(items) {
     </a>`).join("");
 }
 
+function step2PeerPositionReadout(item = {}, signal = {}) {
+  const metric = item.weakestMetric;
+  const metricName = metric?.label || item.question || "关键指标";
+  const metricValue = metric ? step2Metric(metric.key, metric.value) : "待复核";
+  const action = signal.level === "red"
+    ? "解释压力"
+    : signal.level === "yellow"
+      ? "保留跟踪"
+      : "支撑证据";
+  return { metricName, metricValue, action };
+}
+
 function renderStep2PeerPosition(row) {
   const scores = typeof sparcDimensionScores === "function" ? sparcDimensionScores(row) : [];
   if (!state?.confirmed || !row || !scores.length) {
@@ -427,33 +612,53 @@ function renderStep2PeerPosition(row) {
   }
   return scores.map((item) => {
     const signal = typeof sparcSignalLevel === "function" ? sparcSignalLevel(item.score) : { level: "neutral", label: "待补", lamp: "待补" };
+    const readout = step2PeerPositionReadout(item, signal);
     return `
       <div class="step2-sparc-card tone-${signal.level}">
         <span>${step2Esc(item.code)}｜${step2Esc(signal.lamp)}</span>
         <b>${step2Esc(item.label)}</b>
         <em>${item.score == null ? "待补" : `${item.score.toFixed(0)}分`}｜${step2Esc(signal.label)}</em>
-        <p>${step2Esc(item.weakestMetric ? `关键复核：${item.weakestMetric.label} ${step2Metric(item.weakestMetric.key, item.weakestMetric.value)}` : item.question)}</p>
+        <p class="step2-sparc-readout"><b>${step2Esc(readout.metricName)}</b><span>${step2Esc(readout.metricValue)}</span><i>${step2Esc(readout.action)}</i></p>
       </div>`;
   }).join("");
 }
 
 function renderStep2TopChanges(model) {
-  const renderList = (title, items, mode = "momentum") => `
-    <div class="step2-change-list">
-      <b>${step2Esc(title)}</b>
-      ${items.length ? items.slice(0, 5).map((item) => `
-        <div class="step2-change-row">
-          <span>${step2Esc(item.label)}</span>
-          <em>${mode === "peer"
-            ? `目标 ${step2Metric(item.key, item.current)}｜对标 ${step2Metric(item.key, item.peer)}`
-            : `${step2Esc(item.momentum?.direction || "变化待判")}｜${step2Esc(item.momentum?.acceleration || item.tag || "待判断")}`}</em>
-        </div>`).join("") : "<p>暂无显著项目。</p>"}
+  const renderCards = (items, mode = "momentum") => items.length ? items.slice(0, 4).map((item) => {
+        const card = step2ChangeCardModel(item, mode);
+        return `
+          <div class="step2-change-card tone-${step2Esc(card.tone)}">
+            <div><span>${step2Esc(card.label)}</span><em class="change-signal-pill">${step2Esc(card.signal)}</em></div>
+            <div class="step2-change-meta"><b>${step2Esc(card.evidence)}</b><p class="step2-change-action">${step2Esc(card.action)}</p></div>
+          </div>`;
+      }).join("") : "<p class=\"step2-change-empty\">暂无显著项目。</p>";
+  const renderLane = (title, subtitle, groups) => `
+    <div class="step2-change-lane" data-change-count="${groups.reduce((sum, group) => sum + group.items.length, 0)}">
+      <div class="step2-change-lane-head">
+        <b>${step2Esc(title)}</b>
+        <span>${step2Esc(subtitle)}</span>
+      </div>
+      <div class="step2-change-lane-body">
+        ${groups.map((group) => `
+          <div class="step2-change-list is-compact" data-change-count="${group.items.length}">
+            <div class="step2-change-head">
+              <b>${step2Esc(group.title)}</b>
+              <span>${group.items.length ? `Top ${Math.min(group.items.length, 4)}` : "暂无"}</span>
+            </div>
+            <div class="step2-change-strip">${renderCards(group.items, group.mode)}</div>
+          </div>`).join("")}
+      </div>
     </div>`;
-  return `
-    ${renderList("本期正向变化", model.positive)}
-    ${renderList("本期负向变化", model.negative)}
-    ${renderList("相对同业偏离", model.deviations, "peer")}
-    ${renderList("纵横共振信号", model.cross, "peer")}`;
+  return `<div class="step2-change-stack">
+    ${renderLane("扰动信号", "先判断本期变化是否只是阶段扰动", [
+      { title: "正向变化", items: model.positive, mode: "momentum" },
+      { title: "负向变化", items: model.negative, mode: "momentum" }
+    ])}
+    ${renderLane("偏离信号", "再判断相对对标组的差距是否具备结构性", [
+      { title: "同业偏离", items: model.deviations, mode: "peer" },
+      { title: "共振指标", items: model.cross, mode: "peer" }
+    ])}
+  </div>`;
 }
 
 function renderStep2PbAnswer(row, peers) {
@@ -461,12 +666,25 @@ function renderStep2PbAnswer(row, peers) {
   const pb = typeof theoreticalPB === "function" ? theoreticalPB(row) : null;
   const drivers = typeof pbDriverRanking === "function" ? pbDriverRanking(row, peers).slice(0, 3) : [];
   const gap = pb?.actual == null || pb?.pb == null ? null : pb.actual - pb.pb;
+  const pricing = typeof pbPricingFactorReadout === "function" ? pbPricingFactorReadout(row, peers) : null;
+  const pricingSource = pricing && typeof pbPricingModel !== "undefined"
+    ? pbPricingModel.conclusions.slice(0, 2).map((item) => item.replace(/。$/, "")).join("；")
+    : "";
   return `
     <div class="step2-pb-head">
-      <span>${step2Esc(pb?.label || "PB答案待补")}</span>
-      <b>${step2Metric("pb", pb?.actual)} / 理论 ${step2Metric("theoreticalPb", pb?.pb)}</b>
-      <p>${gap == null ? "PB或ROE数据不足，暂不形成强判断。" : `实际PB较DDM理论锚${gap >= 0 ? "高" : "低"} ${Math.abs(gap).toFixed(2)}x，需要用经营质量和风险透明度解释。`}</p>
+      <span>${step2Esc(pricing?.typeNote?.headline || pb?.label || "PB答案待补")}</span>
+      <b>${step2Metric("pb", row.pb)} / 类型中位 ${pricing?.anchor ? step2Metric("pb", pricing.anchor.median) : "待补"} / DDM ${step2Metric("theoreticalPb", pb?.pb)}</b>
+      <p>${step2Esc(typeof pbPricingBrief === "function" ? pbPricingBrief(row, peers) : gap == null ? "PB或ROE数据不足，暂不形成强判断。" : `实际PB较DDM理论锚${gap >= 0 ? "高" : "低"} ${Math.abs(gap).toFixed(2)}x，需要用经营质量和风险透明度解释。`)}</p>
     </div>
+    ${pricing ? `
+      <div class="step2-pb-pricing-grid">
+        ${pricing.lines.map((line) => `<div><b>模型读数</b><span>${step2Esc(line)}</span></div>`).join("")}
+      </div>
+      <div class="step2-pb-factor-strip">
+        ${(pricing.typeNote?.topFactors || []).slice(0, 4).map((factor) => `<span>${step2Esc(factor)}</span>`).join("")}
+      </div>
+      <p class="step2-pb-source">${step2Esc(pbPricingModel.source)}；核心结论：${step2Esc(pricingSource)}。</p>
+    ` : ""}
     <div class="step2-driver-list">
       ${drivers.length ? drivers.map((item) => `<div><b>${step2Esc(item.label)}</b><span>${step2Esc(item.readout)}</span></div>`).join("") : "<div><b>驱动因素待补</b><span>样本或回归数据不足，建议先复核PB、ROE、不良率和成本收入比。</span></div>"}
     </div>`;
@@ -475,11 +693,17 @@ function renderStep2PbAnswer(row, peers) {
 function renderStep2Topics(cards) {
   return cards.length ? cards.map((card) => `
     <article class="step2-topic-card tone-${card.level}">
-      <span>${step2Esc(card.signal)}</span>
-      <h4>${step2Esc(card.title)}</h4>
-      <p>${step2Esc(card.headline)}</p>
-      <em>${step2Esc(card.evidenceText)}</em>
-      <a href="#topicWorkbenchSection" data-nav-target="topics">${step2Esc(card.action)}</a>
+      <span>${step2Esc(card.signal)}｜${step2Esc(card.languageLevel || "L2")} ${step2Esc(card.languageLabel || "审慎判断")}</span>
+      <h4>${step2Esc(card.headline)}</h4>
+      <em>${step2Esc(card.title)}</em>
+      <div class="step2-scr-list">
+        <div><b>S</b><p>${step2Esc(card.situation)}</p></div>
+        <div><b>C</b><p>${step2Esc(card.complication)}</p></div>
+        <div><b>E</b><p>${step2Esc(card.evidenceText)}</p></div>
+        <div><b>M</b><p>${step2Esc(card.mechanismText)}</p></div>
+        <div><b>R</b><p>${step2Esc(card.action)}</p></div>
+      </div>
+      <a href="#topicWorkbenchSection" data-nav-target="topics">进入专题深钻</a>
     </article>`).join("") : "<div class=\"empty-card\">专题定义待加载。</div>";
 }
 
@@ -507,6 +731,7 @@ function renderStep2Diagnosis() {
   const model = step2DiagnosisModel(row, peers);
   const title = document.getElementById("step2DiagnosisTitle");
   const lead = document.getElementById("step2DiagnosisLead");
+  const decision = document.getElementById("step2DecisionBrief");
   const kpis = document.getElementById("step2KpiStrip");
   const questions = document.getElementById("step2BoardQuestions");
   const peer = document.getElementById("step2PeerPositionBody");
@@ -514,8 +739,23 @@ function renderStep2Diagnosis() {
   const pb = document.getElementById("step2PbAnswerBody");
   const topics = document.getElementById("step2TopicGrid");
   const actions = document.getElementById("step2ActionPathGrid");
+  const storyline = step2StorylinePack(row, peers);
   if (title) title.textContent = model.title;
   if (lead) lead.textContent = model.lead;
+  [
+    ["step2BridgeEvidence", storyline.evidenceBridge],
+    ["step2BridgeTopics", storyline.topicsBridge],
+    ["step2BridgeActions", storyline.actionsBridge],
+    ["step2PeerTitle", storyline.peerTitle],
+    ["step2ChangesTitle", storyline.changesTitle],
+    ["step2PbTitle", storyline.pbTitle],
+    ["step2TopicsTitle", storyline.topicsTitle],
+    ["step2ActionsTitle", storyline.actionsTitle]
+  ].forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+  if (decision) decision.innerHTML = renderStep2DecisionBrief(model);
   if (kpis) kpis.innerHTML = renderStep2Kpis(model);
   if (questions) questions.innerHTML = renderStep2Questions(step2BoardQuestions(row, peers));
   if (peer) peer.innerHTML = renderStep2PeerPosition(row);

@@ -795,6 +795,24 @@ function topicAiDraft(topic, facts) {
   return draft;
 }
 
+function topicBankCommentaryAnchorHtml(topic, judgement) {
+  if (typeof getBankCommentary !== "function") return "";
+  const board = getBankCommentary("board");
+  const action = getBankCommentary("action");
+  return `
+    <div class="topic-bank-commentary-anchor" aria-label="银行级评论锚点">
+      <span>银行级评论锚点</span>
+      <article>
+        <b>本专题承接的银行级判断</b>
+        <p>${sanitizeComplianceText(board.text || judgement?.headline || topic?.question || "银行级评论待生成。", topic?.forbiddenPhrases).slice(0, 220)}</p>
+      </article>
+      <article>
+        <b>落到本专题的管理动作</b>
+        <p>${sanitizeComplianceText(action.text || topic?.actions?.[0] || "建议先补齐事实包，再形成专题行动。", topic?.forbiddenPhrases).slice(0, 220)}</p>
+      </article>
+    </div>`;
+}
+
 function renderTopicWorkbench() {
   const tabs = document.getElementById("topicWorkbenchTabs");
   const host = document.getElementById("topicWorkbench");
@@ -845,6 +863,7 @@ function renderTopicWorkbench() {
       ${topicMechanismPanelHtml(topic.id)}
     </div>
     ${topicMechanismChartPanelHtml(topic.id)}
+    ${topicBankCommentaryAnchorHtml(topic, judgement)}
     <table class="topic-fact-table">
       <thead><tr><th>指标</th><th>目标银行</th><th>对标均值</th><th>类型均值</th><th>变化与分位</th></tr></thead>
       <tbody>${facts.map((fact) => `

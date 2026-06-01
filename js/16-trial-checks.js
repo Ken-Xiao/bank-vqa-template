@@ -182,6 +182,20 @@ function trialReadinessChecks() {
           : `HTML、PDF和PPTX均读取同一正式报告页序，共 ${sequenceGate.rows.length} 个章节。`
     });
   }
+  if (typeof pptxVisualReadabilityRows === "function") {
+    const visualRows = pptxVisualReadabilityRows();
+    const visualWarnings = visualRows.filter((row) => row.状态 !== "通过");
+    rows.push({
+      key: "pptx-visual-readability",
+      status: !visualRows.length ? "bad" : visualWarnings.length ? "warn" : "ok",
+      title: "PPTX视觉可读性",
+      text: !visualRows.length
+        ? "PPTX视觉可读性尚无可校验章节。"
+        : visualWarnings.length
+          ? `发现 ${visualWarnings.length} 页需复核：${visualWarnings.slice(0, 3).map((row) => `${row.序号}.${row.校验结论}`).join("；")}`
+          : `PPTX ${visualRows.length} 页已覆盖标题、证据块、管理含义和口径提示。`
+    });
+  }
   return rows;
 }
 

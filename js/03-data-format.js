@@ -690,10 +690,14 @@ function peerTemplateBanks(template = state.peerTemplate) {
   const maxPeers = analysisRules?.inputs?.peerBanks?.recommendedMax || 8;
   if (!target) return state.peers;
   const candidates = currentRecords()
-    .filter((row) => row.bank !== target.bank)
+    .filter((row) => {
+      if (row.bank === target.bank) return false;
+      if (template === "sameType") return row.type === target.type;
+      return true;
+    })
     .map((row) => {
       let score = 0;
-      if (template === "sameType") score = row.type === target.type ? 0 : 100;
+      if (template === "sameType") score = 0;
       else if (template === "sameRegion") score = row.region === target.region ? 0 : 100;
       else if (template === "sameScale") score = Math.abs(Math.log((row.assets || 1) / (target.assets || 1)));
       else if (template === "valuation") score = Math.abs((row.pb || 0) - (target.pb || 0)) + Math.abs((row.roa || 0) - (target.roa || 0)) / 2;

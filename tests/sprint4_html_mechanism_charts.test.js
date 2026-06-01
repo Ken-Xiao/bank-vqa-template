@@ -46,6 +46,8 @@ const section = context.formalMechanismAttributionSection(context.targetRecord()
 assert(section.includes("formal-profit-waterfall"), "formal mechanism section should render profit waterfall");
 assert(section.includes("formal-benchmark-line"), "formal mechanism section should render benchmark line chart");
 assert(section.includes("formal-nim-bridge"), "formal mechanism section should render NIM bridge");
+assert(section.includes("formal-nim-bridge-table"), "NIM bridge should render as a stable data table");
+assert(section.includes("NIM息差防守数据表"), "NIM bridge table should expose an accessible table label");
 assert(section.includes("样本N"), "formal mechanism section should expose sample N");
 assert(section.includes("对标组N"), "formal mechanism section should expose peer sample N");
 assert(section.includes("全样本N"), "formal mechanism section should expose all sample N");

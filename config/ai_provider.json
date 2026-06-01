@@ -4,6 +4,7 @@
   "description": "AI 写稿仅读取事实包 JSON，不允许自行编造数字。provider=local 时使用本地模板；provider=http 时 POST 到 endpoint。",
   "http": {
     "endpoint": "",
+    "commentaryEndpoint": "",
     "timeoutMs": 30000
   },
   "validation": {

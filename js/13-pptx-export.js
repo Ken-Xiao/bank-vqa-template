@@ -32,10 +32,17 @@ function rsmPptxTheme() {
   return typeof RSM_DECK !== "undefined" ? RSM_DECK : {
     slideW: 20,
     slideH: 11.25,
+    visualProfile: "sunong-value-creation",
+    referenceStyle: "RSM reference layouts｜sunong_dark_cover + sunong_chart_diagnostic",
+    referenceSource: "rsm-consulting-ppt-skills/assets/layouts",
     colors: {
       primary: "061B3A",
       navy: "061B3A",
+      primaryDark: "0D1B2A",
+      surface: "10263D",
+      surfaceAlt: "18324D",
       secondary: "0099D8",
+      secondarySoft: "DFF1FC",
       slate: "667085",
       slateDark: "2F3A4A",
       panel: "DFF1FC",
@@ -48,6 +55,7 @@ function rsmPptxTheme() {
       coverBlue: "0099D8",
       coverSoft: "DFF1FC",
       coverGold: "F59E0B",
+      coverMuted: "B5C8DC",
       text: "2F3A4A",
       muted: "667085",
       white: "FFFFFF"
@@ -61,6 +69,68 @@ function rsmPptxTheme() {
 
 function rsmPptxFont(theme) {
   return theme.fonts?.cnAlt || theme.fonts?.cn || "Noto Sans SC";
+}
+
+function pptxReferenceLayoutSpec(blocks = {}, deckType = "content") {
+  const layout = blocks.pptxLayout || deckType || "content";
+  if (deckType === "cover" || layout === "cover") {
+    return {
+      visualProfile: "sunong-value-creation",
+      presetFamily: "sunong_dark_cover",
+      canonicalFamily: "chapter_divider",
+      sourceReferenceProfile: "sunong-value-creation",
+      sourcePreview: "assets/layouts/layout-sunong-dark-cover.html",
+      adaptation: "深蓝封面、右侧元数据栏和底部阅读路径按 RSM reference 结构迁移，文本保持中文金融咨询语气。"
+    };
+  }
+  if (deckType === "chart" || layout === "chart-evidence" || layout === "evidence-brief") {
+    return {
+      visualProfile: "sunong-value-creation",
+      presetFamily: "sunong_chart_diagnostic",
+      canonicalFamily: "evidence_exhibit",
+      sourceReferenceProfile: "sunong-value-creation",
+      sourcePreview: "assets/layouts/layout-sunong-chart-diagnostic.html",
+      adaptation: "左侧主证据区占主体，右侧诊断卡呈现图表读法、管理含义和指标 strip。"
+    };
+  }
+  if (layout === "executive-answer") {
+    return {
+      visualProfile: "sunong-value-creation",
+      presetFamily: "governing_thought",
+      canonicalFamily: "governing_thought",
+      sourceReferenceProfile: "consulting-diagnostic-audit-deck",
+      sourcePreview: "assets/reference-layouts/consulting-diagnostic-audit-deck/previews/02-02-executive-answer.png",
+      adaptation: "左侧结论标题与三条证据，右侧 KPI/管理含义面板。"
+    };
+  }
+  if (layout === "scenario-check") {
+    return {
+      visualProfile: "sunong-value-creation",
+      presetFamily: "sensitivity_or_scenario",
+      canonicalFamily: "sensitivity_or_scenario",
+      sourceReferenceProfile: "consulting-final-deck",
+      sourcePreview: "assets/reference-layouts/consulting-final-deck/previews/16-16-sensitivity-tornado.png",
+      adaptation: "情景假设、管理读法和口径边界同页呈现。"
+    };
+  }
+  if (layout === "action-roadmap") {
+    return {
+      visualProfile: "sunong-value-creation",
+      presetFamily: "action_roadmap",
+      canonicalFamily: "action_roadmap",
+      sourceReferenceProfile: "consulting-final-deck",
+      sourcePreview: "assets/reference-layouts/consulting-final-deck/previews/18-18-implementation-roadmap.png",
+      adaptation: "行动路径按阶段、责任、指标和下一步验证组织。"
+    };
+  }
+  return {
+    visualProfile: "sunong-value-creation",
+    presetFamily: layout === "mechanism-evidence" ? "evidence_exhibit" : "sunong_chart_diagnostic",
+    canonicalFamily: layout === "mechanism-evidence" ? "methodology_map" : "evidence_exhibit",
+    sourceReferenceProfile: "consulting-final-deck",
+    sourcePreview: "assets/reference-layouts/consulting-final-deck/previews/05-05-market-attractiveness.png",
+    adaptation: "复用咨询 evidence exhibit 结构，并注入苏农价值创造 token。"
+  };
 }
 
 function pptxCleanText(text = "") {
@@ -305,18 +375,47 @@ function pptxRiskFooterNote(blocks = {}, theme = rsmPptxTheme()) {
   return pptxShortText(`口径提示：${sorted.slice(0, 2).join("；")}`, 95);
 }
 
+function pptxBankCommentaryLines(blocks = {}) {
+  if (typeof getBankCommentary !== "function") return [];
+  const board = getBankCommentary("board");
+  const action = getBankCommentary("action");
+  return [
+    `bank-commentary-notes｜董事会版：${pptxShortText(board.text || blocks.story || "", 180)}`,
+    `bank-commentary-notes｜管理层行动版：${pptxShortText(action.text || blocks.subtitle || "", 180)}`
+  ].filter((line) => line.replace(/bank-commentary-notes｜[^：]+：/, "").trim());
+}
+
+function addPptxBankCommentaryNotes(slide, blocks = {}) {
+  const lines = pptxBankCommentaryLines(blocks);
+  if (!lines.length) return;
+  if (typeof slide.addNotes === "function") {
+    slide.addNotes(lines);
+    return;
+  }
+  slide.addText(lines.join("\n"), {
+    x: 19.75,
+    y: 10.95,
+    w: 0.1,
+    h: 0.1,
+    fontSize: 1,
+    color: "FFFFFF",
+    transparency: 100,
+    fit: "shrink"
+  });
+}
+
 function addConsultingTextBlock(slide, pptx, theme, x, y, w, h, heading, lines, accent = "0099D8") {
   const c = theme.colors;
-  slide.addShape(pptx.ShapeType.rect, { x, y, w, h, fill: { color: c.white }, line: { color: c.line || "D9E1EA", width: 0.75 } });
-  slide.addShape(pptx.ShapeType.rect, { x, y, w: 0.09, h, fill: { color: accent }, line: { color: accent, transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x, y, w, h, fill: { color: c.panelSoft || "F7F8FA" }, line: { color: c.line || "D9E1EA", width: 0.75 } });
+  slide.addShape(pptx.ShapeType.rect, { x, y, w: 0.08, h, fill: { color: accent }, line: { color: accent, transparency: 100 } });
   slide.addText(heading, {
     x: x + 0.25,
     y: y + 0.18,
     w: w - 0.42,
     h: 0.34,
     fontFace: rsmPptxFont(theme),
-    fontSize: 21,
-    color: c.navy,
+    fontSize: 16.5,
+    color: accent,
     bold: true,
     fit: "shrink"
   });
@@ -326,7 +425,7 @@ function addConsultingTextBlock(slide, pptx, theme, x, y, w, h, heading, lines, 
     w: w - 0.45,
     h: h - 0.9,
     fontFace: rsmPptxFont(theme),
-    fontSize: 17,
+    fontSize: 13.5,
     color: c.text,
     valign: "top",
     fit: "shrink",
@@ -434,7 +533,8 @@ function slideTextBlocks(slideEl) {
     coverTitle,
     coverSub,
     coverVqa: pptxShortText(coverVqa, 120),
-    tocItems: pptxKeyLines(tocItems, 8, 48)
+    tocItems: pptxKeyLines(tocItems, 8, 48),
+    referenceLayout: pptxReferenceLayoutSpec({ pptxLayout: slideEl.dataset?.deckType || "content" }, slideEl.dataset?.deckType || "content")
   };
 }
 
@@ -451,7 +551,7 @@ function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
     return `${label} ${value}${note ? `｜${note}` : ""}`;
   });
   const facts = [...sectionEl.querySelectorAll(".formal-fact-table tbody tr")].slice(0, 5).map((tr) => [...tr.children].map((td) => td.textContent.trim()).filter(Boolean).join("｜"));
-  const cards = [...sectionEl.querySelectorAll(".formal-action-card, .formal-consistency-card, .formal-drill-card, .formal-guided-step, .formal-whatif-strip > div, .formal-risk-card, .formal-sequence-card, .formal-mechanism-card, .formal-mechanism-table tbody tr")].slice(0, 8).map((el) => {
+  const cards = [...sectionEl.querySelectorAll(".formal-action-card, .formal-consistency-card, .formal-drill-card, .formal-guided-step, .formal-whatif-strip > div, .formal-risk-card, .formal-sequence-card, .formal-mechanism-card, .formal-mechanism-table tbody tr, .v6-anomaly-row")].slice(0, 8).map((el) => {
     const label = el.querySelector("span")?.textContent?.trim() || "";
     const head = el.querySelector("b, h3")?.textContent?.trim() || "";
     const note = el.matches("tr")
@@ -462,6 +562,7 @@ function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
   const paragraphs = [...sectionEl.querySelectorAll("p")].map((p) => p.textContent.trim()).filter(Boolean);
   const riskFootnotes = [...sectionEl.querySelectorAll(".formal-risk-footnotes p")].map((p) => p.textContent.trim()).filter(Boolean);
   const tocItems = sections.slice(0, 9).map((el, i) => `${String(i + 1).padStart(2, "0")} ${el.dataset.sectionTitle || el.querySelector("h1, h2")?.textContent?.trim() || "报告章节"}`);
+  const pptxLayout = pptxStorylineLayout(sectionEl, { deckType: sectionEl.dataset.deckType || "content" });
   return {
     moduleLabel,
     className: sectionEl.className || "",
@@ -483,7 +584,10 @@ function formalSlideTextBlocks(sectionEl, index = 0, sections = []) {
     coverTitle: sectionEl.matches(".formal-cover") ? title : "",
     coverSub: sectionEl.matches(".formal-cover") ? subtitle : "",
     coverVqa: sectionEl.matches(".formal-cover") ? sectionEl.querySelector("aside")?.textContent?.trim() || "" : "",
-    tocItems
+    tocItems,
+    storyRole: sectionEl.dataset.storyRole || "",
+    pptxLayout,
+    referenceLayout: pptxReferenceLayoutSpec({ pptxLayout }, pptxLayout)
   };
 }
 
@@ -493,10 +597,21 @@ function formalReportSlidesForPptx() {
     ? applyFormalReportContract()
     : [...document.querySelectorAll("#formalReport > header, #formalReport > section")];
   if (typeof applyReportStructureContract === "function") applyReportStructureContract();
-  const activeSections = sections.filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden);
+  const model = typeof formalReportModel === "function" ? formalReportModel() : [];
+  const activeSections = model.length
+    ? model.map((item) => item.section).filter(Boolean)
+    : sections.filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden);
   if (activeSections.length) return activeSections;
   if (typeof buildPrintDeck === "function") buildPrintDeck();
   return [...document.querySelectorAll("#printDeck .print-slide")];
+}
+
+function pptxStorylineLayout(sectionEl, blocks = {}) {
+  const supportedLayouts = ["executive-answer", "mechanism-evidence", "topic-scr", "scenario-check", "action-roadmap"];
+  return sectionEl.dataset.pptxLayout
+    || sectionEl.dataset.deckType
+    || blocks.deckType
+    || "content";
 }
 
 function slideRasterImageUrl(slideEl) {
@@ -562,6 +677,21 @@ function addFormalMetricStrip(slide, pptx, theme, blocks, x, y, w) {
     });
   });
   return 1.18;
+}
+
+function addStorylineEvidenceBlocks(slide, pptx, theme, blocks, x, y, w, h) {
+  const evidence = pptxEvidenceLines(blocks, "content");
+  const implication = pptxImplicationLines(blocks, "content");
+  const calibration = blocks.riskFootnotes?.length ? blocks.riskFootnotes : ["口径提示：本页结论需结合样本边界和指标口径复核。"];
+  const gap = 0.14;
+  const cardW = (w - gap * 2) / 3;
+  [
+    ["关键证据", evidence.join("\n") || blocks.subtitle || "本页证据待补。", "0099D8"],
+    ["管理含义", implication.join("\n") || "本页应服务于管理层排序。", "10B981"],
+    ["口径提示", calibration.slice(0, 2).join("\n"), "F59E0B"]
+  ].forEach(([heading, text, accent], index) => {
+    addConsultingTextBlock(slide, pptx, theme, x + index * (cardW + gap), y, cardW, h, heading, [text], accent);
+  });
 }
 
 function addFormalEvidenceBars(slide, pptx, theme, blocks, x, y, w, h) {
@@ -638,20 +768,33 @@ function addFormalEvidenceBars(slide, pptx, theme, blocks, x, y, w, h) {
 function addFormalHtmlAlignedSlide(slide, pptx, theme, blocks, page, total) {
   const c = theme.colors;
   const brief = pptxSlideBrief(blocks, "content");
+  const spec = blocks.referenceLayout || pptxReferenceLayoutSpec(blocks, blocks.pptxLayout || "content");
   slide.background = { color: c.bg || "FFFFFF" };
-  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 0.34, w: 0.36, h: 0.06, fill: { color: "6A6F76" }, line: { color: "6A6F76", transparency: 100 } });
-  slide.addShape(pptx.ShapeType.rect, { x: 0.9, y: 0.34, w: 0.36, h: 0.06, fill: { color: "10B981" }, line: { color: "10B981", transparency: 100 } });
-  slide.addShape(pptx.ShapeType.rect, { x: 1.32, y: 0.34, w: 0.72, h: 0.06, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 0.34, w: 0.72, h: 0.06, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 1.28, y: 0.34, w: 0.34, h: 0.06, fill: { color: "8A8F95" }, line: { color: "8A8F95", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 1.68, y: 0.34, w: 0.34, h: 0.06, fill: { color: c.accentGreen || "10B981" }, line: { color: c.accentGreen || "10B981", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 13.88, y: 0.2, w: 4.02, h: 0.42, fill: { color: c.secondarySoft || "DFF1FC" }, line: { color: c.secondarySoft || "DFF1FC", transparency: 100 } });
+  slide.addText(`${spec.presetFamily}｜${spec.canonicalFamily}`, {
+    x: 14.05,
+    y: 0.32,
+    w: 3.7,
+    h: 0.14,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 8.4,
+    color: c.secondary || "0099D8",
+    bold: true,
+    align: "center",
+    fit: "shrink"
+  });
   slide.addText(blocks.moduleLabel || "正式报告", {
-    x: 14.6,
+    x: 0.48,
     y: 0.22,
-    w: 4.8,
+    w: 10.8,
     h: 0.34,
     fontFace: rsmPptxFont(theme),
     fontSize: 12,
-    color: c.secondary || "0099D8",
+    color: c.slate || "667085",
     bold: true,
-    align: "right",
     fit: "shrink"
   });
   slide.addText(brief.title, {
@@ -660,13 +803,13 @@ function addFormalHtmlAlignedSlide(slide, pptx, theme, blocks, page, total) {
     w: 18.9,
     h: 0.78,
     fontFace: rsmPptxFont(theme),
-    fontSize: 31,
+    fontSize: 29,
     color: c.navy,
     bold: true,
     fit: "shrink",
     valign: "top"
   });
-  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 1.63, w: 18.9, h: 0.62, fill: { color: "F3F8FC" }, line: { color: "F3F8FC", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 1.63, w: 18.9, h: 0.62, fill: { color: c.panelSoft || "F7F8FA" }, line: { color: c.panelSoft || "F7F8FA", transparency: 100 } });
   slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 1.63, w: 0.12, h: 0.62, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
   slide.addText(brief.subtitle || brief.note, {
     x: 0.75,
@@ -681,8 +824,9 @@ function addFormalHtmlAlignedSlide(slide, pptx, theme, blocks, page, total) {
   const metricHeight = addFormalMetricStrip(slide, pptx, theme, blocks, 0.48, 2.52, 18.9);
   const evidenceTop = 2.52 + metricHeight + 0.12;
   addFormalEvidenceBars(slide, pptx, theme, blocks, 0.48, evidenceTop, 12.15, 4.92);
-  addConsultingTextBlock(slide, pptx, theme, 13.05, evidenceTop, 6.32, 2.25, "咨询解读", brief.evidence, c.secondary || "0099D8");
-  addConsultingTextBlock(slide, pptx, theme, 13.05, evidenceTop + 2.58, 6.32, 2.34, "管理含义", brief.implication, c.navy);
+  addConsultingTextBlock(slide, pptx, theme, 13.05, evidenceTop, 6.32, 2.25, "图表读法", brief.evidence, c.secondary || "0099D8");
+  addConsultingTextBlock(slide, pptx, theme, 13.05, evidenceTop + 2.58, 6.32, 2.34, "诊断含义", brief.implication, c.navy);
+  addStorylineEvidenceBlocks(slide, pptx, theme, blocks, 0.72, 8.25, 18.6, 1.0);
   slide.addShape(pptx.ShapeType.rect, { x: 0.48, y: 9.42, w: 18.9, h: 0.48, fill: { color: c.navy }, line: { color: c.navy, transparency: 100 } });
   slide.addText(brief.implication[0] || "本页结论需回到指标、对标组和行动窗口验证。", {
     x: 0.72,
@@ -1119,25 +1263,72 @@ async function slideChartImageData(svg) {
 
 function addRsmModuleBar(slide, pptx, theme, label, y = 0.18) {
   const c = theme.colors;
-  const topY = 0.22;
+  const topY = 0.2;
   slide.addShape(pptx.ShapeType.rect, {
     x: 0.62,
-    y: 0.25,
-    w: 0.08,
-    h: 0.08,
+    y: 0.34,
+    w: 0.42,
+    h: 0.05,
+    fill: { color: "8A8F95" },
+    line: { color: "8A8F95", transparency: 100 }
+  });
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 1.11,
+    y: 0.34,
+    w: 0.42,
+    h: 0.05,
+    fill: { color: c.accentGreen || "10B981" },
+    line: { color: c.accentGreen || "10B981", transparency: 100 }
+  });
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 1.6,
+    y: 0.34,
+    w: 0.78,
+    h: 0.05,
     fill: { color: c.secondary || "0099D8" },
     line: { color: c.secondary || "0099D8", transparency: 100 }
   });
   slide.addText(label || "", {
     x: 0.61,
-    y: topY,
-    w: 18.77,
+    y: topY + 0.34,
+    w: 13.2,
     h: 0.17,
     fontFace: rsmPptxFont(theme),
     fontSize: 11.5,
-    color: c.navy,
+    color: c.slate || "667085",
     bold: true,
     fit: "shrink"
+  });
+  slide.addShape(pptx.ShapeType.rect, {
+    x: 14.42,
+    y: 0.28,
+    w: 3.32,
+    h: 0.42,
+    fill: { color: c.secondarySoft || "DFF1FC" },
+    line: { color: c.secondarySoft || "DFF1FC", transparency: 100 }
+  });
+  slide.addText(theme.visualProfile || "sunong-value-creation", {
+    x: 14.58,
+    y: 0.4,
+    w: 3.0,
+    h: 0.14,
+    fontFace: rsmPptxFont(theme),
+    fontSize: 8.5,
+    color: c.secondary || "0099D8",
+    bold: true,
+    fit: "shrink",
+    align: "center"
+  });
+  slide.addText("RSM", {
+    x: 18.25,
+    y: 0.36,
+    w: 1.14,
+    h: 0.23,
+    fontFace: theme.fonts?.en || "Inter",
+    fontSize: 13.5,
+    color: c.navy,
+    bold: true,
+    align: "right"
   });
   slide.addShape(pptx.ShapeType.rect, {
     x: 0.62,
@@ -1207,13 +1398,14 @@ function addRsmFooter(slide, pptx, theme, page, total, sourceNote = "") {
     align: "left",
     bold: false
   });
-  slide.addText(sourceNote || (typeof rsmSourceLine === "function" ? rsmSourceLine() : theme.sourceLine), {
-    x: 6.8,
+  const profileNote = theme.referenceStyle ? `${sourceNote || (typeof rsmSourceLine === "function" ? rsmSourceLine() : theme.sourceLine)} · ${theme.visualProfile || "sunong-value-creation"}` : (sourceNote || (typeof rsmSourceLine === "function" ? rsmSourceLine() : theme.sourceLine));
+  slide.addText(profileNote, {
+    x: 6.55,
     y: y + 0.17,
-    w: 6.4,
+    w: 7.05,
     h: 0.16,
     fontFace: rsmPptxFont(theme),
-    fontSize: 6.8,
+    fontSize: 6.3,
     color: c.muted,
     align: "center"
   });
@@ -1232,12 +1424,11 @@ function addRsmFooter(slide, pptx, theme, page, total, sourceNote = "") {
 
 function addCoverSlide(slide, pptx, theme, blocks, page, total) {
   const c = theme.colors;
-  slide.background = { color: c.bg || "FFFFFF" };
-  slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: theme.slideW, h: theme.slideH, fill: { color: c.bg || "FFFFFF" }, line: { color: c.bg || "FFFFFF", transparency: 100 } });
-  slide.addShape(pptx.ShapeType.rect, { x: 0.62, y: 0.55, w: 0.34, h: 0.06, fill: { color: "8A8F95" }, line: { color: "8A8F95", transparency: 100 } });
-  slide.addShape(pptx.ShapeType.rect, { x: 1.02, y: 0.55, w: 0.34, h: 0.06, fill: { color: "10B981" }, line: { color: "10B981", transparency: 100 } });
-  slide.addShape(pptx.ShapeType.rect, { x: 1.42, y: 0.55, w: 0.72, h: 0.06, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
-  slide.addShape(pptx.ShapeType.rect, { x: 17.92, y: 0.62, w: 1.46, h: 0.5, fill: { color: c.navy }, line: { color: c.navy, transparency: 100 } });
+  slide.background = { color: c.primaryDark || "0D1B2A" };
+  slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: theme.slideW, h: theme.slideH, fill: { color: c.primaryDark || "0D1B2A" }, line: { color: c.primaryDark || "0D1B2A", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 11.9, y: 0, w: 8.1, h: theme.slideH, fill: { color: c.surface || "10263D", transparency: 8 }, line: { color: c.surface || "10263D", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 0.62, y: 0.8, w: 0.84, h: 0.05, fill: { color: c.secondary || "0099D8" }, line: { color: c.secondary || "0099D8", transparency: 100 } });
+  slide.addShape(pptx.ShapeType.rect, { x: 17.92, y: 0.62, w: 1.46, h: 0.5, fill: { color: c.white }, line: { color: c.white, transparency: 100 } });
   slide.addText("RSM", {
     x: 18.18,
     y: 0.72,
@@ -1245,63 +1436,65 @@ function addCoverSlide(slide, pptx, theme, blocks, page, total) {
     h: 0.22,
     fontFace: theme.fonts?.en || "Inter",
     fontSize: 15,
-    color: c.white,
+    color: c.navy,
     bold: true,
     align: "center"
   });
   slide.addText("董事会汇报", {
     x: 0.62,
-    y: 1.08,
+    y: 1.1,
     w: 2.2,
     h: 0.21,
     fontFace: rsmPptxFont(theme),
     fontSize: 13,
-    color: c.secondary || "0099D8",
+    color: c.coverMuted || "B5C8DC",
     bold: true,
-    charSpace: 5
+    charSpace: 7
   });
   slide.addText(blocks.coverTitle || blocks.title, {
     x: 0.62,
-    y: 2.16,
-    w: 11.36,
-    h: 2.45,
+    y: 2.08,
+    w: 11.3,
+    h: 2.7,
     fontFace: rsmPptxFont(theme),
-    fontSize: 42,
-    color: c.secondary || "0099D8",
-    bold: true,
+    fontSize: 43,
+    color: c.white,
+    bold: false,
     valign: "top"
   });
   slide.addText(blocks.coverSub || blocks.subtitle, {
     x: 0.62,
-    y: 5.1,
+    y: 5.04,
     w: 11.42,
     h: 0.38,
     fontFace: rsmPptxFont(theme),
-    fontSize: 22,
-    color: c.navy,
+    fontSize: 19,
+    color: c.coverMuted || "B5C8DC",
+    bold: true,
     valign: "top"
   });
   slide.addText(blocks.coverVqa || "", {
     x: 0.62,
-    y: 5.7,
+    y: 5.72,
     w: 11.42,
     h: 1.41,
     fontFace: rsmPptxFont(theme),
-    fontSize: 14,
-    color: c.text,
+    fontSize: 14.5,
+    color: "D5E2EE",
+    bold: true,
     valign: "top",
     fit: "shrink"
   });
-  slide.addShape(pptx.ShapeType.line, { x: 0.62, y: 5.21, w: 18.75, h: 0, line: { color: c.secondary || "0099D8", transparency: 0, width: 1.2 } });
-  slide.addShape(pptx.ShapeType.line, { x: 13.33, y: 5.62, w: 0, h: 2.49, line: { color: c.secondary || "0099D8", transparency: 15, width: 1.2 } });
+  slide.addShape(pptx.ShapeType.line, { x: 0.62, y: 5.32, w: 11.35, h: 0, line: { color: c.secondary || "0099D8", transparency: 0, width: 1.2 } });
+  slide.addShape(pptx.ShapeType.line, { x: 13.33, y: 5.48, w: 0, h: 2.72, line: { color: "FFFFFF", transparency: 72, width: 1.1 } });
   slide.addText("报告元数据", {
     x: 13.68,
-    y: 5.69,
+    y: 5.66,
     w: 0.91,
     h: 0.18,
     fontFace: rsmPptxFont(theme),
     fontSize: 11,
-    color: c.secondary || "0099D8",
+    color: c.coverMuted || "B5C8DC",
     bold: true,
     charSpace: 2
   });
@@ -1317,12 +1510,12 @@ function addCoverSlide(slide, pptx, theme, blocks, page, total) {
     h: 1.93,
     fontFace: rsmPptxFont(theme),
     fontSize: 12.5,
-    color: c.text,
+    color: "D5E2EE",
     valign: "top",
     fit: "shrink"
   });
   const pathText = document.querySelector(".rsm-cover-path")?.textContent?.trim() || "";
-  slide.addShape(pptx.ShapeType.line, { x: 0.62, y: 9.9, w: 18.75, h: 0, line: { color: c.line || "D9E1EA", width: 0.75 } });
+  slide.addShape(pptx.ShapeType.line, { x: 0.62, y: 9.9, w: 18.75, h: 0, line: { color: "FFFFFF", transparency: 76, width: 0.75 } });
   slide.addText(pathText, {
     x: 0.63,
     y: 9.1,
@@ -1330,7 +1523,7 @@ function addCoverSlide(slide, pptx, theme, blocks, page, total) {
     h: 0.22,
     fontFace: rsmPptxFont(theme),
     fontSize: 11.5,
-    color: c.text,
+    color: "86A2BD",
     bold: true
   });
   slide.addText(`${String(page).padStart(2, "0")} / ${String(total).padStart(2, "0")}`, {
@@ -1340,7 +1533,7 @@ function addCoverSlide(slide, pptx, theme, blocks, page, total) {
     h: 0.25,
     fontFace: rsmPptxFont(theme),
     fontSize: 10,
-    color: c.muted
+    color: "86A2BD"
   });
 }
 
@@ -1646,6 +1839,7 @@ async function downloadPptxReport() {
       } else {
         addContentSlide(slide, pptx, theme, blocks, page, total, visual);
       }
+      addPptxBankCommentaryNotes(slide, blocks);
     }
 
     const meta = typeof formalReportExportMeta === "function"

@@ -194,6 +194,7 @@ function renderChoicePanels() {
     peerBox.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => {
       const checked = [...peerBox.querySelectorAll("input:checked")].map((el) => el.value).slice(0, maxPeers);
       state.peers = checked.filter((p) => p !== state.target);
+      state.peerTemplate = "manual";
       renderChoicePanels();
       syncHiddenSelects();
       updateSelectionSummary();
@@ -304,8 +305,13 @@ function populateSelectors() {
       state.types = checkedTypes.length ? checkedTypes : (types ? [...types.selectedOptions].map((o) => o.value) : state.types);
       state.reportVersion = reportVersion ? reportVersion.value : state.reportVersion;
       state.peerTemplate = peerTemplate ? peerTemplate.value : state.peerTemplate;
-      if (state.peerTemplate === "manual" && !checkedPeers.length) refreshDefaultPeersForTarget();
-      else if (state.peerTemplate !== "manual") state.peers = peerTemplateBanks(state.peerTemplate);
+      if (checkedPeers.length) {
+        state.peerTemplate = "manual";
+      } else if (state.peerTemplate === "manual") {
+        refreshDefaultPeersForTarget();
+      } else {
+        state.peers = peerTemplateBanks(state.peerTemplate);
+      }
       state.confirmed = true;
       document.body.classList.add("analysis-ready");
       renderChoicePanels();
@@ -321,7 +327,8 @@ function populateSelectors() {
         }, `${displayBankName(state.target)}已确认 ${state.year} 年分析边界，对标组 ${displayBankList(state.peers)}。`);
       }
       applyReportVersion(state.reportVersion);
-      if (typeof setWorkspaceTab === "function") setWorkspaceTab("overview");
+      if (typeof setAppMode === "function") setAppMode("analysis");
+      else if (typeof setWorkspaceTab === "function") setWorkspaceTab("overview");
       document.getElementById("clientCommandCenter")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
@@ -329,6 +336,7 @@ function populateSelectors() {
     restart.addEventListener("click", () => {
       state.confirmed = false;
       document.body.classList.remove("analysis-ready");
+      if (typeof setAppMode === "function") setAppMode("setup");
       renderChoicePanels();
       syncHiddenSelects();
       updateSelectionSummary();

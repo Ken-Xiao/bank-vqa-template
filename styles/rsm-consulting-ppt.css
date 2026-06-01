@@ -426,6 +426,16 @@ body:not(.analysis-ready) .selection-intro p {
   line-height: 1.7;
 }
 
+body[data-app-state="setup"] .selection-intro {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 12px;
+}
+
+body[data-app-state="setup"] .selection-intro h2,
+body[data-app-state="setup"] .selection-intro p {
+  max-width: 680px;
+}
+
 body:not(.analysis-ready) .project-briefing-grid {
   grid-template-columns: minmax(0, 1.12fr) minmax(0, .94fr) minmax(0, .94fr);
   padding: 14px;
@@ -476,6 +486,30 @@ body:not(.analysis-ready) .filters .version-field {
 
 body:not(.analysis-ready) .filters .template-field {
   grid-area: template;
+}
+
+body[data-app-state="setup"] .filters {
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-areas:
+    "target"
+    "peer"
+    "year"
+    "type"
+    "version"
+    "template" !important;
+  gap: 12px !important;
+}
+
+body[data-app-state="setup"] .filters .target-field { grid-area: target !important; }
+body[data-app-state="setup"] .filters .peer-field { grid-area: peer !important; }
+body[data-app-state="setup"] .filters .year-field { grid-area: year !important; }
+body[data-app-state="setup"] .filters .type-field { grid-area: type !important; }
+body[data-app-state="setup"] .filters .version-field { grid-area: version !important; }
+body[data-app-state="setup"] .filters .template-field { grid-area: template !important; }
+
+body[data-app-state="setup"] .selector-field {
+  min-height: 0;
+  padding: 14px;
 }
 
 body:not(.analysis-ready) .selector-field {

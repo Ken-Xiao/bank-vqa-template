@@ -124,6 +124,45 @@ function v6AnomalyRadar(row = targetRecord(), peers = peerRecords()) {
   return { positive, negative, deviations, cross };
 }
 
+function v6AnomalySemanticTag(item = {}) {
+  const absZ = Math.abs(item.z || 0);
+  const absMomentum = Math.abs(item.momentumScore || 0);
+  if (absZ >= 1.5 && absMomentum >= 20) {
+    return {
+      label: "结构性信号",
+      tone: "red",
+      help: "同时偏离同业且本期变化明显，优先进入董事会议题。"
+    };
+  }
+  if (absZ >= 1.2) {
+    return {
+      label: "同业偏离",
+      tone: item.isBad ? "red" : "green",
+      help: "主要问题来自横向位置，需要解释为什么不同于对标组。"
+    };
+  }
+  if (absMomentum >= 20) {
+    return {
+      label: "周期扰动",
+      tone: item.momentumScore < 0 ? "amber" : "green",
+      help: "主要问题来自本期变化，需要判断是否为短期扰动。"
+    };
+  }
+  return {
+    label: "待验证混合信号",
+    tone: "neutral",
+    help: "横向偏离和纵向变化均不极端，保留跟踪即可。"
+  };
+}
+
+function v6AnomalyWhyItMatters(item = {}) {
+  const targetText = `目标 ${metricDisplayValue(item.key, item.current)}`;
+  const peerText = item.peer == null ? "" : `对标 ${metricDisplayValue(item.key, item.peer)}`;
+  const momentumText = item.momentum?.direction ? `${item.momentum.direction}` : "趋势待判";
+  const semantic = v6AnomalySemanticTag(item);
+  return `${semantic.label}：${[targetText, peerText, momentumText].filter(Boolean).join("；")}。管理含义：${semantic.help}`;
+}
+
 function businessLogicAlerts(row = targetRecord()) {
   if (!row) return [];
   const prev = proPrevRecord(row);
@@ -174,12 +213,19 @@ function v6DiscussionStripHtml(row = targetRecord()) {
 
 function v6AnomalyRadarHtml(row = targetRecord()) {
   const radar = v6AnomalyRadar(row);
-  const render = (items, showPeer = false) => items.map((item) => `
-    <div class="v6-anomaly-row ${item.absZ >= 1.5 ? "is-cross" : ""}">
-      <b>${item.label}</b>
-      <span>${showPeer ? `目标 ${metricDisplayValue(item.key, item.current)}｜对标 ${metricDisplayValue(item.key, item.peer)}` : `${item.momentum.direction}｜${item.momentum.acceleration}`}</span>
-      <em>${item.tag}</em>
-    </div>`).join("");
+  const render = (items, showPeer = false) => items.map((item) => {
+    const semantic = v6AnomalySemanticTag(item);
+    const evidence = showPeer
+      ? `目标 ${metricDisplayValue(item.key, item.current)}｜对标 ${metricDisplayValue(item.key, item.peer)}`
+      : `${item.momentum.direction || "变化待判"}｜${item.momentum.acceleration || "动量待判"}`;
+    return `
+      <div class="v6-anomaly-row tone-${semantic.tone} ${item.absZ >= 1.5 ? "is-cross" : ""}">
+        <b>${item.label}</b>
+        <span>${evidence}</span>
+        <em>${semantic.label}</em>
+        <p>${v6AnomalyWhyItMatters(item)}</p>
+      </div>`;
+  }).join("");
   return `
     <div class="v6-anomaly-grid">
       <div><h4>纵向正向异动</h4>${render(radar.positive) || "<p>暂无显著正向异动。</p>"}</div>

@@ -242,15 +242,67 @@ function v5SensitivityTableHtml(row = targetRecord()) {
   return `<table class="v5-sensitivity"><thead><tr><th>ROE / COE</th>${coes.map((coe) => `<th>${coe.toFixed(1)}%</th>`).join("")}</tr></thead><tbody>${grid.map((rowItem) => `<tr><td>${rowItem.roe.toFixed(1)}%</td>${rowItem.values.map((item) => `<td>${item ? item.pb.toFixed(2) + "x" : "暂无"}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
 }
 
+function v5ConsultingReadoutHtml({ kicker, claim, evidence, meaning, tone = "blue" }) {
+  return `
+    <div class="v5-consulting-readout tone-${v5Esc(tone)}">
+      <span>${v5Esc(kicker)}</span>
+      <b>${v5Esc(claim)}</b>
+      <div>
+        <p><em>证据</em>${v5Esc(evidence)}</p>
+        <p><em>管理含义</em>${v5Esc(meaning)}</p>
+      </div>
+    </div>`;
+}
+
+function v5PbReadout(row = targetRecord()) {
+  const pb = theoreticalPB(row);
+  const pricing = typeof pbPricingFactorReadout === "function" ? pbPricingFactorReadout(row, peerRecords()) : null;
+  const drivers = pbDriverRanking(row, peerRecords());
+  const topDriver = drivers[0];
+  if (!row || !pb) {
+    return {
+      kicker: "PB 估值答案",
+      claim: "PB判断需要先补齐 ROE、COE 和实际 PB 口径。",
+      evidence: "当前 DDM 锚和 PB 回归样本不足，暂不形成强判断。",
+      meaning: "先补齐估值输入，再决定是否进入正式报告主结论。",
+      tone: "amber"
+    };
+  }
+  const gap = pb.actual == null ? null : pb.actual - pb.pb;
+  const claim = gap == null
+    ? "实际 PB 缺口待补，当前只能形成估值框架。"
+    : gap < 0
+      ? "低 PB 更像经营质量折价，需要用 ROE、风险确认和息差解释。"
+      : "PB 未明显低于理论锚，后续重点是验证经营改善能否持续支撑。";
+  const evidence = [
+    `实际 PB ${metricDisplayValue("pb", pb.actual)} / DDM理论 ${pb.pb.toFixed(2)}x`,
+    pricing?.typeNote?.headline || "",
+    topDriver ? `${topDriver.label}是优先定价因子，模拟影响 ${topDriver.lift >= 0 ? "+" : ""}${topDriver.lift.toFixed(2)}x` : ""
+  ].filter(Boolean).join("；");
+  const meaning = gap != null && gap < 0
+    ? "报告中不应只写“估值低”，而要把折价拆成经营质量、风险透明度和资本消耗三类可验证动作。"
+    : "报告中应避免过度强调估值修复，先证明经营质量改善能够被同业位置和趋势数据支持。";
+  return { kicker: "PB 估值答案", claim, evidence, meaning, tone: gap != null && gap < 0 ? "red" : "blue" };
+}
+
 function v5PbAnchorHtml(row = targetRecord()) {
   const pb = theoreticalPB(row);
   const regression = pbRoeRegression();
   if (!row) return "";
+  const pricing = typeof pbPricingFactorReadout === "function" ? pbPricingFactorReadout(row, peerRecords()) : null;
+  const typeAnchorLine = pricing?.lines?.[0]?.replace(new RegExp(`^${pricing.type}`), "") || "";
   return `
+    ${v5ConsultingReadoutHtml(v5PbReadout(row))}
     <div class="v5-pb-anchor">
       <div class="v5-anchor-number"><span>实际 / 理论</span><b>${pb?.actual == null ? "暂无" : pb.actual.toFixed(2)}x / ${pb ? pb.pb.toFixed(2) : "暂无"}x</b><p>${pb?.label || "待测算"}｜ROE ${pb?.roe?.toFixed(1) || "--"}%，COE ${pb?.coe?.toFixed(1) || "--"}%，g ${pb?.g?.toFixed(1) || "--"}%</p></div>
       <div class="v5-anchor-number"><span>PB-ROE回归</span><b>${regression?.r2 == null ? "R²待测" : `R² ${regression.r2.toFixed(2)}`}</b><p>样本 ${regression?.sampleSize || 0} 家银行；${v5Esc(v5Assumptions().caveat)}</p></div>
     </div>
+    ${pricing ? `
+      <div class="v5-pb-pricing-readout">
+        <div><span>类型锚</span><b>${v5Esc(pricing.type)}</b><p>${v5Esc(typeAnchorLine)}</p></div>
+        <div><span>模型因子</span><b>${v5Esc(pricing.typeNote.headline)}</b><p>${v5Esc(pricing.typeNote.text)}</p></div>
+      </div>
+    ` : ""}
     ${v5SensitivityTableHtml(row)}`;
 }
 
@@ -258,13 +310,41 @@ function v5TornadoHtml(row = targetRecord()) {
   const drivers = pbDriverRanking(row, peerRecords()).slice(0, 5);
   if (!drivers.length) return `<div class="v5-empty">PB驱动排序需要回归样本和对标组中位数。</div>`;
   const max = Math.max(...drivers.map((item) => Math.abs(item.lift))) || 1;
-  return `<div class="v5-tornado">${drivers.map((item) => `<div class="v5-tornado-row"><span>${item.label}</span><div><i class="${item.lift >= 0 ? "up" : "down"}" style="width:${Math.max(8, Math.abs(item.lift) / max * 100).toFixed(1)}%"></i></div><b>${item.lift >= 0 ? "+" : ""}${item.lift.toFixed(2)}x</b><p>当前 ${metricDisplayValue(item.key, item.current)}｜对标中位数 ${metricDisplayValue(item.key, item.peer)}</p></div>`).join("")}</div>`;
+  const top = drivers[0];
+  const readout = v5ConsultingReadoutHtml({
+    kicker: "PB 提升路径",
+    claim: `${top.label}是当前最值得先解释的 PB 定价因子。`,
+    evidence: `${top.label}若向对标中位数收敛，模型 PB 变化约 ${top.lift >= 0 ? "+" : ""}${top.lift.toFixed(2)}x；当前 ${metricDisplayValue(top.key, top.current)}，对标中位数 ${metricDisplayValue(top.key, top.peer)}。`,
+    meaning: top.lift >= 0
+      ? "行动建议应先围绕该因子设置季度改善目标，因为它对估值叙事的边际解释力最高。"
+      : "该因子向对标收敛未必直接抬升 PB，管理层需要先确认模型方向和业务含义。多半要回到 ROE、风险和资本约束联读。",
+    tone: top.lift >= 0 ? "green" : "amber"
+  });
+  return `${readout}<div class="v5-tornado">${drivers.map((item) => `<div class="v5-tornado-row"><span>${item.label}</span><div><i class="${item.lift >= 0 ? "up" : "down"}" style="width:${Math.max(8, Math.abs(item.lift) / max * 100).toFixed(1)}%"></i></div><b>${item.lift >= 0 ? "+" : ""}${item.lift.toFixed(2)}x</b><p>当前 ${metricDisplayValue(item.key, item.current)}｜对标中位数 ${metricDisplayValue(item.key, item.peer)}</p></div>`).join("")}</div>`;
 }
 
 function v5DeviationHtml(row = targetRecord()) {
   const radar = v5DeviationRadarRows(row);
+  const mainNegative = radar.negative[0];
+  const mainPositive = radar.positive[0];
+  const claim = mainNegative
+    ? `${mainNegative.label}是本期需要优先解释的负向异动。`
+    : mainPositive
+      ? `${mainPositive.label}是本期最明确的正向改善信号。`
+      : "本期暂未识别显著异动，建议保持常规跟踪。";
+  const evidence = [
+    mainNegative ? `负向：${mainNegative.label}${mainNegative.momentum.direction}，${mainNegative.momentum.acceleration}` : "",
+    mainPositive ? `正向：${mainPositive.label}${mainPositive.momentum.direction}，${mainPositive.momentum.acceleration}` : ""
+  ].filter(Boolean).join("；") || "核心指标未出现显著方向变化。";
+  const readout = v5ConsultingReadoutHtml({
+    kicker: "异动雷达",
+    claim,
+    evidence,
+    meaning: "异动不应逐项罗列，应先判断它是阶段扰动还是结构性偏离；只有能解释经营质量或估值的指标才进入正式报告主线。",
+    tone: mainNegative ? "red" : mainPositive ? "green" : "blue"
+  });
   const render = (items) => items.map((item) => `<div class="v5-deviation-row"><b>${item.label}</b><span>${item.momentum.direction}｜${item.momentum.acceleration}</span><em>${item.tag?.tag || "待判断"}</em></div>`).join("");
-  return `<div class="v5-deviation-grid"><div><h4>正向改善</h4>${render(radar.positive) || "<p>暂无显著改善。</p>"}</div><div><h4>负向恶化</h4>${render(radar.negative) || "<p>暂无显著恶化。</p>"}</div></div>`;
+  return `${readout}<div class="v5-deviation-grid"><div><h4>正向改善</h4>${render(radar.positive) || "<p>暂无显著改善。</p>"}</div><div><h4>负向恶化</h4>${render(radar.negative) || "<p>暂无显著恶化。</p>"}</div></div>`;
 }
 
 function renderV5ValuePanel(row = targetRecord()) {

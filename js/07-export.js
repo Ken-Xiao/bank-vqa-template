@@ -271,14 +271,34 @@ async function reportHtmlDocument() {
     ? applyFormalReportContract(wrapper)
     : [...wrapper.querySelectorAll("header, section")];
   if (typeof applyReportStructureContract === "function") applyReportStructureContract(wrapper);
-  const exportSections = sections.filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden);
-  const exportNav = exportSections.map((section, idx) => {
-    const id = section.id || `formal-export-section-${idx + 1}`;
-    section.id = id;
-    const label = section.dataset.sectionTitle || section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`;
-    return `<a href="#${xmlEscape(id)}"><span>${String(idx + 1).padStart(2, "0")}</span>${xmlEscape(exportClientText(label))}</a>`;
+  const reportModel = typeof formalDeliveryStorylineModel === "function"
+    ? formalDeliveryStorylineModel(wrapper)
+    : typeof formalReportModel === "function"
+      ? formalReportModel(wrapper)
+      : [];
+  const exportSections = reportModel.length
+    ? reportModel.map((item) => item.section).filter(Boolean)
+    : sections.filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden);
+  reportModel.forEach((item) => {
+    if (item.section) {
+      item.section.dataset.storyRole = item.storyRole || "content";
+      item.section.dataset.htmlLayout = item.htmlLayout || "longform-section";
+      item.section.dataset.pdfLayout = item.pdfLayout || "standard-page";
+      item.section.dataset.pptxLayout = item.pptxLayout || item.deckType || "content";
+    }
+  });
+  const exportNav = (reportModel.length ? reportModel : exportSections.map((section, idx) => ({
+    indexText: String(idx + 1).padStart(2, "0"),
+    id: section.id || `formal-export-section-${idx + 1}`,
+    title: section.dataset.sectionTitle || section.querySelector("h1, h2")?.textContent?.trim() || `第 ${idx + 1} 节`,
+    storyRole: section.dataset.storyRole || "content",
+    section
+  }))).map((item) => {
+    const id = item.id || `formal-export-section-${item.indexText}`;
+    if (item.section) item.section.id = id;
+    return `<a href="#${xmlEscape(id)}" data-story-role="${xmlEscape(item.storyRole || "content")}"><span>${xmlEscape(item.indexText)}</span><em>${xmlEscape(item.storyRole || "content")}</em>${xmlEscape(exportClientText(item.title))}</a>`;
   }).join("");
-  const sectionCount = exportSections.length || wrapper.querySelectorAll(".print-slide").length;
+  const sectionCount = reportModel.length || exportSections.length || wrapper.querySelectorAll(".print-slide").length;
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -397,10 +417,27 @@ body { background: #F7F8FA; color: #2F3A4A; margin: 0; }
   color: #0099D8;
   font-weight: 900;
 }
+.html-report-nav a em {
+  color: #8A95A3;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
 .html-report-nav a:hover {
   color: #061B3A;
   background: #DFF1FC;
   border-left-color: #0099D8;
+}
+.formal-report [data-story-role]::after {
+  content: attr(data-story-role);
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  color: #8A95A3;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
 }
 .html-export-note {
   max-width: 1120px;
@@ -424,24 +461,65 @@ body { background: #F7F8FA; color: #2F3A4A; margin: 0; }
   body { background: #fff; }
   .formal-report { margin: 0; max-width: none; box-shadow: none; }
   .html-export-note, .html-report-nav { display: none; }
-  .formal-cover,
-  .formal-executive,
-  .formal-section {
-    break-after: page;
-    page-break-after: always;
+.formal-cover,
+.formal-executive,
+.formal-section {
+    break-before: page;
+    page-break-before: always;
+    break-after: auto;
+    page-break-after: auto;
     min-height: auto !important;
     padding: 12mm 12mm 10mm !important;
   }
   .formal-cover {
     min-height: 250mm !important;
+    break-before: auto;
+    page-break-before: auto;
+  }
+  .formal-section::before,
+  .formal-executive::before,
+  .formal-so-what div,
+  .formal-chart-readout,
+  .formal-metric-hero,
+  .formal-risk-card,
+  .formal-sequence-card,
+  .formal-action-card,
+  .formal-consistency-card,
+  .formal-drill-card,
+  .formal-whatif-strip > div,
+  .formal-risk-footnotes {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .formal-two-column,
+  .formal-so-what,
   .formal-risk-grid,
   .formal-sequence-grid,
   .formal-action-grid,
-  .formal-metric-grid {
+  .formal-metric-grid,
+  .formal-whatif-strip,
+  .formal-chart-readout {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+  .formal-section table {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+  .formal-section tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .formal-fact-table,
+  .formal-peer-matrix {
+    font-size: 10.5px;
+  }
+  .formal-section svg,
+  .formal-section .formal-benchmark-line,
+  .formal-section .formal-profit-waterfall,
+  .formal-section .formal-nim-bridge:not(table) {
+    max-height: 160mm;
+    overflow: hidden;
   }
 }
   </style>
@@ -806,6 +884,7 @@ async function exportDataWorkbook(mode = "selected") {
     { name: "图表事实包", rows: chartFactRows() },
     { name: "专题解释器", rows: topicExplainerRows(row, peers) },
     { name: "专题AI解读", rows: topicWorkbenchExportRows() },
+    { name: "银行级模型评论", rows: typeof bankCommentaryExportRows === "function" ? bankCommentaryExportRows() : [] },
     { name: "PRD完成度", rows: typeof prdCoverageExportRows === "function" ? prdCoverageExportRows() : [] },
     { name: "事实包注册表", rows: typeof factPackRegistryExportRows === "function" ? factPackRegistryExportRows() : [] },
     { name: "AI引用审计", rows: typeof narrativeAuditExportRows === "function" ? narrativeAuditExportRows() : [] },
