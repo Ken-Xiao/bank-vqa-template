@@ -532,7 +532,9 @@ function step2ChangeCardModel(item = {}, mode = "momentum") {
     evidence,
     signal: semantic.label,
     tone: semantic.tone || "neutral",
-    action: actionBySignal[semantic.label] || semantic.help || "保留跟踪"
+    action: actionBySignal[semantic.label] || semantic.help || "保留跟踪",
+    reason: typeof anomalyLikelyReason === "function" ? anomalyLikelyReason(item) : semantic.help || "需结合趋势和同业位置继续复核。",
+    causeChart: typeof anomalyCauseChartHtml === "function" ? anomalyCauseChartHtml(item) : ""
   };
 }
 
@@ -610,7 +612,8 @@ function renderStep2PeerPosition(row) {
   if (!state?.confirmed || !row || !scores.length) {
     return "<div class=\"empty-card\">确认样本后生成 SPARC 五灯号。</div>";
   }
-  return scores.map((item) => {
+  const heatmap = renderStep2PeerHeatmap(row);
+  const sparcCards = scores.map((item) => {
     const signal = typeof sparcSignalLevel === "function" ? sparcSignalLevel(item.score) : { level: "neutral", label: "待补", lamp: "待补" };
     const readout = step2PeerPositionReadout(item, signal);
     return `
@@ -621,15 +624,38 @@ function renderStep2PeerPosition(row) {
         <p class="step2-sparc-readout"><b>${step2Esc(readout.metricName)}</b><span>${step2Esc(readout.metricValue)}</span><i>${step2Esc(readout.action)}</i></p>
       </div>`;
   }).join("");
+  return `${heatmap}${sparcCards}`;
+}
+
+function renderStep2PeerHeatmap(row) {
+  const matrix = typeof peerHeatmapRows === "function" ? peerHeatmapRows(row, ["roa", "nim", "npl", "feeAssetRatio", "costIncomeRatio", "cet1Buffer", "pb"]) : null;
+  if (!matrix?.rows?.length) return "";
+  const head = matrix.keys.map((key) => `<span>${step2Esc(typeof fieldName === "function" ? fieldName(key) : key)}</span>`).join("");
+  const rows = matrix.rows.map((bankRow) => `
+    <div class="peer-heatmap-row${bankRow.isTarget ? " is-target" : ""}">
+      <b>${step2Esc(displayBankName(bankRow.bank))}</b>
+      ${bankRow.cells.map((cell) => `
+        <span class="peer-heatmap-cell tone-${step2Esc(cell.tone)}">
+          <strong>${step2Esc(cell.value)}</strong>
+          <em>${cell.percentile == null ? "P--" : `P${Math.round(cell.percentile)}`}</em>
+        </span>`).join("")}
+    </div>`).join("");
+  return `
+    <div class="peer-heatmap" aria-label="对标矩阵热力图">
+      <div class="peer-heatmap-head"><b>银行</b>${head}</div>
+      ${rows}
+    </div>`;
 }
 
 function renderStep2TopChanges(model) {
-  const renderCards = (items, mode = "momentum") => items.length ? items.slice(0, 4).map((item) => {
+  const renderCards = (items, mode = "momentum") => items.length ? items.slice(0, 3).map((item) => {
         const card = step2ChangeCardModel(item, mode);
         return `
           <div class="step2-change-card tone-${step2Esc(card.tone)}">
             <div><span>${step2Esc(card.label)}</span><em class="change-signal-pill">${step2Esc(card.signal)}</em></div>
             <div class="step2-change-meta"><b>${step2Esc(card.evidence)}</b><p class="step2-change-action">${step2Esc(card.action)}</p></div>
+            ${card.causeChart}
+            <p class="step2-change-reason">${step2Esc(card.reason)}</p>
           </div>`;
       }).join("") : "<p class=\"step2-change-empty\">暂无显著项目。</p>";
   const renderLane = (title, subtitle, groups) => `
@@ -649,7 +675,7 @@ function renderStep2TopChanges(model) {
           </div>`).join("")}
       </div>
     </div>`;
-  return `<div class="step2-change-stack">
+  return `<div class="step2-change-stack step2-change-compact-grid">
     ${renderLane("扰动信号", "先判断本期变化是否只是阶段扰动", [
       { title: "正向变化", items: model.positive, mode: "momentum" },
       { title: "负向变化", items: model.negative, mode: "momentum" }
@@ -763,7 +789,101 @@ function renderStep2Diagnosis() {
   if (pb) pb.innerHTML = renderStep2PbAnswer(row, peers);
   if (topics) topics.innerHTML = renderStep2Topics(step2TopicCards(row));
   if (actions) actions.innerHTML = renderStep2ActionPath(row, peers);
+  renderMetricContextRail();
   bindAnalysisRoadmap();
+}
+
+function metricContextFocus(row, peers) {
+  if (!row) return null;
+  const dimensions = typeof sparcDimensionScores === "function" ? sparcDimensionScores(row) : [];
+  const weakest = dimensions
+    .filter((item) => item.score != null && item.weakestMetric)
+    .sort((a, b) => a.score - b.score)[0];
+  if (weakest?.weakestMetric) {
+    return {
+      ...weakest.weakestMetric,
+      dimensionLabel: weakest.label,
+      dimensionScore: weakest.score
+    };
+  }
+  const fallbackKey = row.nim != null ? "nim" : row.roe != null ? "roe" : row.pb != null ? "pb" : "assets";
+  return {
+    key: fallbackKey,
+    label: typeof fieldName === "function" ? fieldName(fallbackKey) : fallbackKey,
+    higher: fallbackKey !== "npl" && fallbackKey !== "costIncomeRatio",
+    value: row[fallbackKey],
+    peerAvg: typeof avg === "function" ? avg(peers, fallbackKey) : null,
+    dimensionLabel: "关键指标",
+    dimensionScore: null
+  };
+}
+
+function renderMetricContextRail() {
+  const host = document.getElementById("metricContextRail");
+  if (!host) return;
+  const row = typeof targetRecord === "function" ? targetRecord() : null;
+  const peers = typeof peerRecords === "function" ? peerRecords() : [];
+  const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+  if (!state?.confirmed || !row) {
+    host.innerHTML = "<div class=\"metric-context-empty\">确认分析后展示关键指标上下文。</div>";
+    return;
+  }
+  const focus = metricContextFocus(row, peers);
+  const key = focus?.key || "nim";
+  const value = row[key];
+  const peerAvg = focus?.peerAvg ?? (typeof avg === "function" ? avg(peers, key) : null);
+  const rank = typeof rankPercentile === "function" ? rankPercentile(value, [row, ...peers], key, focus?.higher !== false) : null;
+  const gap = typeof value === "number" && typeof peerAvg === "number" ? value - peerAvg : null;
+  const gapText = gap == null
+    ? "同业差距待补数"
+    : `${gap >= 0 ? "高于" : "低于"}对标均值 ${step2Metric(key, Math.abs(gap))}`;
+  const focusLabel = focus?.label || (typeof fieldName === "function" ? fieldName(key) : key);
+  const scoreText = focus?.dimensionScore == null ? "待生成" : `${focus.dimensionScore.toFixed(0)}分`;
+  const rankText = rank == null ? "分位待补" : String(rank);
+  const targetName = displayBankName(row.bank || state.target);
+  const snapshot = typeof metricTimeSeriesSnapshot === "function" ? metricTimeSeriesSnapshot(key) : null;
+  host.innerHTML = `
+    <div class="metric-context-head">
+      <span>右侧指标上下文</span>
+      <b>${step2Esc(focusLabel)}</b>
+      <em>${step2Esc(targetName)}｜${step2Metric(key, value)}｜${step2Esc(rankText)}</em>
+    </div>
+    <div class="metric-context-card">
+      <span>对标差距</span>
+      <b>${step2Esc(gapText)}</b>
+      <p>对标组均值为 ${step2Metric(key, peerAvg)}。这条差距用于解释 Step 2 的同业位置、异动偏离和专题入口，避免结论只停留在单点指标。</p>
+    </div>
+    <div class="metric-context-card">
+      <span>诊断语气</span>
+      <b>${step2Esc(focus?.dimensionLabel || "关键维度")}｜${step2Esc(scoreText)}</b>
+      <p>${diagnosis ? `当前 VQA 为 ${diagnosis.score} 分，${diagnosis.signal}；右侧栏优先提示最弱维度，方便边看证据边回到管理动作。` : "VQA 诊断待生成，当前仅保留指标上下文。"}</p>
+    </div>
+    <div class="metric-context-card metric-trend-mini">
+      <span>多年趋势</span>
+      ${renderMetricTrendLine("目标银行", snapshot?.targetSeries || [], key)}
+      ${renderMetricTrendLine("对标均值", snapshot?.peerAverageSeries || [], key)}
+      ${renderMetricTrendLine("类型均值", snapshot?.typeAverageSeries || [], key)}
+    </div>
+    <div class="metric-context-card">
+      <span>下一步</span>
+      <b>优先进入相关专题复核</b>
+      <p>若该指标同时出现在 PB 归因、零售风险或存贷深钻中，应在正式报告里把原因、影响和行动串成一条故事线。</p>
+    </div>`;
+}
+
+function renderMetricTrendLine(label, series = [], metricKey = "nim") {
+  const points = series.slice(-6);
+  const values = points.map((item) => item.value).filter((value) => typeof value === "number" && !Number.isNaN(value));
+  const first = values[0];
+  const last = values[values.length - 1];
+  const direction = values.length < 2 ? "趋势待补" : last > first ? "上行" : last < first ? "下行" : "持平";
+  const tone = direction === "上行" ? "good" : direction === "下行" ? "bad" : "neutral";
+  return `
+    <div class="metric-trend-line tone-${tone}">
+      <b>${step2Esc(label)}</b>
+      <em>${step2Esc(direction)}</em>
+      <p>${points.map((item) => `${item.year}:${step2Metric(metricKey, item.value)}`).join(" / ") || "暂无时间序列"}</p>
+    </div>`;
 }
 
 function commandCenterDiagnosis() {

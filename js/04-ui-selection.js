@@ -76,6 +76,45 @@ function peerSelectionPreviewHtml() {
     </div>`;
 }
 
+function selectedAnalysisScenario() {
+  return document.getElementById("analysisScenarioSelect")?.value || "board";
+}
+
+function scenarioReportVersion(scenario = selectedAnalysisScenario()) {
+  return {
+    board: "董事会完整汇报版",
+    market: "资本市场沟通版",
+    action: "管理层行动版"
+  }[scenario] || "董事会完整汇报版";
+}
+
+function renderRecommendedPeerPreview() {
+  const host = document.getElementById("recommendedPeerPreview");
+  if (!host) return;
+  const template = state.peerTemplate === "manual" ? defaultPeerTemplateForTarget() : state.peerTemplate;
+  const peers = state.peers?.length ? state.peers : peerTemplateBanks(template);
+  const target = latest(state.target) || targetRecord();
+  const scenario = selectedAnalysisScenario();
+  const scenarioLabel = {
+    board: "董事会判断",
+    market: "资本市场沟通",
+    action: "管理层行动"
+  }[scenario] || "董事会判断";
+  host.innerHTML = `
+    <span>推荐对标组</span>
+    <b>${displayBankName(state.target)}｜${scenarioLabel}｜${typeof peerTemplateLabel === "function" ? peerTemplateLabel(template) : template}</b>
+    <em>${displayBankList(peers, "选择目标银行后自动推荐")}</em>
+    <em>${target?.type || "银行样本"}｜${target?.region || "区域未标注"}｜确认后直接进入 30 秒诊断。</em>`;
+}
+
+function toggleAdvancedSetup() {
+  const panel = document.getElementById("setupAdvancedOptions") || document.querySelector(".setup-advanced");
+  if (!panel) return;
+  panel.classList.toggle("is-collapsed");
+  const button = document.getElementById("advancedSetupToggle");
+  if (button) button.textContent = panel.classList.contains("is-collapsed") ? "展开高级设置" : "收起高级设置";
+}
+
 function peerCandidateRows() {
   const selected = new Set(state.peers);
   const recommended = new Set(peerTemplateBanks(state.peerTemplate).filter((bank) => bank !== state.target));
@@ -167,6 +206,7 @@ function renderChoicePanels() {
   renderTargetDrillControls();
   if (targetPreview) targetPreview.innerHTML = targetSelectionPreviewHtml();
   if (peerPreview) peerPreview.innerHTML = peerSelectionPreviewHtml();
+  renderRecommendedPeerPreview();
   if (targetBox) {
     const targetRows = filteredTargetBanks();
     targetBox.innerHTML = targetRows.length ? targetRows.map((b) => `
@@ -239,6 +279,8 @@ function populateSelectors() {
   const exportAll = document.getElementById("exportAllData");
   const coverageExportSelected = document.getElementById("coverageExportSelected");
   const coverageExportAll = document.getElementById("coverageExportAll");
+  const scenario = document.getElementById("analysisScenarioSelect");
+  const advancedSetupToggle = document.getElementById("advancedSetupToggle");
   if (!target || !peers) return;
   const options = banks.map((b) => `<option value="${b.bank}">${displayBankName(b.bank)}｜${b.region || "区域未标注"}｜${b.type}</option>`).join("");
   target.innerHTML = options;
@@ -288,6 +330,20 @@ function populateSelectors() {
       applyReportVersion(state.reportVersion);
       if (state.confirmed) renderAll();
     });
+  }
+  if (scenario && !scenario.dataset.bound) {
+    scenario.dataset.bound = "1";
+    scenario.addEventListener("change", () => {
+      state.reportVersion = scenarioReportVersion(scenario.value);
+      if (reportVersion) reportVersion.value = state.reportVersion;
+      applyReportVersion(state.reportVersion);
+      renderRecommendedPeerPreview();
+      if (state.confirmed) renderAll();
+    });
+  }
+  if (advancedSetupToggle && !advancedSetupToggle.dataset.bound) {
+    advancedSetupToggle.dataset.bound = "1";
+    advancedSetupToggle.addEventListener("click", toggleAdvancedSetup);
   }
   if (peerTemplate) {
     peerTemplate.value = state.peerTemplate;

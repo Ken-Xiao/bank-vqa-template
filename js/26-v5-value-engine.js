@@ -343,7 +343,7 @@ function v5DeviationHtml(row = targetRecord()) {
     meaning: "异动不应逐项罗列，应先判断它是阶段扰动还是结构性偏离；只有能解释经营质量或估值的指标才进入正式报告主线。",
     tone: mainNegative ? "red" : mainPositive ? "green" : "blue"
   });
-  const render = (items) => items.map((item) => `<div class="v5-deviation-row"><b>${item.label}</b><span>${item.momentum.direction}｜${item.momentum.acceleration}</span><em>${item.tag?.tag || "待判断"}</em></div>`).join("");
+  const render = (items) => items.map((item) => `<div class="v5-deviation-row"><b>${item.label}</b><span>${item.momentum.direction}｜${item.momentum.acceleration}</span><em>${item.tag?.tag || "待判断"}</em>${typeof anomalyCauseChartHtml === "function" ? anomalyCauseChartHtml(item) : ""}<p class="step2-change-reason">${typeof anomalyLikelyReason === "function" ? anomalyLikelyReason(item) : "可能原因需结合趋势、同业位置和口径风险继续复核。"}</p></div>`).join("");
   return `${readout}<div class="v5-deviation-grid"><div><h4>正向改善</h4>${render(radar.positive) || "<p>暂无显著改善。</p>"}</div><div><h4>负向恶化</h4>${render(radar.negative) || "<p>暂无显著恶化。</p>"}</div></div>`;
 }
 

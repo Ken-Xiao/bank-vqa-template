@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="styles/print.css?v=20260531-prd-v6" media="print" />
 
 </head>
-<body>
+<body data-app-state="setup">
   <header class="global-bar" id="globalBar" aria-label="BenchmarkIQ 全局导航">
     <button class="global-brand" id="globalBrandHome" type="button" data-app-mode-target="setup" aria-label="返回设定口径">BenchmarkIQ</button>
     <div class="global-context">
@@ -94,6 +94,25 @@
             <p>汇报材料、数据附录和指标底稿保持同一页序、同一标题体系和同一数据口径。</p>
           </div>
         </div>
+        <div class="setup-workbench-grid" id="setupWorkbenchGrid">
+          <div class="setup-primary-column">
+        <section class="quick-launch-panel" id="quickLaunchPanel" aria-label="60秒启动">
+          <div>
+            <span>60秒启动</span>
+            <h2>选择一家银行，系统自动生成推荐对标组和第一句诊断</h2>
+            <p>先用默认对标和董事会情景进入诊断；报告版本、类型均值和手动对标组收到高级设置里。</p>
+          </div>
+          <label class="launch-scenario">
+            <span>分析情景</span>
+            <select id="analysisScenarioSelect">
+              <option value="board">董事会判断</option>
+              <option value="market">资本市场沟通</option>
+              <option value="action">管理层行动</option>
+            </select>
+          </label>
+          <div class="recommended-peer-preview" id="recommendedPeerPreview"></div>
+          <button type="button" class="btn secondary" id="advancedSetupToggle">展开高级设置</button>
+        </section>
         <div class="filters">
           <div class="field-label selector-field target-field">目标银行
             <select id="targetBank" hidden>
@@ -114,6 +133,9 @@
             <div class="target-preview-card" id="targetSelectionPreview"></div>
             <div class="choice-panel target-panel" id="targetBankChecks"></div>
           </div>
+          </div>
+          </div>
+          <div class="setup-secondary-column">
           <div class="field-label selector-field peer-field">对标银行
             <select id="peerBanks" multiple hidden>
               <option selected>常熟农商行</option>
@@ -135,6 +157,7 @@
               <option value="2020">2020 截面</option>
             </select>
           </div>
+          <div class="setup-advanced is-collapsed" id="setupAdvancedOptions">
           <div class="field-label selector-field type-field">分类型银行数据
             <select id="bankTypes" multiple hidden>
               <option selected>国有大行</option>
@@ -168,6 +191,8 @@
               </select>
             <span class="multi-help">可复用历史对标组</span>
             </div>
+          </div>
+          </div>
           </div>
         </div>
         <div class="actions">
@@ -385,6 +410,8 @@
           <a href="#step2TopicCards" data-step2-jump="topics"><span>5</span>专题深钻</a>
           <a href="#step2ActionPath" data-step2-jump="actions"><span>6</span>行动路径</a>
         </nav>
+        <div class="analysis-workbench-grid" id="analysisWorkbenchGrid">
+          <main class="analysis-main-canvas" id="analysisMainCanvas" aria-label="诊断主画布">
         <section class="step-focus-section step2-diagnosis-hero" id="step2SummarySection" aria-label="30秒总结">
           <span>Step 2 · 30 秒诊断</span>
           <h2 id="step2DiagnosisTitle">确认口径后生成价值质量总答案</h2>
@@ -423,6 +450,11 @@
           <h3 id="step2ActionsTitle">把诊断转成 0-3、3-6、6-12 个月行动顺序</h3>
           <div class="step2-action-path" id="step2ActionPathGrid"></div>
         </section>
+          </main>
+          <aside class="metric-context-rail" id="metricContextRail" aria-label="指标上下文">
+            <div class="metric-context-empty">确认分析后展示关键指标上下文。</div>
+          </aside>
+        </div>
       </section>
       </section>
       <section class="analysis-roadmap analysis-content" id="analysisRoadmap" aria-label="分析导航地图">
@@ -1361,6 +1393,7 @@
   <script src="js/31-ceam-structure-editor.js?v=20260531-ceam-v2"></script>
   <script src="js/32-pb-pricing-model.js?v=20260601-pb-pricing"></script>
   <script src="js/33-llm-commentary.js?v=20260601-llm-commentary"></script>
+  <script src="js/34-decision-workbench.js?v=20260601-decision-workbench"></script>
   <script src="js/10-bootstrap.js"></script>
 </body>
 </html>

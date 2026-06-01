@@ -832,12 +832,18 @@ function renderTopicWorkbench() {
   const narratives = typeof getTopicNarratives === "function" ? getTopicNarratives(topic.id) : null;
   const draft = narratives || topicAiDraft(topic, facts);
   const judgement = topicJudgement(topic.id, facts);
+  const insight = typeof topicInsightTriangle === "function" ? topicInsightTriangle(topic.id) : null;
   const citationNote = judgement.citationDegraded
     ? `<div class="topic-citation-warning">必选引用指标 ${judgement.missingRequired.join("、")} 数据不足，已降级为备选指标支撑解读。</div>`
     : "";
   host.innerHTML = `
-    <h3>${topic.title}</h3>
+    <h3>${typeof topicQuestionTitle === "function" ? topicQuestionTitle(topic.id) : topic.title}</h3>
     <p class="topic-question">${topic.question}</p>
+    <div class="topic-insight-triangle">
+      <div><span>当前值</span><b>${insight?.currentValue || "待补"}</b></div>
+      <div><span>变化方向</span><b>${insight?.trendDirection || "待补"}</b></div>
+      <div><span>机制解释</span><b>${insight?.mechanismExplanation || judgement.headline || "待补"}</b></div>
+    </div>
     <div class="topic-report-controls">
       <label class="topic-include-toggle"><input type="checkbox" data-topic-include="${topic.id}" ${isTopicIncluded(topic.id) ? "checked" : ""} />纳入 HTML/PPTX 报告</label>
       <button type="button" class="btn secondary" id="regenerateTopicNarrative">重新生成本专题解读</button>

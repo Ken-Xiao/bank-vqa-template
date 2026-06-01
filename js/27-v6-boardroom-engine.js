@@ -163,6 +163,57 @@ function v6AnomalyWhyItMatters(item = {}) {
   return `${semantic.label}：${[targetText, peerText, momentumText].filter(Boolean).join("；")}。管理含义：${semantic.help}`;
 }
 
+function anomalyLikelyReason(item = {}) {
+  const key = item.key || "";
+  const semantic = v6AnomalySemanticTag(item);
+  const directionText = item.momentumScore < 0 ? "恶化" : "改善";
+  if (/nim|nimGap|timeDeposit|interestLiability|loanYield/i.test(key)) {
+    return `可能原因：资产端重定价快于负债端降本，或存款定期化推高资金成本；当前更像${semantic.label}下的息差${directionText}信号。`;
+  }
+  if (/npl|overdue|provision|hidden|retail|specialMention/i.test(key)) {
+    return `可能原因：风险分类、逾期迁徙或拨备使用节奏变化；若同时偏离同业，需优先复核风险确认是否滞后。`;
+  }
+  if (/roe|roa|profit|ppop|revenue|coreRevenue/i.test(key)) {
+    return `可能原因：拨备、投资收益、费用或核心营收共同影响利润表现；需要拆分前端经营修复和一次性扰动。`;
+  }
+  if (/fee|cost|admin|income/i.test(key)) {
+    return `可能原因：中收转化、网点费用、管理费用或收入结构变化；应判断是经营效率问题还是阶段投入。`;
+  }
+  if (/cet1|car|rwa|assetGrowth|loanAsset/i.test(key)) {
+    return `可能原因：扩表速度、RWA密度和资本补充节奏不匹配；需要回到资本消耗和新增资产回报验证。`;
+  }
+  if (/pb|valuation|economic/i.test(key)) {
+    return `可能原因：市场定价正在折现盈利、风险透明度或资本回报差异；不能把估值变化直接解释为低估。`;
+  }
+  return `可能原因：该指标同时受本期变化、同业位置和口径差异影响；建议先验证${semantic.label}是否能被业务动作解释。`;
+}
+
+function anomalyCauseBars(item = {}) {
+  const absZ = Math.min(100, Math.abs(item.z || 0) / 2 * 100);
+  const absMomentum = Math.min(100, Math.abs(item.momentumScore || 0) / 40 * 100);
+  const calibration = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(item.key) : null;
+  const calibrationScore = calibration?.level === "L4" ? 90 : calibration?.level === "L3" ? 72 : calibration?.level === "L2" ? 48 : 28;
+  const mechanismScore = /nim|npl|overdue|roe|roa|profit|fee|cost|cet1|rwa|pb/i.test(item.key || "") ? 76 : 48;
+  return [
+    { label: "同业偏离", value: Math.round(absZ), note: item.z == null ? "无横向偏离" : `${Math.abs(item.z).toFixed(1)}σ` },
+    { label: "本期动量", value: Math.round(absMomentum), note: item.momentum?.direction || "趋势待判" },
+    { label: "业务机制", value: mechanismScore, note: "需专题验证" },
+    { label: "口径风险", value: calibrationScore, note: calibration?.riskLevel || calibration?.level || "L2" }
+  ];
+}
+
+function anomalyCauseChartHtml(item = {}) {
+  return `
+    <div class="anomaly-cause-chart" aria-label="异动原因强弱图">
+      ${anomalyCauseBars(item).map((bar) => `
+        <div class="anomaly-cause-bar">
+          <span>${bar.label}</span>
+          <i style="--cause-width:${Math.max(8, Math.min(100, bar.value))}%"></i>
+          <em>${bar.note}</em>
+        </div>`).join("")}
+    </div>`;
+}
+
 function businessLogicAlerts(row = targetRecord()) {
   if (!row) return [];
   const prev = proPrevRecord(row);
@@ -223,6 +274,8 @@ function v6AnomalyRadarHtml(row = targetRecord()) {
         <b>${item.label}</b>
         <span>${evidence}</span>
         <em>${semantic.label}</em>
+        ${anomalyCauseChartHtml(item)}
+        <p class="step2-change-reason">${anomalyLikelyReason(item)}</p>
         <p>${v6AnomalyWhyItMatters(item)}</p>
       </div>`;
   }).join("");

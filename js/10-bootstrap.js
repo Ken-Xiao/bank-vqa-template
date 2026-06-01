@@ -122,6 +122,7 @@ async function initApp() {
   if (typeof initExportSequenceQaModule === "function") initExportSequenceQaModule();
   if (typeof initCeamStructureEditorModule === "function") initCeamStructureEditorModule();
   if (typeof initLlmCommentaryModule === "function") initLlmCommentaryModule();
+  if (typeof initDecisionWorkbenchModule === "function") initDecisionWorkbenchModule();
 }
 
 initApp();
