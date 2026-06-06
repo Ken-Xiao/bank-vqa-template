@@ -4,16 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Cache-Control" content="no-store" />
-  <title>BenchmarkIQ 银行经营对标分析平台</title>
-  <link rel="stylesheet" href="styles/app.css?v=20260530-benchmarkiq-v3" />
+  <title>银行经营对标分析平台</title>
+  <link rel="stylesheet" href="styles/app.css?v=20260606-evidence-commentary" />
   <link rel="stylesheet" href="styles/rsm-consulting-ppt.css?v=20260530-client-spine" />
   <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-v7" />
   <link rel="stylesheet" href="styles/print.css?v=20260531-prd-v6" media="print" />
 
 </head>
-<body data-app-state="setup">
-  <header class="global-bar" id="globalBar" aria-label="BenchmarkIQ 全局导航">
-    <button class="global-brand" id="globalBrandHome" type="button" data-app-mode-target="setup" aria-label="返回设定口径">BenchmarkIQ</button>
+<body data-app-state="setup" data-app-page="launch">
+  <header class="global-bar" id="globalBar" aria-label="经营对标全局导航">
+    <button class="global-brand" id="globalBrandHome" type="button" data-app-mode-target="setup" aria-label="返回设定口径">经营对标</button>
     <div class="global-context">
       <span id="globalBankContext">待选择银行</span>
       <b id="globalVqaSignal">确认口径后生成诊断</b>
@@ -28,15 +28,9 @@
       <button class="global-export-toggle" id="globalExportToggle" type="button">导出</button>
     </div>
   </header>
-  <aside class="side-nav analysis-content" id="sideNav" aria-label="章节导航">
-    <div class="side-nav-head">
-      <h3>页面导航</h3>
-      <button class="layout-collapse-toggle" id="toggleSideNav" type="button" data-layout-collapse-target="sideNav" aria-controls="sideNav" aria-expanded="true" aria-label="收起页面导航">收起</button>
-    </div>
-    <div id="sideNavContent"></div>
-  </aside>
+  <nav class="page-rail" id="pageRail" aria-label="六页任务流"></nav>
   <main class="app">
-    <section class="hero">
+    <section class="hero" data-portal-hidden-default="true">
       <div class="topbar">
         <div class="eyebrow">董 事 会 汇 报</div>
         <div class="brand">RSM</div>
@@ -44,10 +38,10 @@
       <div class="hero-main">
         <div>
           <h1>银行经营对标总览</h1>
-          <p class="hero-subtitle">BenchmarkIQ：先定位同业位置，再解释价值质量差异</p>
+          <p class="hero-subtitle">先定位同业位置，再解释价值质量差异</p>
           <p class="hero-copy">
-            本产品以前台 <b>SPARC 五维对标</b> 回答“我行在同业中处于什么位置”，
-            以后端 <b>VQA 价值质量引擎</b> 解释“为什么处在这里”。结论、图表、
+            本产品以前台 <b>五维对标</b> 回答“我行在同业中处于什么位置”，
+            以后端 <b>价值质量引擎</b> 解释“为什么处在这里”。结论、图表、
             报告和底稿共享同一套样本边界、指标口径和语言规范。
           </p>
         </div>
@@ -64,12 +58,12 @@
     </section>
 
     <section class="workspace">
-      <div class="control-surface step-shell step1-content" id="step1Content" data-step-shell="setup" aria-label="设定口径">
+      <div class="control-surface step-shell step1-content" id="step1Content" data-step-shell="setup" data-portal-page="launch" aria-label="设定口径">
         <div class="selection-intro">
           <div>
             <span>分析口径设置</span>
           <h2>先确定分析对象与参照样本，再形成可辩护的同业位置判断</h2>
-          <p>本页用于确认本次汇报的分析边界：目标银行决定主线，对标银行决定横向参照，分类型银行均值用于识别行业位置。确认后，系统先输出 SPARC 位置和行长一页摘要，再进入 VQA 诊断、专题归因、口径复核和报告编排。</p>
+          <p>本页用于确认本次汇报的分析边界：目标银行决定主线，对标银行决定横向参照，分类型银行均值用于识别行业位置。确认后，系统先输出五维位置和行长一页摘要，再进入价值质量诊断、专题归因、口径复核和报告编排。</p>
           </div>
           <div class="iteration-strip">
             <div><b>01 明确样本</b><span>锁定目标银行、对标组、类型均值和报告版本，形成一致参照。</span></div>
@@ -116,7 +110,7 @@
         <div class="filters">
           <div class="field-label selector-field target-field">目标银行
             <select id="targetBank" hidden>
-              <option>苏州农商行</option>
+              <option>确认后显示目标银行</option>
             </select>
             <div class="target-drilldown">
               <div class="target-drill-head">
@@ -201,9 +195,9 @@
           <button class="btn secondary analysis-content" id="refreshAnalysis" type="button">刷新诊断</button>
           <button class="btn secondary analysis-content" id="saveProject" type="button">保存当前项目</button>
           <button class="btn secondary analysis-content" id="loadProject" type="button">加载最近项目</button>
-          <button class="btn analysis-content" id="exportReportHtml" type="button">导出正式报告 HTML</button>
-          <button class="btn secondary analysis-content" id="exportReportPptx" type="button">导出正式报告 PPTX</button>
-          <button class="btn secondary analysis-content" id="exportReport" type="button">打印/导出正式报告 PDF</button>
+          <button class="btn analysis-content" id="exportReportHtml" type="button">导出正式报告网页</button>
+          <button class="btn secondary analysis-content" id="exportReportPptx" type="button">导出正式报告演示稿</button>
+          <button class="btn secondary analysis-content" id="exportReport" type="button">打印/导出正式报告文档</button>
           <button class="btn secondary analysis-content" id="exportSelectedData" type="button">导出选定数据</button>
           <button class="btn secondary analysis-content" id="exportAllData" type="button">导出全部数据</button>
           <div class="project-status analysis-content" id="projectStatus">当前项目尚未保存。</div>
@@ -219,9 +213,9 @@
             <div class="export-menu">
               <button class="btn" id="clientExportToggle" type="button">导出交付物</button>
               <div class="export-menu-list" id="clientExportMenu">
-                <button type="button" data-export-target="exportReportHtml">正式报告 HTML</button>
-                <button type="button" data-export-target="exportReport">报告 PDF / 打印</button>
-                <button type="button" data-export-target="exportReportPptx">正式报告 PPTX</button>
+                <button type="button" data-export-target="exportReportHtml">正式报告网页</button>
+                <button type="button" data-export-target="exportReport">正式报告文档 / 打印</button>
+                <button type="button" data-export-target="exportReportPptx">正式报告演示稿</button>
                 <button type="button" data-export-target="exportSelectedData">选定数据底稿</button>
                 <button type="button" data-export-target="exportAllData">全量数据底稿</button>
               </div>
@@ -230,11 +224,11 @@
         </div>
       </div>
       <div class="selection-summary" id="selectionSummary">
-        <span><strong>目标银行</strong>苏州农商行</span>
-        <span><strong>对标银行</strong>常熟农商行、瑞丰农商行、上海农商行、苏州</span>
-        <span><strong>类型均值</strong>国有大行、股份行、城市商业银行、农村商业银行</span>
+        <span><strong>目标银行</strong>确认后显示</span>
+        <span><strong>对标银行</strong>确认后显示</span>
+        <span><strong>类型均值</strong>确认后显示</span>
       </div>
-      <section class="sprint-baseline-panel analysis-content client-internal" id="sprintBaselinePanel" data-workspace-tab="review" aria-label="稳定基线检查">
+      <section class="sprint-baseline-panel analysis-content client-internal" id="sprintBaselinePanel" data-workspace-tab="review" data-portal-page="data" data-portal-hidden-default="true" aria-label="稳定基线检查">
         <div>
           <span>Sprint 0 稳定基线</span>
           <h2>交付前先确认资源、脚本、报告树和测试契约未回退</h2>
@@ -242,11 +236,11 @@
         </div>
         <div class="sprint-baseline-grid" id="sprintBaselineGrid"></div>
       </section>
-      <section class="client-command-center analysis-content" id="clientCommandCenter" data-workspace-tab="overview" aria-label="客户任务台">
+      <section class="client-command-center analysis-content" id="clientCommandCenter" data-workspace-tab="overview" data-portal-page="answer" aria-label="客户任务台">
         <div class="command-main">
           <span>30 秒结论</span>
           <h2 id="commandVerdictTitle">确认样本后，先看本次价值质量总答案</h2>
-          <p id="commandVerdictText">这里将汇总 VQA 诊断、数据完整性、最弱维度和建议动作，帮助董办判断是否可以进入报告编排。</p>
+          <p id="commandVerdictText">这里将汇总价值质量诊断、数据完整性、最弱维度和建议动作，帮助董办判断是否可以进入报告编排。</p>
         </div>
         <div class="overview-depth-control">
           <span>总览密度</span>
@@ -267,7 +261,7 @@
           </div>
           <div class="overview-decision-card">
             <div class="overview-decision-head">
-              <span>SPARC 交通灯</span>
+              <span>五维交通灯</span>
               <b>先看战略、盈利、资产质量、风险、资本的状态差异</b>
             </div>
             <div class="traffic-light-grid is-command" id="sparcTrafficLights"></div>
@@ -277,13 +271,13 @@
           <div class="guided-path-panel" id="guidedPathPanel">
             <div class="guided-path-head">
               <span>推荐下钻路径</span>
-              <b>确认分析后，系统将按 VQA 弱项和风险信号给出下一步阅读顺序。</b>
+              <b>确认分析后，系统将按价值质量弱项和风险信号给出下一步阅读顺序。</b>
             </div>
             <div class="guided-path-list" id="guidedPathList"></div>
           </div>
           <div class="whatif-control-panel" id="whatIfControlPanel">
             <div class="whatif-control-head">
-              <span>What-if 决策推演</span>
+              <span>情景推演</span>
               <b>调整核心经营假设，观察结论方向是否改变。</b>
             </div>
             <div class="whatif-control-grid">
@@ -295,7 +289,7 @@
           </div>
         </div>
       </section>
-      <section class="president-summary-panel analysis-content" id="presidentSummaryPanel" data-workspace-tab="overview" data-overview-depth="primary" aria-label="行长版一页摘要">
+      <section class="president-summary-panel analysis-content" id="presidentSummaryPanel" data-workspace-tab="overview" data-overview-depth="primary" data-portal-page="answer" aria-label="行长版一页摘要">
         <div class="president-summary-head">
           <div>
             <span>行长版一页摘要</span>
@@ -314,10 +308,10 @@
           </div>
         </div>
       </section>
-      <section class="v5-value-panel analysis-content" id="v5ValuePanel" data-workspace-tab="overview" data-overview-depth="secondary" aria-label="价值创造与估值归因">
+      <section class="v5-value-panel analysis-content" id="v5ValuePanel" data-workspace-tab="overview" data-overview-depth="secondary" data-portal-page="topics" aria-label="价值创造与估值归因">
         <div class="v5-panel-head">
           <div>
-            <span>BenchmarkIQ V5</span>
+            <span>价值质量专题</span>
             <h2 id="v5ValueTitle">确认样本后，先回答价值创造、市场定价和行动优先级</h2>
           </div>
           <b id="v5DataFreshness">数据时效待确认</b>
@@ -325,7 +319,7 @@
         <div class="v5-value-grid" id="v5ValueGrid"></div>
         <div class="v5-two-column is-stacked">
           <div class="v5-card">
-            <div class="v5-card-head"><span>估值证据页</span><b>PB 是否由经营质量解释</b></div>
+            <div class="v5-card-head"><span>估值证据页</span><b>市净率是否由经营质量解释</b></div>
             <div id="v5PbAnchorPanel"></div>
           </div>
           <div class="v5-card">
@@ -334,16 +328,16 @@
           </div>
         </div>
         <div class="v5-card">
-          <div class="v5-card-head"><span>行动证据页</span><b>先修哪个因子才影响 PB</b></div>
+          <div class="v5-card-head"><span>行动证据页</span><b>先修哪个因子才影响市净率</b></div>
           <div id="v5TornadoPanel"></div>
         </div>
       </section>
-      <section class="benchmark-v1-panel analysis-content" id="benchmarkV1Panel" data-workspace-tab="overview" data-overview-depth="secondary" aria-label="BenchmarkIQ V1 总览">
+      <section class="benchmark-v1-panel analysis-content" id="benchmarkV1Panel" data-workspace-tab="overview" data-overview-depth="secondary" data-portal-page="data" data-portal-hidden-default="true" aria-label="经营对标总览">
         <div class="benchmark-v1-head">
           <div>
-            <span>BenchmarkIQ V3</span>
-            <h2>SPARC 是客户界面层，VQA 是内部评分引擎</h2>
-            <p>本模块用配置化 SPARC 五维展示同业位置；展开后可回到 VQA 子维度、指标权重、口径风险和事实证据链。</p>
+            <span>经营对标总览</span>
+            <h2>五维对标是客户界面层，价值质量是内部评分引擎</h2>
+            <p>本模块用配置化五维展示同业位置；展开后可回到价值质量子维度、指标权重、口径风险和事实证据链。</p>
           </div>
           <div class="benchmark-v1-badge" id="sparcOverallBadge">待生成</div>
         </div>
@@ -365,18 +359,18 @@
           </div>
         </div>
       </section>
-      <section class="ib-evidence-panel analysis-content" id="ibEvidencePanel" data-workspace-tab="overview" data-overview-depth="secondary" aria-label="投行级证据页">
+      <section class="ib-evidence-panel analysis-content" id="ibEvidencePanel" data-workspace-tab="overview" data-overview-depth="secondary" data-portal-page="topics" aria-label="投行级证据页">
         <div class="ib-evidence-head">
           <div>
-            <span>Investment Banking Evidence Pack</span>
+            <span>投行级证据包</span>
             <h2>把“指标对标”升级为可放进投行/咨询 Deck 的证据页</h2>
-            <p>本区域按 PRD 的 Phase 0/P1 输出 Harvey Ball 矩阵、ROA 因子桥、Tornado 敏感性和同业 Sparkline，全都与当前目标银行和对标组同步。</p>
+            <p>本区域按需求阶段输出五维矩阵、总资产收益率因子桥、情景敏感性和同业趋势小图，全都与当前目标银行和对标组同步。</p>
           </div>
           <div class="ib-evidence-badge" id="ibEvidenceBadge">待生成</div>
         </div>
         <div class="ib-evidence-grid">
           <div class="ib-evidence-card ib-wide">
-            <div class="ib-card-title"><span>Executive Dashboard</span><b>Harvey Ball 总览矩阵</b></div>
+            <div class="ib-card-title"><span>经营总览矩阵</span><b>五维总览矩阵</b></div>
             <div id="harveyMatrix"></div>
           </div>
           <div class="ib-evidence-card">
@@ -384,16 +378,16 @@
             <div id="roaWaterfallPanel"></div>
           </div>
           <div class="ib-evidence-card">
-            <div class="ib-card-title"><span>Scenario Impact</span><b>Tornado 敏感性排序</b></div>
+            <div class="ib-card-title"><span>情景影响</span><b>敏感性排序</b></div>
             <div id="tornadoPanel"></div>
           </div>
           <div class="ib-evidence-card ib-wide">
-            <div class="ib-card-title"><span>Peer Landscape</span><b>核心指标 Sparkline 全景</b></div>
+            <div class="ib-card-title"><span>同业全景</span><b>核心指标趋势小图</b></div>
             <div id="peerSparklineMatrix"></div>
           </div>
         </div>
       </section>
-      <nav class="workspace-tabs analysis-content" id="workspaceTabs" aria-label="工作区导航">
+      <nav class="workspace-tabs analysis-content" id="workspaceTabs" data-portal-hidden-default="true" aria-label="工作区导航 (legacy, 已被 Page Rail 替代)">
         <button class="is-active" type="button" data-tab-target="overview"><span>1</span>总览</button>
         <button type="button" data-tab-target="topics"><span>2</span>专题</button>
         <button type="button" data-tab-target="report"><span>3</span>报告</button>
@@ -401,52 +395,63 @@
         <button type="button" data-tab-target="review"><span>5</span>复核</button>
         <button type="button" data-tab-target="governance"><span>6</span>管理</button>
       </nav>
-      <section class="step-shell step2-content analysis-content" id="step2Content" data-step-shell="analysis" aria-label="诊断结论">
-        <nav class="step2-path-nav" aria-label="Step 2 诊断路径">
-          <a class="is-active" href="#step2SummarySection" data-step2-jump="summary"><span>1</span>30秒诊断</a>
-          <a href="#step2PeerPosition" data-step2-jump="peer"><span>2</span>同业位置</a>
-          <a href="#step2TopChanges" data-step2-jump="changes"><span>3</span>异动偏离</a>
-          <a href="#step2PbAnswer" data-step2-jump="pb"><span>4</span>估值答案</a>
-          <a href="#step2TopicCards" data-step2-jump="topics"><span>5</span>专题深钻</a>
-          <a href="#step2ActionPath" data-step2-jump="actions"><span>6</span>行动路径</a>
+      <section class="step-shell step2-content analysis-content" id="step2Content" data-step-shell="analysis" data-portal-page="answer evidence topics" aria-label="诊断结论">
+        <nav class="step2-path-nav" aria-label="当前页面目录">
+          <a class="is-active" href="#step2SummarySection" data-step2-jump="summary" data-step2-page="answer"><span>1</span>30秒诊断</a>
+          <a href="#step2PeerPosition" data-step2-jump="peer" data-step2-page="evidence"><span>1</span>同业位置</a>
+          <a href="#step2TopChanges" data-step2-jump="changes" data-step2-page="evidence"><span>2</span>异动偏离</a>
+          <a href="#step2PbAnswer" data-step2-jump="pb" data-step2-page="evidence"><span>3</span>估值答案</a>
+          <a href="#step2TopicCards" data-step2-jump="topics" data-step2-page="topics"><span>1</span>专题入口</a>
+          <a href="#step2ActionPath" data-step2-jump="actions" data-step2-page="answer topics"><span>2</span>行动路径</a>
         </nav>
         <div class="analysis-workbench-grid" id="analysisWorkbenchGrid">
           <main class="analysis-main-canvas" id="analysisMainCanvas" aria-label="诊断主画布">
-        <section class="step-focus-section step2-diagnosis-hero" id="step2SummarySection" aria-label="30秒总结">
-          <span>Step 2 · 30 秒诊断</span>
+        <section class="step-focus-section step2-diagnosis-hero" id="step2SummarySection" data-portal-page="answer" aria-label="30秒总结">
+          <span>第二步 · 30 秒诊断</span>
           <h2 id="step2DiagnosisTitle">确认口径后生成价值质量总答案</h2>
           <p id="step2DiagnosisLead">这里将合并客户摘要、行长摘要和交付控制台，先用一句话说明当前价值质量约束，再给出董事会应优先讨论的三个问题。</p>
           <div class="step2-decision-brief" id="step2DecisionBrief" aria-label="董事会默认答案"></div>
           <div class="step2-kpi-strip" id="step2KpiStrip" aria-label="关键诊断指标"></div>
           <div class="step2-board-questions" id="step2BoardQuestions" aria-label="董事会讨论问题"></div>
         </section>
-        <div class="section-bridge" id="step2BridgeEvidence">先用总答案定调，再用三类证据判断结论是否可上会。</div>
-        <div class="step2-evidence-grid" aria-label="三类核心证据">
-          <section class="step-focus-section step2-evidence-section" id="step2PeerPosition" aria-label="同业位置证据">
-            <span>Evidence 01 · 同业位置</span>
-            <h3 id="step2PeerTitle">SPARC 五灯号显示哪些能力支撑或拖累价值质量</h3>
+        <div class="section-bridge" id="step2BridgeEvidence" data-portal-page="evidence">先用总答案定调，再用三类证据判断结论是否可上会。</div>
+        <div class="step2-evidence-grid" data-portal-page="evidence" aria-label="三类核心证据">
+          <section class="step-focus-section step2-evidence-section" id="step2PeerPosition" data-portal-page="evidence" aria-label="同业位置证据">
+            <span>证据一 · 同业位置</span>
+            <h3 id="step2PeerTitle">五维灯号显示哪些能力支撑或拖累价值质量</h3>
             <div class="step2-evidence-body" id="step2PeerPositionBody">确认分析后生成同业位置卡。</div>
           </section>
-          <section class="step-focus-section step2-evidence-section is-vertical" id="step2TopChanges" aria-label="异动与偏离证据">
-            <span>Evidence 02 · Top Changes & Deviations</span>
+          <section class="step-focus-section step2-evidence-section is-vertical" id="step2TopChanges" data-portal-page="evidence" aria-label="异动与偏离证据">
+            <span>证据二 · 异动偏离</span>
             <h3 id="step2ChangesTitle">先看本期变化，再看相对对标组的偏离</h3>
+            <div class="step2-evidence-commentary" id="step2EvidenceCommentary" aria-label="证据地图智能解读">
+              <b>证据地图解读</b>
+              <p id="step2EvidenceCommentaryText">确认分析后，系统将基于同业位置、异动偏离和估值锚生成结论先行的证据地图解读。</p>
+              <div class="evidence-linkage-grid" id="step2EvidenceLinkage"></div>
+            </div>
             <div class="step2-evidence-body" id="step2TopChangesBody">确认分析后生成异动与偏离。</div>
           </section>
-          <section class="step-focus-section step2-evidence-section is-vertical" id="step2PbAnswer" aria-label="估值答案证据">
-            <span>Evidence 03 · PB 估值锚</span>
-            <h3 id="step2PbTitle">低 PB 是价值错配，还是经营质量折价</h3>
-            <div class="step2-evidence-body" id="step2PbAnswerBody">确认分析后生成 PB 估值答案。</div>
+          <section class="step-focus-section step2-evidence-section is-vertical" id="step2PbAnswer" data-portal-page="evidence" aria-label="估值答案证据">
+            <span>证据三 · 市净率估值锚</span>
+            <h3 id="step2PbTitle">低市净率是价值错配，还是经营质量折价</h3>
+            <div class="step2-evidence-body" id="step2PbAnswerBody">确认分析后生成市净率估值答案。</div>
           </section>
         </div>
-        <div class="section-bridge" id="step2BridgeTopics">完成三类证据核验后，再决定哪些专题需要进入正式报告。</div>
-        <section class="step-focus-section step2-topic-section" id="step2TopicCards" aria-label="专题入口">
-          <span>N · 专题深钻入口</span>
+        <div class="section-bridge" id="step2BridgeTopics" data-portal-page="topics">完成三类证据核验后，再决定哪些专题需要进入正式报告。</div>
+        <section class="step-focus-section step2-topic-section" id="step2TopicCards" data-portal-page="topics" aria-label="专题入口">
+          <span>专题分析</span>
           <h3 id="step2TopicsTitle">专题默认折叠为问题、证据、机制和行动</h3>
           <div class="step2-topic-grid" id="step2TopicGrid"></div>
         </section>
-        <div class="section-bridge" id="step2BridgeActions">最后把诊断翻译成管理层可承接的时间表，而不是停留在指标解释。</div>
-        <section class="step-focus-section step2-action-section" id="step2ActionPath" aria-label="行动路径">
-          <span>Action Path</span>
+        <!-- 衍生分析挂载点：利润质量 + 估值三维 -->
+        <div id="profitQualityMount" data-tushare-mount="profit-quality" data-phase="1" data-portal-page="topics"></div>
+        <div id="dividendValueMount" data-tushare-mount="dividend-value" data-phase="1" data-portal-page="topics"></div>
+        <!-- 金融资产分类 + 现金流深度 -->
+        <div id="assetClassificationMount" data-tushare-mount="asset-classification" data-phase="2" data-portal-page="topics"></div>
+        <div id="cashFlowDepthMount" data-tushare-mount="cashflow-depth" data-phase="2" data-portal-page="topics"></div>
+        <div class="section-bridge" id="step2BridgeActions" data-portal-page="answer topics">最后把诊断翻译成管理层可承接的时间表，而不是停留在指标解释。</div>
+        <section class="step-focus-section step2-action-section" id="step2ActionPath" data-portal-page="answer topics" aria-label="行动路径">
+          <span>行动路径</span>
           <h3 id="step2ActionsTitle">把诊断转成 0-3、3-6、6-12 个月行动顺序</h3>
           <div class="step2-action-path" id="step2ActionPathGrid"></div>
         </section>
@@ -457,7 +462,7 @@
         </div>
       </section>
       </section>
-      <section class="analysis-roadmap analysis-content" id="analysisRoadmap" aria-label="分析导航地图">
+      <section class="analysis-roadmap analysis-content" id="analysisRoadmap" data-portal-page="data" data-portal-hidden-default="true" aria-label="分析导航地图">
         <div class="analysis-roadmap-head">
           <div>
             <span>分析地图</span>
@@ -469,7 +474,7 @@
         <div class="analysis-roadmap-steps" id="analysisRoadmapSteps"></div>
         <div class="analysis-map-links" id="analysisMapLinks"></div>
       </section>
-      <section class="client-brief-panel analysis-content" id="clientBriefPanel" data-workspace-tab="overview" aria-label="客户汇报摘要">
+      <section class="client-brief-panel analysis-content" id="clientBriefPanel" data-workspace-tab="overview" data-portal-page="answer" aria-label="客户汇报摘要">
         <div class="client-brief-main">
           <span>董事会问题</span>
           <h2 id="clientBriefQuestion">本次分析需要回答目标银行的价值质量差异主要来自哪里</h2>
@@ -486,7 +491,7 @@
           </div>
         </div>
       </section>
-      <section class="board-workflow analysis-content" id="boardWorkflow" data-workspace-tab="overview" aria-label="董办工作台流程">
+      <section class="board-workflow analysis-content" id="boardWorkflow" data-workspace-tab="overview" data-portal-page="data" data-portal-hidden-default="true" aria-label="董办工作台流程">
         <div class="board-workflow-head">
           <div>
             <span>董办汇报流程</span>
@@ -518,8 +523,8 @@
           </a>
         </div>
       </section>
-      <div class="rules-version-badge analysis-content client-internal" id="rulesVersionBadge">规则版本加载中…</div>
-      <div class="project-flow analysis-content" id="projectFlow" data-workspace-tab="governance">
+      <div class="rules-version-badge analysis-content client-internal" id="rulesVersionBadge" data-portal-page="data" data-portal-hidden-default="true">规则版本加载中…</div>
+      <div class="project-flow analysis-content" id="projectFlow" data-workspace-tab="governance" data-portal-page="data" data-portal-hidden-default="true">
         <div class="project-panel project-manager">
           <h3>分析项目管理</h3>
           <div class="project-save-row">
@@ -539,12 +544,12 @@
         </div>
         <div class="project-panel portal-workflow-panel">
           <h3>关注指标看板</h3>
-          <p>默认提取 VQA 低分位和行动优先级最高的 5-8 个指标，进入报告执行摘要和行动页。</p>
+          <p>默认提取价值质量低分位和行动优先级最高的 5-8 个指标，进入报告执行摘要和行动页。</p>
           <div class="portal-watch-grid" id="portalWatchMetrics"></div>
         </div>
         <div class="project-panel portal-workflow-panel">
           <h3>同业敏感性测试</h3>
-          <p>逐一移除对标银行后重算 VQA，识别结论是否依赖单一同业样本。</p>
+          <p>逐一移除对标银行后重算价值质量，识别结论是否依赖单一同业样本。</p>
           <div class="peer-sensitivity-list" id="peerSensitivityList"></div>
         </div>
         <div class="project-panel portal-workflow-panel">
@@ -572,7 +577,7 @@
         </div>
         <div class="project-panel trial-export-panel">
           <h3>导出记录</h3>
-          <p>记录本机最近导出的 HTML、PDF/PPTX 和数据底稿，便于董办回溯报告版本。</p>
+          <p>记录本机最近导出的网页、文档、演示稿和数据底稿，便于董办回溯报告版本。</p>
           <div class="export-history" id="exportHistoryList"></div>
         </div>
         <div class="project-panel ai-product-panel">
@@ -581,14 +586,14 @@
           <div class="ai-product-flow">
             <div><b>1. 当前数据</b><span id="aiProductEvidence">等待选择目标银行和对标银行。</span></div>
             <div><b>2. 事实包约束</b><span id="aiProductGuardrail">所有文字必须回到指标、分位、对标均值和时间变化。</span></div>
-            <div><b>3. 报告输出</b><span id="aiProductOutput">HTML、PPTX、PDF 和 Excel 底稿共享同一套事实口径。</span></div>
+            <div><b>3. 报告输出</b><span id="aiProductOutput">网页、演示稿、文档和表格底稿共享同一套事实口径。</span></div>
           </div>
           <div class="ai-commentary-panel" id="aiCommentaryPanel">
             <div class="ai-commentary-head">
-              <b>自然语言模型评论层</b>
-              <span id="aiCommentaryStatus">本地模板待命</span>
+              <b>本地证据解读层</b>
+              <span id="aiCommentaryStatus">本地证据模板待命</span>
             </div>
-            <p id="aiCommentaryPreview">确认分析后生成当前银行的董事会版评论；接入后端模型接口后，可自动改写为更自然的咨询语言。</p>
+            <p id="aiCommentaryPreview">确认分析后，将按当前银行、对标组、指标偏离和证据强度生成董事会版解读。</p>
             <div class="ai-commentary-channel" aria-label="评论版本">
               <button type="button" class="is-active" data-bank-commentary-channel="board">董事会版</button>
               <button type="button" data-bank-commentary-channel="market">资本市场版</button>
@@ -596,7 +601,7 @@
             </div>
             <div class="ai-commentary-actions">
               <button type="button" id="regenerateBankCommentary">重新生成评论</button>
-              <button type="button" id="regenerateBankCommentaryAi">调用模型接口</button>
+              <button type="button" id="regenerateBankCommentaryAi">按证据模板重写</button>
             </div>
           </div>
         </div>
@@ -607,7 +612,7 @@
         <p>选择目标银行、对标银行、分析年份和参与行业对比的银行类型后，点击“形成分析结果”。后续指标、图表和解释性文字将基于所选样本同步更新。</p>
       </div>
 
-      <div class="methodology analysis-content client-internal" data-workspace-tab="governance">
+      <div class="methodology analysis-content client-internal" data-workspace-tab="governance" data-portal-page="data" data-portal-hidden-default="true">
         <article class="method-card">
           <div class="section-kicker">银行经营端</div>
           <h2>银行经营端：判断一家银行是否具备可持续的真实经营质量</h2>
@@ -630,7 +635,7 @@
         </article>
       </div>
 
-      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" data-portal-page="data" data-portal-hidden-default="true" style="margin-top:18px;">
         <div class="section-kicker">图表逻辑</div>
         <h2>图表分析方法：每张图都先回答一个经营问题，再落到行动优先级</h2>
         <p>本报告沿用城农商行经营分析的读图方法：先明确图表要回答的董事会问题，再按目标银行、对标银行和类型均值三层拆解，最后把差异转化为可执行的经营管理动作。</p>
@@ -642,7 +647,7 @@
         </div>
       </article>
 
-      <article class="method-card analysis-content" data-workspace-tab="overview" style="margin-top:18px;">
+      <article class="method-card analysis-content" data-workspace-tab="overview" data-portal-page="report" style="margin-top:18px;">
         <div class="section-kicker">故事线</div>
         <h2 id="storyTitle">从负债底盘到资本纪律：先解释压力传导，再给出行动顺序</h2>
         <p id="storyLead">本次汇报将目标银行、对标银行和类型均值放入同一参照体系：先看资产收益率下行与负债成本刚性如何压缩息差，再看核心营收和手续费资产比能否形成第二收入支柱，随后验证风险确认是否充分、资本是否被低效扩张占用，最后用市净率判断市场定价是价值错配还是质量折价。</p>
@@ -654,7 +659,7 @@
         </div>
       </article>
 
-      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" data-portal-page="data" data-portal-hidden-default="true" style="margin-top:18px;">
         <div class="section-kicker">新增字段洞察</div>
         <h2 id="enhancedTitle">专项增强分析：把底表新增字段转成董办可讨论的问题</h2>
         <p id="enhancedLead">系统会把真实核心非息、高波动收入、隐性不良、零售分产品、流动性、投资结构和资本余量纳入同一套判断，避免只看固定几项指标。</p>
@@ -668,7 +673,7 @@
         </div>
       </article>
 
-      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" data-portal-page="data" data-portal-hidden-default="true" style="margin-top:18px;">
         <div class="section-kicker">下一轮迭代</div>
         <h2>按产品、展示、分析内容三条线继续推进成董办工作台</h2>
         <p>下一步不只是增加图表数量，而是把一次银行对标汇报拆成“选口径、看诊断、改报告、出底稿、沉淀版本”的完整工作流。页面端先保留清晰路线，后续再逐步接入真正的项目保存、智能写稿和可编辑演示文稿导出。</p>
@@ -684,16 +689,16 @@
           </div>
           <div class="iteration-card">
             <b>展示端：形成汇报母版体系</b>
-            <p>HTML 演示报告已升级为封面、目录、章节摘要、专题页、图表页、行动建议页和数据附录页结构。</p>
+            <p>网页演示报告已升级为封面、目录、章节摘要、专题页、图表页、行动建议页和数据附录页结构。</p>
             <ul>
               <li>每章先交代本章要回答的经营问题。</li>
               <li>每张图固定输出关键结论、机制解释和行动启示。</li>
-              <li>已支持导出独立 HTML 演示稿，后续可接入 PDF 和可编辑 PPTX。</li>
+              <li>已支持导出独立网页演示稿，后续可接入文档和可编辑演示稿。</li>
             </ul>
           </div>
           <div class="iteration-card">
             <b>分析内容端：形成事实驱动写稿</b>
-            <p>专题判断规则已配置化，指标口径可下钻复核，AI 解读均展示引用指标并过滤禁用表述。</p>
+            <p>专题判断规则已配置化，指标口径可下钻复核，智能写稿均展示引用指标并过滤禁用表述。</p>
             <ul>
               <li>每个指标输出目标值、对标均值、类型均值、分位和缺口。</li>
               <li>专题红黄绿判断、引用指标和禁用表述读取 `analysis_rules.json`。</li>
@@ -703,7 +708,7 @@
         </div>
       </article>
 
-      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" style="margin-top:18px;">
+      <article class="method-card analysis-content client-internal" data-workspace-tab="governance" data-portal-page="topics" data-portal-hidden-default="true" style="margin-top:18px;">
         <div class="section-kicker">专题深化</div>
         <h2>下一阶段专题开发：每个专题都形成关键事实、机制解释和管理动作</h2>
         <p>后续专题不再只是增加图表，而是围绕董事会真正需要讨论的问题形成专题页。每个专题都由底层字段、对标差距、时间变化和管理建议共同驱动。</p>
@@ -712,11 +717,11 @@
           <div class="topic-roadmap-card"><b>息差对冲专题</b><p>联动生息资产收益率、计息负债成本率、定期化结构和真实存贷利差，识别息差防守优先级。</p></div>
           <div class="topic-roadmap-card"><b>风险确认专题</b><p>围绕逾期偏离度、隐性不良、零售分产品不良和拨备覆盖率，判断风险是否已充分确认。</p></div>
           <div class="topic-roadmap-card"><b>资本效率专题</b><p>对比 RWA 密度、资本余量、RWA增速和利润修复，判断扩表是否创造价值。</p></div>
-          <div class="topic-roadmap-card"><b>估值验证专题</b><p>把 PB 与 ROA、风险确认、核心营收和资本效率联读，判断低估值是价值错配还是质量折价。</p></div>
+          <div class="topic-roadmap-card"><b>估值验证专题</b><p>把市净率、总资产收益率、风险确认、核心营收和资本效率联读，判断低估值是价值错配还是质量折价。</p></div>
         </div>
       </article>
 
-      <article class="method-card analysis-content" id="topicWorkbenchSection" data-workspace-tab="topics" style="margin-top:18px;">
+      <article class="method-card analysis-content" id="topicWorkbenchSection" data-workspace-tab="topics" data-portal-page="topics" style="margin-top:18px;">
         <div class="section-kicker">分析专题主体</div>
         <h2>专题判断：把关键指标差异转化为董事会可讨论的问题</h2>
         <p>每个专题均围绕目标银行、对标银行和类型均值展开，重点说明事实依据、形成机制、管理含义和下一步验证指标。</p>
@@ -729,7 +734,7 @@
         </div>
       </article>
 
-      <section class="report-page analysis-content data-coverage-page" id="dataCoverageSection" data-workspace-tab="data" data-page="数据覆盖">
+      <section class="report-page analysis-content data-coverage-page" id="dataCoverageSection" data-workspace-tab="data" data-page="数据覆盖" data-portal-page="data">
         <div class="report-topbar">
           <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">数据覆盖</div>
           <div class="small-brand">RSM</div>
@@ -750,6 +755,61 @@
             <span>待补指标：待生成</span>
           </div>
         </div>
+        <section class="data-validation-bridge" aria-label="三源数据与后端对接">
+          <div class="data-validation-head">
+            <span>数据复核 · 三源字段口径</span>
+            <h3>主数据做经营底表，接口数据做市场和标准三表补充，年报抓取做二零二五年报核验层</h3>
+            <p>本区先定义后端可直接承接的挂载点和口径边界，避免把三源数据互相覆盖；正式差异表由后续数据治理层填充。</p>
+          </div>
+          <div class="tri-source-grid" id="triSourceValidationPanel">
+            <div class="lineage-card">
+              <span>Primary</span>
+              <b>主数据</b>
+              <p>作为 Portal 经营分析主表，保留当前 bank + year 宽表口径；缺口由补充层解释，不直接覆盖。</p>
+            </div>
+            <div class="lineage-card">
+              <span>Supplement</span>
+              <b>接口数据</b>
+              <p>补标准三表、市场估值、股息率、总市值和换手率；进入报告前需标注年末快照和披露口径差异。</p>
+            </div>
+            <div class="lineage-card">
+              <span>字段复核</span>
+              <b>年报抓取</b>
+              <p>作为 2025 年报抓取核验层和附注明细层，监管指标、期限桶、零售风险等先用于仅校验或专题明细。</p>
+            </div>
+          </div>
+          <div class="lineage-card is-wide" id="fieldLineageMap">
+            <span>Field lineage</span>
+            <b>字段血缘卡：字段来源、单位、符号、合并口径和可替换策略必须同屏显示</b>
+            <p>后端按 primary / supplement / validation / detail-only 四类登记字段职责；所得税、利息支出、信用减值等字段先解释单位 / 符号 / 合并口径，再判断是否进入主报告。</p>
+          </div>
+          <div class="calibration-rule-list" id="calibrationRulesPanel">
+            <div><b>可替换</b><span>三源口径一致且单位、符号、合并范围可复算。</span></div>
+            <div><b>仅校验</b><span>抓取或 sidecar 只用于提示差异，不覆盖主数据。</span></div>
+            <div><b>附录披露</b><span>明细 long format 进入专题 Drill 或数据底稿，不硬塞前端宽表。</span></div>
+          </div>
+          <div class="ready-data-bridge" id="readyDataBridgePanel" aria-label="Ready 数据层补充与前台对照">
+            <div class="ready-data-head">
+              <span>Ready 层补充与前台对照</span>
+              <h3>把三源整合后的字段状态，直接落到本次目标银行和对标组</h3>
+              <p>本区读取 data_ready.js，展示哪些字段已补入前台宽表，哪些字段年报已有明细但还未字段化，哪些仍需要源数据补充。</p>
+            </div>
+            <div class="ready-data-kpis" id="readyDataKpis"></div>
+            <div class="ready-data-table-wrap">
+              <table class="ready-data-table">
+                <thead><tr><th>指标</th><th>目标银行值</th><th>Ready 状态</th><th>采用来源</th><th>对标覆盖</th><th>补充说明</th></tr></thead>
+                <tbody id="readyDataComparisonBody"><tr><td colspan="6">确认分析后展示 Ready 层对照。</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <section class="layered-tieout-panel" id="layeredTieoutPanel">
+            <div class="section-head">
+              <span>分层链路</span>
+              <h3>数据层、计算层、显示层、报告层串联复核</h3>
+            </div>
+            <div id="layeredTieoutBody"></div>
+          </section>
+        </section>
         <div class="field-coverage-heatmap" id="fieldCoverageHeatmap"></div>
         <div class="field-coverage-matrix-panel" id="fieldCoverageMatrixPanel">
           <div class="field-matrix-head">
@@ -841,14 +901,14 @@
         </div>
       </section>
 
-      <div class="step-shell step3-content analysis-content" id="step3Content" data-step-shell="report">
-      <section class="report-first-workspace analysis-content" id="reportFirstWorkspace" data-workspace-tab="report" aria-label="正式报告工作台">
+      <div class="step-shell step3-content analysis-content" id="step3Content" data-step-shell="report" data-portal-page="report">
+      <section class="report-first-workspace analysis-content" id="reportFirstWorkspace" data-workspace-tab="report" data-portal-page="report" aria-label="正式报告工作台">
         <div class="report-first-main" id="reportFirstMain">
           <div class="report-tools report-first-tools">
             <div>
-              <span>Report-first workspace</span>
+              <span>报告工作台</span>
               <h2>正式报告结构</h2>
-              <p>导出时以正式报告 HTML 为唯一交付母版；PDF 和 PPTX 均按该报告结构生成。</p>
+              <p>导出时以正式报告网页为唯一交付母版；文档和演示稿均按该报告结构生成。</p>
             </div>
             <div class="checks">
               <label><input type="checkbox" class="report-section-check" value="01 / 06" checked /> 价值质量总览</label>
@@ -867,7 +927,7 @@
                 <h2>董事会经营诊断报告</h2>
                 <p>本区域按正式咨询报告结构呈现完整论述：先回答董事会问题，再逐章展开证据、归因、交叉验证和管理建议。</p>
               </div>
-              <div class="formal-report-meta">RSM · Report format · HTML/PDF</div>
+              <div class="formal-report-meta">咨询汇报格式 · 网页 / 文档</div>
             </div>
             <article class="formal-report" id="formalReport">确认分析后生成正式报告。</article>
           </section>
@@ -891,7 +951,7 @@
             <div class="governance-control-grid">
               <section class="governance-panel" id="deliveryReviewPanel" aria-label="交付状态"></section>
               <section class="governance-panel" id="prdCoverageDashboard" aria-label="PRD完成度"></section>
-              <section class="governance-panel is-wide" id="aiGovernancePanel" aria-label="AI写稿治理"></section>
+              <section class="governance-panel is-wide" id="aiGovernancePanel" aria-label="智能写稿治理"></section>
               <section class="governance-panel is-wide" id="exportSequenceQaPanel" aria-label="导出页序QA"></section>
               <section class="governance-panel is-wide" id="reportStructureEditor" aria-label="报告结构编辑器"></section>
             </div>
@@ -900,7 +960,7 @@
       </section>
       </div>
 
-      <section class="analysis-deck-shell analysis-content client-internal" id="analysisDeckShell" data-workspace-tab="legacy-report" aria-label="PPT版式报告预览" hidden>
+      <section class="analysis-deck-shell analysis-content client-internal" id="analysisDeckShell" data-workspace-tab="legacy-report" data-portal-page="report" aria-label="PPT版式报告预览" hidden>
         <div class="deck-shell-head">
           <div>
             <span>备用演示版</span>
@@ -918,7 +978,7 @@
         <section class="print-deck" id="printDeck"></section>
       </section>
 
-      <div class="report-deck analysis-content" data-workspace-tab="legacy-report">
+      <div class="report-deck analysis-content" data-workspace-tab="legacy-report" data-portal-page="report">
         <section class="report-page" data-page="01 / 06">
           <div class="report-topbar">
             <div class="eyebrow" style="color:#7f95aa;letter-spacing:6px;">价值质量总览</div>
@@ -947,7 +1007,7 @@
               <div class="vqa-dim"><b>息差防守</b><span>--</span><em>资产负债对冲</em></div>
               <div class="vqa-dim"><b>风险确认</b><span>--</span><em>偏离与隐性暴露</em></div>
               <div class="vqa-dim"><b>资本效率</b><span>--</span><em>RWA与资本余量</em></div>
-              <div class="vqa-dim"><b>估值验证</b><span>--</span><em>PB与质量匹配</em></div>
+              <div class="vqa-dim"><b>估值验证</b><span>--</span><em>市净率与质量匹配</em></div>
             </div>
           </div>
           <div class="vqa-conclusion-grid">
@@ -1333,7 +1393,7 @@
       <div class="tool-drawer-head">
         <div>
           <span>工具箱</span>
-          <b>数据、复核、项目和 AI 辅助</b>
+          <b>数据、复核、项目和智能辅助</b>
         </div>
         <button type="button" id="closeToolDrawer" aria-label="关闭工具箱">关闭</button>
       </div>
@@ -1341,7 +1401,7 @@
         <button type="button" data-drawer-tab-target="data">数据</button>
         <button type="button" data-drawer-tab-target="review">复核</button>
         <button type="button" data-drawer-tab-target="project">项目</button>
-        <button type="button" data-drawer-tab-target="ai">AI</button>
+        <button type="button" data-drawer-tab-target="ai">智能</button>
       </div>
       <div class="tool-drawer-panel" id="toolDrawerPanel">选择一个工具分类后显示对应入口。</div>
     </aside>
@@ -1361,30 +1421,32 @@
     </div>
   </div>
   <script src="data.js"></script>
+  <script src="data_tushare.js?v=20260602-phase1" onerror="console.warn('[bootstrap] data_tushare.js not loaded, Tushare metrics will be unavailable')"></script>
+  <script src="data_ready.js?v=20260605-ready-v1" onerror="console.warn('[bootstrap] data_ready.js not loaded, Ready data layer will be unavailable')"></script>
   <script src="js/01-state.js"></script>
   <script src="js/02-config.js"></script>
   <script src="js/03-data-format.js"></script>
-  <script src="js/04-ui-selection.js"></script>
-  <script src="js/05-analysis.js"></script>
+  <script src="js/04-ui-selection.js?v=20260606-auto-model"></script>
+  <script src="js/05-analysis.js?v=20260606-topic-data-bridge"></script>
   <script src="js/06-charts.js?v=20260529-deck-ui"></script>
   <script src="js/07-export.js?v=20260530-rsm-v5"></script>
   <script src="js/20-pro-engine.js?v=20260530-benchmarkiq-v4"></script>
   <script src="js/21-portal-workflows.js?v=20260530-benchmarkiq-v4"></script>
   <script src="js/08-report.js?v=20260530-rsm-v7"></script>
   <script src="js/22-formal-report.js?v=20260530-report-v1"></script>
-  <script src="js/23-investment-evidence.js?v=20260531-prd-v2"></script>
+  <script src="js/23-investment-evidence.js?v=20260605-portal-v14"></script>
   <script src="js/09-projects.js?v=20260530-benchmarkiq-v2"></script>
   <script src="js/11-fact-pack.js"></script>
-  <script src="js/12-ai-narrative.js?v=20260530-client-language"></script>
+  <script src="js/12-ai-narrative.js?v=20260606-auto-model"></script>
   <script src="js/13-pptx-export.js?v=20260530-rsm-v5"></script>
   <script src="js/14-report-profiles.js?v=20260530-client-language"></script>
   <script src="js/15-chart-narrative.js?v=20260530-product-storyline"></script>
   <script src="js/16-trial-checks.js"></script>
   <script src="js/17-rsm-deck-theme.js?v=20260529-deck-ui"></script>
   <script src="js/18-board-workbench.js?v=20260530-client-language"></script>
-  <script src="js/19-product-workspace.js?v=20260530-benchmarkiq-v2"></script>
-  <script src="js/24-prd-v3-workbench.js?v=20260531-prd-v3"></script>
-  <script src="js/25-v4-deep-dive.js?v=20260531-prd-v4"></script>
+  <script src="js/19-product-workspace.js?v=20260606-evidence-commentary"></script>
+  <script src="js/24-prd-v3-workbench.js?v=20260605-portal-v14"></script>
+  <script src="js/25-v4-deep-dive.js?v=20260605-portal-v14"></script>
   <script src="js/26-v5-value-engine.js?v=20260531-prd-v5"></script>
   <script src="js/27-v6-boardroom-engine.js?v=20260531-prd-v6"></script>
   <script src="js/28-prd-traceability.js?v=20260531-governance"></script>
@@ -1392,8 +1454,18 @@
   <script src="js/30-export-sequence-qa.js?v=20260531-export-qa-v2"></script>
   <script src="js/31-ceam-structure-editor.js?v=20260531-ceam-v2"></script>
   <script src="js/32-pb-pricing-model.js?v=20260601-pb-pricing"></script>
-  <script src="js/33-llm-commentary.js?v=20260601-llm-commentary"></script>
+  <script src="js/33-llm-commentary.js?v=20260606-rewrite-orchestrator"></script>
+  <script src="js/38-evidence-pack-builder.js?v=20260606-rewrite-orchestrator"></script>
+  <script src="js/36-layered-fact-model.js?v=20260606-rewrite-orchestrator"></script>
   <script src="js/34-decision-workbench.js?v=20260601-decision-workbench"></script>
+  <script src="js/35-report-model.js?v=20260606-rewrite-orchestrator"></script>
+  <script src="js/37-deepseek-rewrite-orchestrator.js?v=20260606-rewrite-orchestrator"></script>
+  <script src="js/35.5-tushare-metrics.js?v=20260602-phase1"></script>
+  <script src="js/36-insight-triangle.js?v=20260602-prd8-c01"></script>
+  <script src="js/37-tushare-derived-analyses.js?v=20260602-phase1b"></script>
+  <script src="js/38-tushare-phase2-analyses.js?v=20260602-phase2"></script>
+  <script src="js/42-portal-router.js?v=20260605-portal-v14"></script>
+  <script src="js/43-page-rail.js?v=20260605-portal-v14"></script>
   <script src="js/10-bootstrap.js"></script>
 </body>
 </html>

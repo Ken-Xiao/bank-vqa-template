@@ -518,6 +518,55 @@ function topicDefinitions() {
   }));
 }
 
+function readyQualityForMetric(bank, year, key) {
+  const qualityRows = Array.isArray(readyMetricQuality) ? readyMetricQuality : [];
+  const targetBank = displayBankName(bank || state.target);
+  return qualityRows.find((item) => {
+    const itemBank = displayBankName(item.bank);
+    return item.metric === key && Number(item.year) === Number(year) && (item.bank === bank || itemBank === targetBank);
+  }) || null;
+}
+
+function topicDataStatusMeta(status) {
+  const map = {
+    available: { label: "可用", tone: "green" },
+    scraped_available_not_fieldized: { label: "待字段化", tone: "orange" },
+    calculation_input_missing: { label: "计算输入不足", tone: "yellow" },
+    source_missing: { label: "三源缺失", tone: "red" }
+  };
+  return map[status] || { label: status || "待复核", tone: "gray" };
+}
+
+function topicDataSourceLabel(source) {
+  const map = {
+    main: "主数据",
+    tushare: "Tushare",
+    tushare_market: "Tushare行情",
+    annual_report_scraped: "年报抓取"
+  };
+  return map[source] || source || "未选定";
+}
+
+function topicFactQuality(row, key, value) {
+  const quality = readyQualityForMetric(row?.bank || state.target, state.year, key);
+  const rowStatus = row?._readyFieldStatus?.[key];
+  const rowSource = row?._readyFieldSources?.[key];
+  const status = quality?.status || rowStatus || (value == null ? "source_missing" : "available");
+  const meta = topicDataStatusMeta(status);
+  const selectedSource = quality?.selectedSource || rowSource || (value == null ? "" : "main");
+  const missingReason = quality?.missingReason || (status === "available" ? "" : meta.label);
+  return {
+    status,
+    statusLabel: meta.label,
+    statusTone: meta.tone,
+    selectedSource,
+    sourceLabel: topicDataSourceLabel(selectedSource),
+    missingReason,
+    scrapedSource: quality?.scrapedSource || "",
+    relatedScrapedTables: quality?.relatedScrapedTables || ""
+  };
+}
+
 function topicFactPackRows(topicId = state.activeTopic) {
   const row = targetRecord();
   const peers = peerRecords();
@@ -531,6 +580,7 @@ function topicFactPackRows(topicId = state.activeTopic) {
     const yoy = row ? yoyValue(row.bank, key) : null;
     const fiveYear = row ? fiveYearValue(row.bank, key) : null;
     const calibration = typeof metricCalibrationRisk === "function" ? metricCalibrationRisk(key, [row, ...peers].filter(Boolean)) : null;
+    const quality = topicFactQuality(row, key, value);
     return {
       专题: topic.title,
       指标代码: key,
@@ -547,7 +597,14 @@ function topicFactPackRows(topicId = state.activeTopic) {
       口径风险等级: calibration?.level || "L2",
       口径风险标签: calibration?.label || "L2 可比，需脚注",
       报告使用建议: calibration?.decisionUse || "主报告+脚注",
-      口径脚注: calibration?.note || "建议保留指标口径、样本覆盖和数据来源说明。"
+      口径脚注: calibration?.note || "建议保留指标口径、样本覆盖和数据来源说明。",
+      数据状态代码: quality.status,
+      数据状态: quality.statusLabel,
+      数据状态色阶: quality.statusTone,
+      数据来源: quality.sourceLabel,
+      缺失原因: quality.missingReason || "无",
+      抓取来源: quality.scrapedSource || quality.relatedScrapedTables || "无",
+      是否可用证据: quality.status === "available" && value != null ? "是" : "否"
     };
   });
 }
@@ -558,7 +615,22 @@ function topicMetricWeight(topic, key) {
 }
 
 function isFactUsableAsEvidence(fact) {
-  return fact && fact.目标值 !== "暂无" && !String(fact.分位 || "").includes("暂无");
+  if (!fact || fact.目标值 === "暂无" || String(fact.分位 || "").includes("暂无")) return false;
+  if (fact.数据状态代码 && fact.数据状态代码 !== "available") return false;
+  return true;
+}
+
+function topicAvailableFacts(facts = []) {
+  return facts.filter(isFactUsableAsEvidence);
+}
+
+function topicDataBoundaryFacts(facts = []) {
+  return facts.filter((fact) => !isFactUsableAsEvidence(fact));
+}
+
+function topicPercentileScore(fact) {
+  if (!isFactUsableAsEvidence(fact)) return null;
+  return topicPercentile(fact);
 }
 
 function pickTopicEvidenceMetrics(topic, facts, weakFacts, strongFacts, citations) {
@@ -582,6 +654,8 @@ function pickTopicEvidenceMetrics(topic, facts, weakFacts, strongFacts, citation
 
 function topicJudgement(topicId = state.activeTopic, facts = topicFactPackRows(topicId)) {
   const topic = topicDefinitions().find((item) => item.id === topicId) || topicDefinitions()[0];
+  const availableFacts = topicAvailableFacts(facts);
+  const dataBoundary = topicDataBoundaryFacts(facts);
   const thresholds = topicThresholds(topic);
   const redCfg = thresholds.red || {};
   const yellowCfg = thresholds.yellow || {};
@@ -589,11 +663,25 @@ function topicJudgement(topicId = state.activeTopic, facts = topicFactPackRows(t
   const weakBelow = redCfg.weakPercentileBelow ?? 40;
   const yellowBelow = yellowCfg.weakPercentileBelow ?? 60;
   const strongAbove = greenCfg.strongPercentileAbove ?? 70;
-  const weightSum = facts.reduce((sum, fact) => sum + topicMetricWeight(topic, fact.指标代码), 0) || facts.length || 1;
-  const avgScore = facts.reduce((sum, fact) => sum + topicPercentile(fact) * topicMetricWeight(topic, fact.指标代码), 0) / weightSum;
-  const weakFacts = facts.filter((fact) => topicPercentile(fact) < weakBelow);
-  const mediumFacts = facts.filter((fact) => topicPercentile(fact) >= weakBelow && topicPercentile(fact) < yellowBelow);
-  const strongFacts = facts.filter((fact) => topicPercentile(fact) >= strongAbove);
+  if (!availableFacts.length) {
+    const citations = topicCitationFacts(topic, facts);
+    return {
+      level: "red",
+      signal: "红灯：数据不足，需先复核",
+      headline: `${topic.title}当前缺少可直接支撑判断的核心证据，应先完成字段化或补齐计算输入，再进入正式解读。`,
+      evidence: [],
+      avgScore: 0,
+      topic,
+      citationDegraded: true,
+      missingRequired: citations.missingRequired || topic.metrics.map(fieldName),
+      dataBoundary
+    };
+  }
+  const weightSum = availableFacts.reduce((sum, fact) => sum + topicMetricWeight(topic, fact.指标代码), 0) || availableFacts.length || 1;
+  const avgScore = availableFacts.reduce((sum, fact) => sum + topicPercentile(fact) * topicMetricWeight(topic, fact.指标代码), 0) / weightSum;
+  const weakFacts = availableFacts.filter((fact) => topicPercentileScore(fact) < weakBelow);
+  const mediumFacts = availableFacts.filter((fact) => topicPercentileScore(fact) >= weakBelow && topicPercentileScore(fact) < yellowBelow);
+  const strongFacts = availableFacts.filter((fact) => topicPercentileScore(fact) >= strongAbove);
   let level = "green";
   if (weakFacts.length >= (redCfg.minWeakMetrics ?? 2) || avgScore < (redCfg.avgScoreBelow ?? 45)) {
     level = "red";
@@ -606,7 +694,7 @@ function topicJudgement(topicId = state.activeTopic, facts = topicFactPackRows(t
   }
   const signal = topicSignalText(level);
   const citations = topicCitationFacts(topic, facts);
-  const evidenceFacts = pickTopicEvidenceMetrics(topic, facts, weakFacts, strongFacts, citations);
+  const evidenceFacts = pickTopicEvidenceMetrics(topic, availableFacts, weakFacts, strongFacts, citations);
   const headline = level === "green"
     ? `${topic.title}当前具备较好的事实基础，建议把优势指标转化为董事会和资本市场都能理解的质量叙事。`
     : level === "yellow"
@@ -620,7 +708,8 @@ function topicJudgement(topicId = state.activeTopic, facts = topicFactPackRows(t
     avgScore: Math.round(avgScore),
     topic,
     citationDegraded: citations.citationDegraded,
-    missingRequired: citations.missingRequired || []
+    missingRequired: citations.missingRequired || [],
+    dataBoundary
   };
 }
 
@@ -630,7 +719,7 @@ function topicCitationFacts(topic, facts) {
   const missingRequired = [];
   required.forEach((key) => {
     const fact = facts.find((item) => item.指标代码 === key);
-    if (fact && fact.目标值 !== "暂无" && !String(fact.分位).includes("暂无")) {
+    if (isFactUsableAsEvidence(fact)) {
       picked.push({ ...fact, citationRole: "required" });
     } else if (fact) {
       missingRequired.push(fieldName(key));
@@ -638,6 +727,7 @@ function topicCitationFacts(topic, facts) {
   });
   if (picked.length < 2) {
     facts
+      .filter(isFactUsableAsEvidence)
       .filter((fact) => !picked.some((item) => item.指标代码 === fact.指标代码))
       .sort((a, b) => topicPercentile(a) - topicPercentile(b))
       .slice(0, Math.max(2 - picked.length, 0))
@@ -645,7 +735,7 @@ function topicCitationFacts(topic, facts) {
   }
   picked.citationDegraded = missingRequired.length > 0;
   picked.missingRequired = missingRequired;
-  return picked.length >= 2 ? picked : facts.slice(0, Math.max(2, picked.length));
+  return picked;
 }
 
 function topicCitationTags(facts) {
@@ -776,13 +866,23 @@ function topicAiDraft(topic, facts) {
     action: "请先完成目标银行、对标银行、分析年份和类型均值选择。",
     citations: []
   };
-  const peerWeak = facts.filter((f) => f.对标差距 !== "暂无" && String(f.分位).includes("约") && topicPercentile(f) < 50).map((f) => f.指标名称);
+  const availableFacts = topicAvailableFacts(facts);
+  const peerWeak = availableFacts.filter((f) => f.对标差距 !== "暂无" && String(f.分位).includes("约") && topicPercentile(f) < 50).map((f) => f.指标名称);
   const citations = topicCitationFacts(topic, facts);
-  const first = citations[0] || facts[0];
-  const second = citations[1] || facts[1] || facts[0];
+  const first = citations[0] || availableFacts[0];
+  const second = citations[1] || availableFacts[1] || availableFacts[0];
   const judgement = topicJudgement(topic.id, facts);
   const evidenceText = judgement.evidence.map((f) => `${f.指标名称}${f.目标值}，${f.分位}`).join("；");
   const weakText = peerWeak.length ? `其中${peerWeak.slice(0, 3).join("、")}相对样本分位偏低，需要作为本专题的优先追问项。` : "主要指标未呈现明显低分位短板，后续重点是把优势转化为可持续叙事。";
+  if (!first) {
+    const boundaryText = topicDataBoundaryFacts(facts).slice(0, 3).map((fact) => `${fact.指标名称}：${fact.数据状态}，${fact.缺失原因}`).join("；");
+    return {
+      board: `${topic.title}当前缺少可直接引用的核心证据，暂不建议形成董事会定性结论。优先处理：${boundaryText || "补齐目标银行和对标组事实包"}。`,
+      market: `资本市场版暂不输出强观点，应先把${topic.title}的字段化、计算输入和来源复核闭环完成，再进入估值或经营质量沟通。`,
+      action: `${displayBankName(row.bank)}下一步先补齐${topic.title}的数据边界项，并在 Data & Validation 中确认字段来源、口径和样本覆盖后再生成专题解读。`,
+      citations: []
+    };
+  }
   const draft = {
     board: `${judgement.signal}。${displayBankName(row.bank)}${topic.title}的核心判断，应从“结果指标”转向“形成机制”。${first.指标名称}为${first.目标值}，对标均值为${first.对标均值}；${second.指标名称}为${second.目标值}。${weakText}${topic.mechanism}依据指标包括：${evidenceText}。`,
     market: `对资本市场表达时，不建议只讲单项指标改善，而应把${topic.title.replace("专题", "")}放入同业对标和类型均值中说明。若目标银行能够持续证明${citations.map((f) => f.指标名称).join("、")}的改善，估值沟通才更容易从“低估值陈述”转为“质量修复证据”。依据指标包括：${evidenceText}。`,
@@ -793,6 +893,59 @@ function topicAiDraft(topic, facts) {
   draft.market = sanitizeComplianceText(draft.market, topic.forbiddenPhrases);
   draft.action = sanitizeComplianceText(draft.action, topic.forbiddenPhrases);
   return draft;
+}
+
+function topicStatusPill(fact) {
+  return `<span class="topic-status-pill tone-${fact.数据状态色阶 || "gray"}">${fact.数据状态 || "待复核"}</span>`;
+}
+
+function topicDataSectionsHtml(facts) {
+  const availableFacts = topicAvailableFacts(facts);
+  const boundaryFacts = topicDataBoundaryFacts(facts);
+  const evidenceRows = availableFacts.length
+    ? availableFacts.map((fact) => `
+        <tr>
+          <td>${metricLink(fact.指标代码, fact.指标名称)}<small>${topicStatusPill(fact)}${fact.数据来源}</small></td>
+          <td>${fact.目标值}</td>
+          <td>${fact.对标均值}</td>
+          <td>${fact.类型均值}</td>
+          <td>一年${fact.一年变化}；五年${fact.五年变化}；${fact.分位}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="5">当前专题没有可直接引用的核心证据，请先处理下方数据边界项。</td></tr>`;
+  const boundaryRows = boundaryFacts.length
+    ? boundaryFacts.map((fact) => `
+        <tr>
+          <td>${metricLink(fact.指标代码, fact.指标名称)}<small>${topicStatusPill(fact)}${fact.数据来源}</small></td>
+          <td>${fact.目标值}</td>
+          <td>${fact.缺失原因}</td>
+          <td>${fact.抓取来源}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="4">本专题当前没有数据边界项，指标均可进入证据复核。</td></tr>`;
+  return `
+    <div class="topic-data-sections">
+      <section>
+        <div class="topic-data-section-head">
+          <b>核心证据</b>
+          <span>仅展示可以支撑专题判断和模型解读的可用字段。</span>
+        </div>
+        <table class="topic-fact-table">
+          <thead><tr><th>指标</th><th>目标银行</th><th>对标均值</th><th>类型均值</th><th>变化与分位</th></tr></thead>
+          <tbody>${evidenceRows}</tbody>
+        </table>
+      </section>
+      <section class="topic-data-boundary">
+        <div class="topic-data-section-head">
+          <b>数据边界</b>
+          <span>待补项不再参与专题评分，只作为字段化和校验任务。</span>
+        </div>
+        <table class="topic-fact-table">
+          <thead><tr><th>指标</th><th>当前值</th><th>原因</th><th>来源线索</th></tr></thead>
+          <tbody>${boundaryRows}</tbody>
+        </table>
+      </section>
+    </div>`;
 }
 
 function topicBankCommentaryAnchorHtml(topic, judgement) {
@@ -829,10 +982,22 @@ function renderTopicWorkbench() {
   });
   const topic = topics.find((item) => item.id === state.activeTopic) || topics[0];
   const facts = topicFactPackRows(topic.id);
+  const availableFacts = topicAvailableFacts(facts);
+  const dataBoundaryFacts = topicDataBoundaryFacts(facts);
   const narratives = typeof getTopicNarratives === "function" ? getTopicNarratives(topic.id) : null;
   const draft = narratives || topicAiDraft(topic, facts);
   const judgement = topicJudgement(topic.id, facts);
   const insight = typeof topicInsightTriangle === "function" ? topicInsightTriangle(topic.id) : null;
+  const firstEvidence = judgement.evidence[0] || availableFacts[0];
+  const insightCurrentValue = insight?.currentValue && insight.currentValue !== "待补"
+    ? insight.currentValue
+    : (firstEvidence ? `${firstEvidence.指标名称} ${firstEvidence.目标值}` : "暂无可用证据");
+  const insightTrend = insight?.trendDirection && insight.trendDirection !== "待补"
+    ? insight.trendDirection
+    : (firstEvidence ? `${firstEvidence.分位}；一年变化${firstEvidence.一年变化}` : `${dataBoundaryFacts.length} 项数据边界待处理`);
+  const insightMechanism = insight?.mechanismExplanation && insight.mechanismExplanation !== "待补"
+    ? insight.mechanismExplanation
+    : judgement.headline;
   const citationNote = judgement.citationDegraded
     ? `<div class="topic-citation-warning">必选引用指标 ${judgement.missingRequired.join("、")} 数据不足，已降级为备选指标支撑解读。</div>`
     : "";
@@ -840,9 +1005,9 @@ function renderTopicWorkbench() {
     <h3>${typeof topicQuestionTitle === "function" ? topicQuestionTitle(topic.id) : topic.title}</h3>
     <p class="topic-question">${topic.question}</p>
     <div class="topic-insight-triangle">
-      <div><span>当前值</span><b>${insight?.currentValue || "待补"}</b></div>
-      <div><span>变化方向</span><b>${insight?.trendDirection || "待补"}</b></div>
-      <div><span>机制解释</span><b>${insight?.mechanismExplanation || judgement.headline || "待补"}</b></div>
+      <div><span>当前值</span><b>${insightCurrentValue}</b></div>
+      <div><span>变化方向</span><b>${insightTrend}</b></div>
+      <div><span>机制解释</span><b>${insightMechanism}</b></div>
     </div>
     <div class="topic-report-controls">
       <label class="topic-include-toggle"><input type="checkbox" data-topic-include="${topic.id}" ${isTopicIncluded(topic.id) ? "checked" : ""} />纳入 HTML/PPTX 报告</label>
@@ -858,9 +1023,9 @@ function renderTopicWorkbench() {
       </div>
       <div class="topic-evidence-card">
         <b>证据指标</b>
-        <div class="topic-evidence-list">${judgement.evidence.map((fact) => `
+        <div class="topic-evidence-list">${judgement.evidence.length ? judgement.evidence.map((fact) => `
           <div class="topic-evidence-item"><span>${metricLink(fact.指标代码, fact.指标名称)}</span><span>${fact.目标值}｜${fact.分位}</span></div>
-        `).join("")}</div>
+        `).join("") : `<div class="topic-evidence-item"><span>暂无可用证据</span><span>${dataBoundaryFacts.length} 项待补</span></div>`}</div>
       </div>
       <div class="topic-comment-card">
         <b>一句话结论</b>
@@ -870,18 +1035,7 @@ function renderTopicWorkbench() {
     </div>
     ${topicMechanismChartPanelHtml(topic.id)}
     ${topicBankCommentaryAnchorHtml(topic, judgement)}
-    <table class="topic-fact-table">
-      <thead><tr><th>指标</th><th>目标银行</th><th>对标均值</th><th>类型均值</th><th>变化与分位</th></tr></thead>
-      <tbody>${facts.map((fact) => `
-        <tr>
-          <td>${metricLink(fact.指标代码, fact.指标名称)}</td>
-          <td>${fact.目标值}</td>
-          <td>${fact.对标均值}</td>
-          <td>${fact.类型均值}</td>
-          <td>一年${fact.一年变化}；五年${fact.五年变化}；${fact.分位}</td>
-        </tr>
-      `).join("")}</tbody>
-    </table>
+    ${topicDataSectionsHtml(facts)}
     ${citationNote}
     ${typeof v4TopicDeepDiveHtml === "function" ? v4TopicDeepDiveHtml(topic.id) : ""}
     <div class="topic-ai-grid">

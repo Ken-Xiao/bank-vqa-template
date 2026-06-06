@@ -1,0 +1,62 @@
+metric,name,status,source,formula,bq_non_null,bq_coverage,tushare_non_null,tushare_coverage,paired_samples,median_abs_pct_diff,p90_abs_pct_diff,within_1pct,within_5pct,recommendation,review_note
+revenue,营业收入,direct_exact,income.revenue,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+netProfit,净利润,direct_exact,income.n_income,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+interestIncome,利息收入,direct_exact,income.int_income,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+interestExpense,利息支出,direct_exact,income.int_exp,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+feeIncome,手续费净收入,direct_exact,income.n_commis_income,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+incomeTax,所得税,direct_exact,income.income_tax,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+adminExpense,管理费用,proxy_candidate,income.admin_exp,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,复核后可作为代理或专题字段,需确认 BQ 管理费用是否为 admin_exp，不可沿用 biz_tax_surchg
+basicEps,基本EPS,direct_exact,income.basic_eps,as-is,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+assets,资产总计,direct_exact,balancesheet.total_assets,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+liabilities,负债合计,direct_exact,balancesheet.total_liab,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+equity,股东权益,direct_exact,balancesheet.total_hldr_eqy_inc_min_int,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+loans,贷款总额,direct_exact,balancesheet.loanto_oth_bank_fi,yuan/10000,234,1.0,179,0.7649572649572649,179,0.9663935616082412,0.9949814864024855,0.0,0.0,需口径复核,字段名为向其他银行/金融机构贷款，需用样本复核是否等于发放贷款及垫款
+deposits,存款总额,direct_exact,balancesheet.depos,yuan/10000,234,1.0,185,0.7905982905982906,185,0.016029572774768096,0.025088107775661717,0.13513513513513514,1.0,可推荐替换/补齐，待人工复核,需确认是否为吸收存款而非同业存放
+operatingCashFlow,经营现金流净额,direct_exact,cashflow.n_cashflow_act,yuan/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+pb,年末PB,direct_exact,daily_basic.pb year-end,as-is,229,0.9786324786324786,219,0.9358974358974359,219,0.0,0.013831258644536664,0.8538812785388128,0.9726027397260274,可推荐替换/补齐，待人工复核,
+pbMid,年中PB,direct_exact,daily_basic.pb mid-year,as-is,228,0.9743589743589743,219,0.9358974358974359,218,0.0026970017851558007,0.035839146397856715,0.5137614678899083,0.9403669724770642,可推荐替换/补齐，待人工复核,
+peTtm,PE TTM,direct_exact,daily_basic.pe_ttm year-end,as-is,0,0.0,219,0.9358974358974359,0,,,,,可作为新增字段，待人工复核,
+divYield,股息率,direct_exact,daily_basic.dv_ratio year-end,as-is,0,0.0,210,0.8974358974358975,0,,,,,可作为新增字段，待人工复核,
+divYieldTtm,TTM股息率,direct_exact,daily_basic.dv_ttm year-end,as-is,0,0.0,211,0.9017094017094017,0,,,,,可作为新增字段，待人工复核,
+totalMarketValue,总市值,direct_exact,daily_basic.total_mv year-end,万元 as-is,0,0.0,219,0.9358974358974359,0,,,,,可作为新增字段，待人工复核,
+turnoverRate,换手率,direct_exact,daily_basic.turnover_rate year-end,as-is,0,0.0,219,0.9358974358974359,0,,,,,可作为新增字段，待人工复核,
+roe,ROE,validation_only,fina_indicator.roe,as-is,234,1.0,222,0.9487179487179487,222,0.07205792761687403,0.1198823372917019,0.14864864864864866,0.31981981981981983,仅交叉验证,只做交叉验证，不覆盖 BQ 主字段
+roa,ROA,validation_only,fina_indicator.roa_yearly,as-is,234,1.0,222,0.9487179487179487,222,0.0,0.0,1.0,1.0,仅交叉验证,当前 roa 覆盖 0，roa_yearly 覆盖 100%，需人工确认口径
+revenueGrowth,营业收入增速,validation_only,fina_indicator.tr_yoy,as-is,195,0.8333333333333334,222,0.9487179487179487,185,0.00043478260869560427,0.004876321839080466,0.9351351351351351,0.9513513513513514,仅交叉验证,
+netProfitGrowth,净利润增速,validation_only,fina_indicator.netprofit_yoy,as-is,195,0.8333333333333334,222,0.9487179487179487,185,0.030928013876843043,0.30719825225196695,0.2702702702702703,0.6,仅交叉验证,
+assetGrowth,资产增速,validation_only,fina_indicator.assets_yoy,as-is,195,0.8333333333333334,222,0.9487179487179487,185,2.768733249089764e-06,1.1096591248418653e-05,1.0,1.0,仅交叉验证,
+netInterestIncome,净利息收入,derived_formula,income.int_income - income.int_exp,(yuan-yuan)/10000,234,1.0,185,0.7905982905982906,185,0.0,0.0,1.0,1.0,可推荐替换/补齐，待人工复核,
+coreRevenue,核心营收,derived_formula,netInterestIncome + feeIncome,万元+万元,234,1.0,185,0.7905982905982906,185,0.0,1.8804104625400715e-16,1.0,1.0,可推荐替换/补齐，待人工复核,
+nonInterestShare,非息占比,derived_formula,(revenue - netInterestIncome) / revenue,%,234,1.0,185,0.7905982905982906,185,1.8591781998676553e-05,0.0001917688411130774,0.9945945945945946,0.9945945945945946,可推荐替换/补齐，待人工复核,
+feeAssetRatio,手续费资产比,derived_formula,feeIncome / assets,%,234,1.0,185,0.7905982905982906,185,1.2772336628192977e-06,4.523764284992066e-06,1.0,1.0,可推荐替换/补齐，待人工复核,
+loanAssetRatio,贷款/资产,derived_formula,loans / assets,%,234,1.0,179,0.7649572649572649,179,0.9663935613345565,0.994981486446693,0.0,0.0,需口径复核,
+depositLiabilityRatio,存款/负债,derived_formula,deposits / liabilities,%,234,1.0,185,0.7905982905982906,185,0.0160295685934709,0.02508810703404877,0.13513513513513514,1.0,可推荐替换/补齐，待人工复核,
+cashProfitRatio,经营现金流/净利润,derived_formula,operatingCashFlow / netProfit,%,234,1.0,185,0.7905982905982906,185,6.762541981641439e-10,6.7192888775274515e-09,1.0,1.0,可推荐替换/补齐，待人工复核,
+costIncomeRatio,成本收入比,proxy_candidate,income.admin_exp / income.revenue,%,234,1.0,185,0.7905982905982906,185,0.00011407108056902058,0.0040890760667182365,0.9351351351351351,0.9783783783783784,复核后可作为代理或专题字段,费用字段需业务确认
+fvChangeRatio,公允价值变动占利润比,derived_formula,income.fv_value_chg_gain / income.total_profit,%,0,0.0,185,0.7905982905982906,0,,,,,需口径复核,
+fairValueChgGain,公允价值变动损益,direct_exact,income.fv_value_chg_gain,yuan/10000,0,0.0,185,0.7905982905982906,0,,,,,需口径复核,字段名修正候选
+ocfToRevenue,经营现金流营收比,derived_formula,cashflow.n_cashflow_act / income.revenue,%,0,0.0,185,0.7905982905982906,0,,,,,需口径复核,
+creditImpairLoss,信用减值损失,proxy_candidate,cashflow.credit_impa_loss,yuan/10000,0,0.0,134,0.5726495726495726,0,,,,,复核后可作为代理或专题字段,现金流补充资料字段，不能直接替代利润表信用减值
+assetImpairLoss,资产减值损失,direct_exact,income.assets_impair_loss,yuan/10000,0,0.0,11,0.04700854700854701,0,,,,,需口径复核,覆盖率低，需作为可用则展示
+tradAsset,交易性金融资产,direct_exact,balancesheet.trad_asset,yuan/10000,0,0.0,185,0.7905982905982906,0,,,,,需口径复核,
+debtInvestment,债权投资,direct_exact,balancesheet.debt_invest,yuan/10000,0,0.0,135,0.5769230769230769,0,,,,,需口径复核,
+otherDebtInvestment,其他债权投资,direct_exact,balancesheet.oth_debt_invest,yuan/10000,0,0.0,139,0.594017094017094,0,,,,,需口径复核,
+investIncome,投资收益,direct_exact,income.invest_income,yuan/10000,0,0.0,185,0.7905982905982906,0,,,,,需口径复核,
+cashflowInvAct,投资活动现金流净额,direct_exact,cashflow.n_cashflow_inv_act,yuan/10000,0,0.0,185,0.7905982905982906,0,,,,,需口径复核,
+cashflowFncAct,筹资活动现金流净额,direct_exact,cashflow.n_cash_flows_fnc_act,yuan/10000,0,0.0,185,0.7905982905982906,0,,,,,需口径复核,
+depositGrowthCF,存款增加现金流口径,proxy_candidate,cashflow.n_incr_dep_cbob or n_depos_incr_fi,yuan/10000,0,0.0,184,0.7863247863247863,0,,,,,复核后可作为代理或专题字段,候选字段口径不同，需人工二选一
+loanIssuanceCF,贷款投放现金流口径,proxy_candidate,cashflow.n_incr_clt_loan_adv,yuan/10000,0,0.0,184,0.7863247863247863,0,,,,,复核后可作为代理或专题字段,需确认是否为客户贷款及垫款增加
+centralBankAdj,存放央行变动,derived_formula,YoY balancesheet.cash_reser_cb,yuan/10000 YoY,0,0.0,148,0.6324786324786325,0,,,,,需口径复核,需跨期计算，见衍生字段表
+nim,净息差,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,Tushare 三表不直接披露披露口径 NIM
+earningAssetYield,生息资产收益率,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,缺平均生息资产口径
+interestLiabilityCost,计息负债成本率,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,缺平均计息负债口径
+npl,不良率,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,年报附注/监管口径
+provisionCoverage,拨备覆盖率,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,年报附注/监管口径
+overdueRatio,逾期率,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,年报附注
+specialMentionRatio,关注率,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,年报附注
+cet1,核心一级资本充足率,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,监管资本披露
+cet1Buffer,核心一级资本余量,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,监管资本披露
+carBuffer,资本充足率余量,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,监管资本披露
+rwaDensity,RWA密度,blocked_missing,,,234,1.0,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,RWA监管口径
+liquidityCoverageRatio,流动性覆盖率,blocked_missing,,,217,0.9273504273504274,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,监管流动性指标
+liquidityRatio,流动性比率,blocked_missing,,,189,0.8076923076923077,0,0,0,,,,,不接入，保留原 BQ/年报/监管口径,监管流动性指标

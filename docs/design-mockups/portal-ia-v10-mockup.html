@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BenchmarkIQ Portal IA v10 Mockup</title>
+  <style>
+    :root {
+      --navy: #061d3c;
+      --blue: #0099d8;
+      --ink: #1c2733;
+      --muted: #5d6670;
+      --line: #dce4ec;
+      --soft: #f4f8fb;
+      --soft-blue: #eaf4fb;
+      --good: #1f9e6f;
+      --mid: #d28f10;
+      --bad: #c0392b;
+      --shadow: 0 10px 28px rgba(6, 27, 58, .08);
+      --shadow-emph: 0 16px 44px rgba(6, 27, 58, .14);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: #eef3f7;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #eef3f7; }
+    button, select, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: 44px 1fr;
+    }
+
+    .global-bar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 220px 1fr auto;
+      align-items: center;
+      height: 44px;
+      background: var(--navy);
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+
+    .brand {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      font-weight: 900;
+      letter-spacing: 0;
+      border-right: 1px solid rgba(255,255,255,.12);
+    }
+
+    .context-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      font-size: 12px;
+      min-width: 0;
+    }
+
+    .context-strip b { font-size: 13px; }
+    .context-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      max-width: 280px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .global-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 10px;
+    }
+
+    .icon-btn, .primary-btn, .secondary-btn {
+      border: 1px solid transparent;
+      border-radius: 4px;
+      height: 30px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .icon-btn { width: 32px; padding: 0; justify-content: center; background: rgba(255,255,255,.1); color: #fff; }
+    .primary-btn { background: var(--blue); color: #fff; }
+    .secondary-btn { background: #fff; color: var(--navy); border-color: var(--line); }
+    .ghost-btn { background: transparent; border: 0; color: var(--blue); font-weight: 900; }
+
+    .rail {
+      grid-row: 2;
+      background: #fff;
+      border-right: 1px solid var(--line);
+      padding: 12px 10px;
+      overflow: auto;
+    }
+
+    .rail-section-title {
+      margin: 6px 8px 10px;
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    .rail .rail-primary {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 9px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .rail .rail-primary.is-active {
+      border-color: #c9e8f8;
+      background: var(--soft-blue);
+      color: var(--navy);
+      box-shadow: inset 4px 0 0 var(--blue);
+    }
+
+    .step-num {
+      display: inline-flex;
+      width: 22px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      background: var(--soft);
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .rail .rail-primary.is-active .step-num {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .rail em {
+      font-style: normal;
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .rail-subnav {
+      display: none;
+      margin: -1px 0 8px 32px;
+      padding: 2px 0 4px 10px;
+      border-left: 1px solid #d8e8f2;
+      gap: 2px;
+    }
+
+    .rail .rail-primary.is-active + .rail-subnav { display: grid; }
+
+    .rail-subnav button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      min-height: 24px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .rail-subnav button:hover {
+      background: var(--soft);
+      color: var(--navy);
+    }
+
+    .main {
+      min-width: 0;
+      padding: 14px 18px 22px;
+      overflow: auto;
+    }
+
+    .page {
+      display: none;
+      max-width: 1560px;
+      margin: 0 auto;
+    }
+    .page.is-active { display: block; }
+
+    .page-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+    .kicker { color: var(--blue); font-size: 10px; font-weight: 900; margin-bottom: 5px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { color: var(--navy); font-size: 24px; letter-spacing: 0; line-height: 1.16; }
+    h2 { color: var(--navy); font-size: 18px; line-height: 1.24; }
+    h3 { color: var(--navy); font-size: 15px; line-height: 1.25; }
+    p { color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      box-shadow: var(--shadow);
+      padding: 13px;
+      min-width: 0;
+    }
+
+    .emph-card {
+      border-top: 5px solid var(--blue);
+      box-shadow: var(--shadow-emph);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: minmax(400px, .78fr) minmax(460px, 1fr); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(250px, 1fr)); gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 9px; }
+    .split { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 12px; align-items: start; }
+
+    .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .chip, .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+    .status.good { color: var(--good); border-color: rgba(31,158,111,.25); background: rgba(31,158,111,.08); }
+    .status.mid { color: var(--mid); border-color: rgba(210,143,16,.25); background: rgba(210,143,16,.08); }
+    .status.bad { color: var(--bad); border-color: rgba(192,57,43,.25); background: rgba(192,57,43,.08); }
+
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .segmented button {
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--muted);
+      min-height: 28px;
+      padding: 0 9px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .segmented button.is-active { background: var(--navy); color: #fff; }
+
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 7px;
+      margin-top: 10px;
+    }
+    .bank-tile {
+      min-height: 40px;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--navy);
+      font-weight: 900;
+      text-align: left;
+    }
+    .bank-tile.is-selected { border-color: var(--blue); background: var(--soft-blue); box-shadow: inset 0 0 0 1px var(--blue); }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #edf2f6;
+    }
+    .form-row label { font-size: 12px; font-weight: 900; color: var(--muted); }
+    select, input {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0 10px;
+      color: var(--navy);
+      background: #fff;
+      font-weight: 800;
+    }
+
+    .action-bar {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .answer-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 10px;
+    }
+
+    .hero-statement {
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--blue);
+      border-radius: 6px;
+      box-shadow: var(--shadow-emph);
+    }
+    .hero-statement h1 { font-size: 29px; max-width: 980px; }
+    .hero-statement p { margin-top: 8px; max-width: 940px; }
+
+    .kpi {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      min-height: 92px;
+    }
+    .kpi span { display: block; color: var(--muted); font-size: 12px; font-weight: 900; }
+    .kpi strong { display: block; margin-top: 6px; color: var(--navy); font-size: 25px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .kpi em { display: block; margin-top: 6px; font-style: normal; color: var(--muted); font-size: 11px; font-weight: 800; }
+
+    .question-card {
+      border-left: 4px solid var(--blue);
+      min-height: 128px;
+    }
+    .question-card .num { color: var(--blue); font-size: 11px; font-weight: 900; margin-bottom: 6px; }
+    .question-card p { margin-top: 6px; }
+
+    .evidence-list { display: grid; gap: 7px; }
+    .evidence-row {
+      display: grid;
+      grid-template-columns: 130px 80px minmax(0, 1fr) 110px;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #edf2f6;
+    }
+    .evidence-row:last-child { border-bottom: 0; }
+    .evidence-row b { color: var(--navy); font-size: 13px; }
+    .evidence-row strong { color: var(--navy); font-size: 18px; font-variant-numeric: tabular-nums; text-align: right; }
+    .evidence-row p { font-size: 12px; }
+
+    .mini-bars { display: grid; gap: 8px; }
+    .bar-row { display: grid; grid-template-columns: 104px 1fr 54px; gap: 8px; align-items: center; font-size: 12px; font-weight: 900; }
+    .bar-track { height: 8px; background: #e7eef5; border-radius: 4px; overflow: hidden; }
+    .bar { height: 100%; background: var(--blue); }
+
+    .topic-card { min-height: 150px; display: flex; flex-direction: column; gap: 8px; }
+    .topic-card p { flex: 1; }
+    .topic-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+    .chart-box {
+      min-height: 240px;
+      border: 1px solid #e7eef5;
+      border-radius: 6px;
+      background:
+        linear-gradient(#fff, #fff) padding-box,
+        repeating-linear-gradient(to top, #eff4f8 0, #eff4f8 1px, transparent 1px, transparent 52px);
+      padding: 14px;
+      display: flex;
+      align-items: end;
+      gap: 28px;
+    }
+    .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 8px; min-width: 56px; }
+    .chart-col i { display: block; width: 100%; max-width: 70px; background: var(--blue); border-radius: 4px 4px 0 0; opacity: .9; }
+    .chart-col span { font-size: 12px; color: var(--muted); font-weight: 900; text-align: center; }
+
+    .insight-panel { position: sticky; top: 14px; }
+    .insight-block { padding: 10px 0; border-bottom: 1px solid #edf2f6; }
+    .insight-block:last-child { border-bottom: 0; }
+    .insight-block b { display: block; color: var(--navy); font-size: 12px; margin-bottom: 6px; }
+
+    .report-canvas {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      box-shadow: var(--shadow);
+      min-height: 540px;
+      padding: 20px;
+    }
+    .report-page {
+      border: 1px solid #d8e2ea;
+      min-height: 500px;
+      background: #fff;
+      padding: 22px;
+    }
+    .report-page h2 { font-size: 23px; border-bottom: 4px solid var(--blue); padding-bottom: 8px; margin-bottom: 14px; }
+    .report-line { display: grid; grid-template-columns: 110px 1fr; gap: 14px; padding: 10px 0; border-bottom: 1px solid #edf2f6; }
+    .report-line b { color: var(--navy); }
+
+    .chapter-list { display: grid; gap: 8px; margin-top: 12px; }
+    .chapter-row {
+      display: grid;
+      grid-template-columns: 22px 1fr 56px;
+      gap: 8px;
+      align-items: center;
+      padding: 7px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-variant-numeric: tabular-nums;
+      background: #fff;
+    }
+    th, td {
+      border-bottom: 1px solid #e7eef5;
+      padding: 8px 10px;
+      font-size: 11px;
+      text-align: left;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    th { background: #eaf2f8; color: var(--navy); font-weight: 900; }
+    td.num { text-align: right; color: var(--navy); font-weight: 900; }
+
+    @media (max-width: 1180px) {
+      .app-shell { grid-template-columns: 76px 1fr; }
+      .global-bar { grid-template-columns: 76px 1fr auto; }
+      .brand { justify-content: center; padding: 0; font-size: 0; }
+      .brand::after { content: "BIQ"; font-size: 13px; }
+      .rail .rail-primary { grid-template-columns: 1fr; justify-items: center; }
+      .rail span.label, .rail em { display: none; }
+      .rail-subnav { display: none !important; }
+      .grid-2, .answer-hero, .split { grid-template-columns: 1fr; }
+      .grid-3, .grid-4 { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .insight-panel { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="global-bar">
+      <div class="brand">BenchmarkIQ</div>
+      <div class="context-strip">
+        <span class="context-pill"><b>苏州农商行</b> 2025</span>
+        <span class="context-pill">对标：常熟 / 瑞丰 / 上海农商</span>
+        <span class="context-pill">场景：<b id="scenarioContext">董事会版</b></span>
+        <span class="context-pill">状态：证据已生成</span>
+      </div>
+      <div class="global-actions">
+        <button class="icon-btn" title="刷新">↻</button>
+        <button class="secondary-btn">保存项目</button>
+        <button class="primary-btn" data-page-link="report">导出报告</button>
+      </div>
+    </header>
+
+    <aside class="rail" aria-label="页面导航">
+      <div class="rail-section-title">任务流</div>
+      <button class="rail-primary is-active" data-page-link="launch"><span class="step-num">01</span><span class="label">设定口径<em>Launch</em></span></button>
+      <div class="rail-subnav">
+        <button data-page-link="launch">目标银行</button>
+        <button data-page-link="launch">对标组</button>
+        <button data-page-link="launch">汇报场景</button>
+      </div>
+      <button class="rail-primary" data-page-link="answer"><span class="step-num">02</span><span class="label">经营质量答案<em>Executive</em></span></button>
+      <div class="rail-subnav">
+        <button data-page-link="answer">总判断</button>
+        <button data-page-link="answer">核心 KPI</button>
+        <button data-page-link="answer">董事会议题</button>
+      </div>
+      <button class="rail-primary" data-page-link="evidence"><span class="step-num">03</span><span class="label">证据地图<em>Evidence</em></span></button>
+      <div class="rail-subnav">
+        <button data-page-link="evidence">异动归因</button>
+        <button data-page-link="evidence">同业位置</button>
+        <button data-page-link="evidence">PB 信号</button>
+      </div>
+      <button class="rail-primary" data-page-link="topics"><span class="step-num">04</span><span class="label">专题中心<em>Topics</em></span></button>
+      <div class="rail-subnav">
+        <button data-page-link="topics">经营质量</button>
+        <button data-page-link="topics">风险资本</button>
+        <button data-page-link="topics">估值专题</button>
+      </div>
+      <button class="rail-primary" data-page-link="topicDetail"><span class="step-num">05</span><span class="label">专题深钻<em>Deep Dive</em></span></button>
+      <div class="rail-subnav">
+        <button data-page-link="topicDetail">主图</button>
+        <button data-page-link="topicDetail">SCR 观点</button>
+        <button data-page-link="topicDetail">行动节奏</button>
+      </div>
+      <button class="rail-primary" data-page-link="report"><span class="step-num">06</span><span class="label">报告工作室<em>Studio</em></span></button>
+      <div class="rail-subnav">
+        <button data-page-link="report">报告预览</button>
+        <button data-page-link="report">章节编辑</button>
+        <button data-page-link="report">导出控制</button>
+      </div>
+      <button class="rail-primary" data-page-link="data"><span class="step-num">07</span><span class="label">数据复核<em>Validation</em></span></button>
+      <div class="rail-subnav">
+        <button data-page-link="data">字段口径</button>
+        <button data-page-link="data">三源对照</button>
+        <button data-page-link="data">血缘卡</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="page is-active" id="page-launch">
+        <div class="page-head">
+          <div>
+            <div class="kicker">LAUNCH / 默认首页</div>
+            <h1>先确认分析边界，再生成第一句诊断</h1>
+          </div>
+          <div class="toolbar">
+            <span class="status good">60 秒启动</span>
+            <span class="chip">最近项目放入二级入口</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card emph-card">
+            <div class="kicker">01 目标银行</div>
+            <h2>按类型和区域快速缩小范围</h2>
+            <div class="toolbar" style="margin-top:14px;">
+              <div class="segmented">
+                <button>大行</button>
+                <button>股份行</button>
+                <button class="is-active">城商行</button>
+                <button>农商行</button>
+              </div>
+              <div class="segmented">
+                <button class="is-active">华东</button>
+                <button>华南</button>
+                <button>华中</button>
+                <button>西部</button>
+              </div>
+            </div>
+            <div style="margin-top:12px;"><input value="苏州" aria-label="搜索银行" /></div>
+            <div class="bank-grid">
+              <button class="bank-tile is-selected">苏州农商行</button>
+              <button class="bank-tile">苏州银行</button>
+              <button class="bank-tile">常熟农商行</button>
+              <button class="bank-tile">江阴银行</button>
+              <button class="bank-tile">无锡银行</button>
+              <button class="bank-tile">张家港行</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="kicker">02 对标组与汇报场景</div>
+            <h2>系统推荐同类型、同区域和资本市场相近银行</h2>
+            <div class="form-row"><label>分析年份</label><select><option>2025</option><option>2024</option></select></div>
+            <div class="form-row">
+              <label>汇报场景</label>
+              <select id="scenarioSelect">
+                <option value="董事会版">董事会版：风险、行动、关键议题</option>
+                <option value="资本市场版">资本市场版：估值、质量、市场信号</option>
+                <option value="管理层行动版">管理层行动版：责任专题、节奏、抓手</option>
+              </select>
+            </div>
+            <div class="form-row"><label>推荐对标组</label><div class="toolbar"><span class="chip">常熟农商行</span><span class="chip">瑞丰银行</span><span class="chip">上海农商行</span><button class="ghost-btn">编辑</button></div></div>
+            <div class="form-row"><label>推荐理由</label><p>同属区域性银行，资产规模、零售结构和资本市场覆盖度接近；适合作为经营质量和估值折价的直接参照。</p></div>
+            <div class="action-bar">
+              <p>确认后进入经营质量答案页，首屏语言将跟随汇报场景变化。</p>
+              <button class="primary-btn" data-page-link="answer">形成诊断</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-answer">
+        <div class="page-head">
+          <div>
+            <div class="kicker">EXECUTIVE ANSWER / 首屏答案随场景改变</div>
+            <h1>经营质量答案</h1>
+          </div>
+          <div class="segmented">
+            <button class="is-active">Executive</button>
+            <button>Analyst</button>
+            <button>Draft</button>
+          </div>
+        </div>
+
+        <div class="answer-hero">
+          <div class="hero-statement">
+            <div class="kicker" id="answerKicker">董事会版判断</div>
+            <h1 id="answerTitle">苏州农商行的首要议题不是规模增长，而是息差压力向盈利质量传导。</h1>
+            <p id="answerText">当前应优先讨论负债成本调整、零售风险贡献和 PB 折价能否被经营质量改善重新解释。</p>
+          </div>
+          <div class="card">
+            <div class="kicker">下一步</div>
+            <h3>先看证据，再决定是否进入专题</h3>
+            <p style="margin-top:8px;">证据地图将把同业位置、异动原因和 PB 信号放在同一页。</p>
+            <div class="toolbar" style="margin-top:16px;">
+              <button class="primary-btn" data-page-link="evidence">查看证据</button>
+              <button class="secondary-btn" data-page-link="report">进报告</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-4">
+          <div class="kpi"><span>ROA</span><strong>0.62%</strong><em>低于对标均值 18bp</em></div>
+          <div class="kpi"><span>NIM</span><strong>1.54%</strong><em>同比 -16bp，压力居前</em></div>
+          <div class="kpi"><span>NPL</span><strong>1.21%</strong><em>零售分化加大</em></div>
+          <div class="kpi"><span>PB</span><strong>0.58x</strong><em>质量折价仍未解除</em></div>
+        </div>
+
+        <div class="grid-3" style="margin-top:14px;">
+          <div class="card question-card"><div class="num">董事会议题 01</div><h3>息差防守靠什么修复？</h3><p>资产端收益率下行快于负债端成本调整，短期重点应看存款定期化和高成本负债压降。</p></div>
+          <div class="card question-card"><div class="num">董事会议题 02</div><h3>风险压力是否已经被充分确认？</h3><p>整体不良率平稳不足以说明风险稳定，需要看零售产品不良贡献和拨备消耗。</p></div>
+          <div class="card question-card"><div class="num">董事会议题 03</div><h3>PB 折价能否被重估？</h3><p>如果盈利质量和资本余量没有同步改善，低 PB 更可能是质量折价，而不是简单低估。</p></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-evidence">
+        <div class="page-head">
+          <div>
+            <div class="kicker">EVIDENCE MAP / 一屏证据</div>
+            <h1>先解释为什么，再进入专题</h1>
+          </div>
+          <button class="primary-btn" data-page-link="topics">进入专题中心</button>
+        </div>
+        <div class="split">
+          <div class="card emph-card">
+            <div class="kicker">异动归因，改为纵向证据流</div>
+            <h2>Top Changes & Deviations 不再横向拉长</h2>
+            <div class="evidence-list" style="margin-top:14px;">
+              <div class="evidence-row"><b>NIM</b><strong>-16bp</strong><p>可能原因：资产重定价快于负债降本，存款定期化拖慢成本修复。</p><span class="status bad">优先解释</span></div>
+              <div class="evidence-row"><b>手续费资产比</b><strong>-7bp</strong><p>可能原因：财富管理和代理业务恢复不足，轻资本收入支柱偏弱。</p><span class="status mid">需深钻</span></div>
+              <div class="evidence-row"><b>PB</b><strong>0.58x</strong><p>可能原因：盈利承压叠加换手率偏低，市场仍按质量折价定价。</p><span class="status mid">估值信号</span></div>
+              <div class="evidence-row"><b>零售风险</b><strong>+22bp</strong><p>可能原因：经营贷和消费贷不良贡献上升，需要从产品维度解释。</p><span class="status bad">专题进入</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="kicker">同业位置，压缩成可读摘要</div>
+            <h2>只显示最能支撑判断的参照</h2>
+            <div class="mini-bars" style="margin-top:18px;">
+              <div class="bar-row"><span>目标银行</span><div class="bar-track"><i class="bar" style="width:46%"></i></div><span>46</span></div>
+              <div class="bar-row"><span>对标均值</span><div class="bar-track"><i class="bar" style="width:61%"></i></div><span>61</span></div>
+              <div class="bar-row"><span>类型均值</span><div class="bar-track"><i class="bar" style="width:55%"></i></div><span>55</span></div>
+              <div class="bar-row"><span>最好同业</span><div class="bar-track"><i class="bar" style="width:78%;background:var(--good)"></i></div><span>78</span></div>
+              <div class="bar-row"><span>最弱同业</span><div class="bar-track"><i class="bar" style="width:39%;background:var(--bad)"></i></div><span>39</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px;">
+          <div class="kicker">PB 与异动纵向排列</div>
+          <h2>估值折价拆为盈利、风险、资本、市场流动性四个信号</h2>
+          <div class="grid-4" style="margin-top:12px;">
+            <div class="kpi"><span>盈利担忧</span><strong>偏强</strong><em>ROA 与 NIM 弱于对标</em></div>
+            <div class="kpi"><span>风险折价</span><strong>中等</strong><em>零售产品贡献上升</em></div>
+            <div class="kpi"><span>分红补偿</span><strong>不足</strong><em>股息率未完全补偿折价</em></div>
+            <div class="kpi"><span>流动性折价</span><strong>存在</strong><em>换手率偏低</em></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-topics">
+        <div class="page-head">
+          <div>
+            <div class="kicker">TOPIC HUB / 专题目录</div>
+            <h1>专题中心只做入口，不展开长内容</h1>
+          </div>
+          <span class="status good">数据置信度 L2</span>
+        </div>
+        <div class="grid-3">
+          <div class="card topic-card"><span class="chip">经营质量</span><h3>利润增长是真的修复，还是结构性波动？</h3><p>净利润归因显示拨备和息差贡献需要分开解释。</p><div class="topic-meta"><span class="status mid">需深钻</span><button class="ghost-btn" data-page-link="topicDetail">进入</button></div></div>
+          <div class="card topic-card"><span class="chip">息差与负债</span><h3>息差防守为什么没有跟上？</h3><p>资产端让价更快，负债端降本存在滞后。</p><div class="topic-meta"><span class="status bad">优先</span><button class="ghost-btn" data-page-link="topicDetail">进入</button></div></div>
+          <div class="card topic-card"><span class="chip">风险与资本</span><h3>零售风险来自哪个产品？</h3><p>经营贷和消费贷需要拆余额贡献与不良率贡献。</p><div class="topic-meta"><span class="status bad">优先</span><button class="ghost-btn" data-page-link="topicDetail">进入</button></div></div>
+          <div class="card topic-card"><span class="chip">估值</span><h3>PB 折价是质量折价还是流动性折价？</h3><p>PB、股息率、换手率和 ROA 需要联动解释。</p><div class="topic-meta"><span class="status mid">报告纳入</span><button class="ghost-btn" data-page-link="topicDetail">进入</button></div></div>
+          <div class="card topic-card"><span class="chip">ALM</span><h3>短端流动性压力是否被 LCR 掩盖？</h3><p>期限缺口和重定价期限桶进入后续 Sprint。</p><div class="topic-meta"><span class="status mid">待接入</span><button class="ghost-btn">规划</button></div></div>
+          <div class="card topic-card"><span class="chip">数据复核</span><h3>三源数据的差异是否影响结论？</h3><p>主数据、Tushare 和年报抓取分别承担不同职责。</p><div class="topic-meta"><span class="status good">一级入口</span><button class="ghost-btn" data-page-link="data">查看</button></div></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-topicDetail">
+        <div class="page-head">
+          <div>
+            <div class="kicker">TOPIC DETAIL / 专题深钻</div>
+            <h1>息差防守为什么没有跟上？</h1>
+          </div>
+          <div class="toolbar"><span class="status bad">报告纳入</span><button class="secondary-btn">查看底稿</button></div>
+        </div>
+        <div class="split">
+          <div class="card emph-card">
+            <div class="kicker">主图：资产收益率与负债成本传导</div>
+            <h2>资产端下行快于负债端降本，NIM 压力仍未出清</h2>
+            <div class="chart-box" style="margin-top:14px;">
+              <div class="chart-col"><i style="height:190px"></i><span>生息资产收益率</span></div>
+              <div class="chart-col"><i style="height:142px;background:var(--mid)"></i><span>计息负债成本</span></div>
+              <div class="chart-col"><i style="height:96px;background:var(--bad)"></i><span>NIM 缺口</span></div>
+              <div class="chart-col"><i style="height:128px;background:var(--good)"></i><span>对标均值</span></div>
+            </div>
+          </div>
+          <aside class="card insight-panel">
+            <div class="kicker">SCR Insight Panel</div>
+            <div class="insight-block"><b>Situation</b><p>NIM 同比下行 16bp，弱于对标组，已成为盈利质量解释的首要证据。</p></div>
+            <div class="insight-block"><b>Complication</b><p>问题不只是利率下行，而是负债端成本调整慢于资产端重定价。</p></div>
+            <div class="insight-block"><b>Evidence</b><p>存款定期化、高成本负债和真实存贷利差共同指向息差防守压力。</p></div>
+            <div class="insight-block"><b>Recommendation</b><p>3 个月看高成本负债压降，6 个月看负债结构，12 个月看客户经营收入修复。</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page" id="page-report">
+        <div class="page-head">
+          <div>
+            <div class="kicker">REPORT STUDIO / 保留编辑能力</div>
+            <h1>报告工作室集中承载预览、编辑和导出</h1>
+          </div>
+          <div class="toolbar"><button class="secondary-btn">HTML</button><button class="secondary-btn">PDF</button><button class="primary-btn">PPTX</button></div>
+        </div>
+        <div class="split">
+          <div class="report-canvas">
+            <div class="report-page">
+              <h2>苏州农商行经营质量诊断摘要</h2>
+              <div class="report-line"><b>总判断</b><p>首要议题不是规模增长，而是息差压力向盈利质量传导。</p></div>
+              <div class="report-line"><b>证据一</b><p>NIM 同比下行 16bp，弱于对标组，解释盈利承压。</p></div>
+              <div class="report-line"><b>证据二</b><p>PB 折价需要结合盈利质量、零售风险和换手率共同解释。</p></div>
+              <div class="report-line"><b>行动</b><p>优先推进负债成本压降、零售产品风险拆解和资本市场沟通口径。</p></div>
+            </div>
+          </div>
+          <aside class="card">
+            <div class="kicker">编辑控制台</div>
+            <h2>章节开关、排序和文案编辑都保留</h2>
+            <div class="form-row"><label>报告版本</label><select><option>董事会版</option><option>资本市场版</option><option>管理层行动版</option></select></div>
+            <div class="form-row"><label>语言强度</label><select><option>审慎断言</option><option>中性说明</option><option>行动导向</option></select></div>
+            <div class="chapter-list">
+              <div class="chapter-row"><input type="checkbox" checked />经营质量摘要<span>拖拽</span></div>
+              <div class="chapter-row"><input type="checkbox" checked />证据地图<span>拖拽</span></div>
+              <div class="chapter-row"><input type="checkbox" checked />息差防守<span>拖拽</span></div>
+              <div class="chapter-row"><input type="checkbox" checked />PB 归因<span>拖拽</span></div>
+              <div class="chapter-row"><input type="checkbox" />数据附录<span>拖拽</span></div>
+            </div>
+            <div class="action-bar"><p>导出前先在这里完成版本、章节和专题取舍。</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page" id="page-data">
+        <div class="page-head">
+          <div>
+            <div class="kicker">DATA & VALIDATION / 一级页面</div>
+            <h1>数据复核服务分析师和后端对接</h1>
+          </div>
+          <span class="status good">一级导航保留</span>
+        </div>
+        <div class="split">
+          <div class="card">
+            <div class="kicker">三源字段口径</div>
+            <h2>主数据、Tushare 和年报抓取不互相强替</h2>
+            <table style="margin-top:14px;">
+              <thead><tr><th>指标</th><th>主数据</th><th>Tushare</th><th>年报抓取</th><th>策略</th></tr></thead>
+              <tbody>
+                <tr><td>NIM</td><td class="num">1.54%</td><td>无</td><td class="num">1.55%</td><td>核验层</td></tr>
+                <tr><td>PB</td><td class="num">0.58x</td><td class="num">0.57x</td><td>无</td><td>市场 sidecar</td></tr>
+                <tr><td>NPL</td><td class="num">1.21%</td><td>无</td><td class="num">1.22%</td><td>监管核验</td></tr>
+                <tr><td>股息率</td><td>无</td><td class="num">5.1%</td><td>无</td><td>新增补充</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <aside class="card">
+            <div class="kicker">字段血缘卡</div>
+            <h2>每个证据都可追溯</h2>
+            <div class="insight-block"><b>来源职责</b><p>原有主数据做报告主线，Tushare 做市场估值补充，年报抓取做 2025 核验和附注明细。</p></div>
+            <div class="insight-block"><b>口径风险</b><p>单位、符号、归母/合并、净额/总额差异需进入风险标签。</p></div>
+            <div class="insight-block"><b>后端对接</b><p>明细表以 fact_bank_* 事实表承载，Portal 默认读取聚合视图。</p></div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const scenarioCopy = {
+      "董事会版": {
+        kicker: "董事会版判断",
+        title: "苏州农商行的首要议题不是规模增长，而是息差压力向盈利质量传导。",
+        text: "当前应优先讨论负债成本调整、零售风险贡献和 PB 折价能否被经营质量改善重新解释。"
+      },
+      "资本市场版": {
+        kicker: "资本市场版判断",
+        title: "当前 PB 折价更像盈利质量折价，而不是单纯流动性折价。",
+        text: "估值沟通需要同时解释 ROA、NIM、股息率、换手率和资本余量，避免只说低估。"
+      },
+      "管理层行动版": {
+        kicker: "管理层行动版判断",
+        title: "管理层应把下一轮动作集中在负债降本、零售风险和轻资本收入修复。",
+        text: "行动节奏建议拆成 3 个月、6 个月和 12 个月，分别对应成本、风险和收入结构。"
+      }
+    };
+
+    const pages = [...document.querySelectorAll(".page")];
+    const navButtons = [...document.querySelectorAll("[data-page-link]")];
+    const primaryNavButtons = [...document.querySelectorAll(".rail-primary[data-page-link]")];
+    function showPage(id) {
+      pages.forEach((page) => page.classList.toggle("is-active", page.id === `page-${id}`));
+      primaryNavButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.pageLink === id));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    navButtons.forEach((btn) => btn.addEventListener("click", () => showPage(btn.dataset.pageLink)));
+
+    document.getElementById("scenarioSelect").addEventListener("change", (event) => {
+      const value = event.target.value;
+      const copy = scenarioCopy[value];
+      document.getElementById("scenarioContext").textContent = value;
+      document.getElementById("answerKicker").textContent = copy.kicker;
+      document.getElementById("answerTitle").textContent = copy.title;
+      document.getElementById("answerText").textContent = copy.text;
+    });
+  </script>
+</body>
+</html>

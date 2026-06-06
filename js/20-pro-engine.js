@@ -93,13 +93,27 @@ function dupontBreakdown(row = targetRecord(), peers = peerRecords()) {
     ...node,
     contributionShare: Math.abs(node.goodGap) / totalAbs
   })).sort((a, b) => Math.abs(b.goodGap) - Math.abs(a.goodGap));
+  // Phase 1 Tushare 集成：附带 Tushare 直读的 DuPont 分解（用于双源对比）
+  const tushareDecomposition = typeof dupontDecomposeFromTushare === "function"
+    ? dupontDecomposeFromTushare(row)
+    : null;
+  // 校验差：BQ 推导的 ROE vs Tushare 直读 ROE，差值过大触发口径警示
+  let crossSourceDelta = null;
+  if (tushareDecomposition && tushareDecomposition.derivedROE != null && row.roe != null) {
+    crossSourceDelta = Math.round((tushareDecomposition.derivedROE - row.roe) * 100) / 100;
+  }
   return {
     target: row.bank,
     peerLabel: "对标组中位数",
     roeGap: row.roe == null || peer.roe == null ? null : row.roe - peer.roe,
     nodes,
     contributions,
-    mainDriver: contributions[0] || null
+    mainDriver: contributions[0] || null,
+    tushareDecomposition,
+    crossSourceDelta,
+    crossSourceWarning: crossSourceDelta != null && Math.abs(crossSourceDelta) > 1
+      ? `BQ ROE 与 Tushare ROE 相差 ${crossSourceDelta} 个百分点，可能存在口径差异（合并报表 vs 母公司、是否含少数股东）`
+      : null
   };
 }
 

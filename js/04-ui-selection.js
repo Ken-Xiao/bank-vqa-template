@@ -18,6 +18,35 @@ function targetNeedsRegion(type = state.targetTypeFilter) {
   return ["城商行", "农商行"].includes(type);
 }
 
+function analysisSelectionKey() {
+  return [
+    state.target || "",
+    state.year || "",
+    (state.peers || []).join("|"),
+    (state.types || []).join("|"),
+    state.reportVersion || ""
+  ].join("::");
+}
+
+function clearGeneratedNarrativeCaches(reason = "selection-change") {
+  state.bankCommentaries = {};
+  state.evidenceMapCommentary = null;
+  state.generatedRewrites = {};
+  state.reportRewrites = {};
+  state.rewriteQualityWarnings = [];
+  state.editedNarratives = {};
+  state.generatedNarrativeScope = analysisSelectionKey();
+  state.generatedNarrativeResetReason = reason;
+  if (state.autoModelGeneration?.status === "running") {
+    state.autoModelGeneration = {
+      status: "stale",
+      message: "选定银行或分析口径已变化，上一轮模型生成结果已作废。",
+      updatedAt: new Date().toISOString(),
+      reason
+    };
+  }
+}
+
 function targetRegionsForType(type = state.targetTypeFilter) {
   const rows = banks.filter((bank) => type === "全部" || bankTypeBucket(bank.type) === type);
   const regions = [...new Set(rows.map((bank) => bank.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
@@ -218,6 +247,7 @@ function renderChoicePanels() {
     targetBox.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => {
       state.target = input.value;
       refreshDefaultPeersForTarget();
+      clearGeneratedNarrativeCaches("target-change");
       renderChoicePanels();
       syncHiddenSelects();
       updateSelectionSummary();
@@ -235,6 +265,7 @@ function renderChoicePanels() {
       const checked = [...peerBox.querySelectorAll("input:checked")].map((el) => el.value).slice(0, maxPeers);
       state.peers = checked.filter((p) => p !== state.target);
       state.peerTemplate = "manual";
+      clearGeneratedNarrativeCaches("peer-change");
       renderChoicePanels();
       syncHiddenSelects();
       updateSelectionSummary();
@@ -252,6 +283,7 @@ function renderChoicePanels() {
     `).join("");
     typeBox.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => {
       state.types = [...typeBox.querySelectorAll("input:checked")].map((el) => el.value);
+      clearGeneratedNarrativeCaches("type-change");
       updateChoiceStyles();
       syncHiddenSelects();
       updateSelectionSummary();
@@ -294,12 +326,14 @@ function populateSelectors() {
   target.addEventListener("change", () => {
     state.target = target.value;
     refreshDefaultPeersForTarget();
+    clearGeneratedNarrativeCaches("target-change");
     renderChoicePanels();
     updateSelectionSummary();
     if (state.confirmed) renderAll();
   });
   peers.addEventListener("change", () => {
     state.peers = [...peers.selectedOptions].map((o) => o.value).filter((v) => v !== state.target).slice(0, 8);
+    clearGeneratedNarrativeCaches("peer-change");
     renderChoicePanels();
     updateSelectionSummary();
     if (state.confirmed) renderAll();
@@ -308,6 +342,7 @@ function populateSelectors() {
     year.value = String(state.year);
     year.addEventListener("change", () => {
       state.year = Number(year.value);
+      clearGeneratedNarrativeCaches("year-change");
       updateSelectionSummary();
       if (state.confirmed) renderAll();
     });
@@ -318,6 +353,7 @@ function populateSelectors() {
     });
     types.addEventListener("change", () => {
       state.types = [...types.selectedOptions].map((o) => o.value);
+      clearGeneratedNarrativeCaches("type-change");
       renderChoicePanels();
       updateSelectionSummary();
       if (state.confirmed) renderAll();
@@ -327,6 +363,7 @@ function populateSelectors() {
     reportVersion.value = state.reportVersion;
     reportVersion.addEventListener("change", () => {
       state.reportVersion = reportVersion.value;
+      clearGeneratedNarrativeCaches("report-version-change");
       applyReportVersion(state.reportVersion);
       if (state.confirmed) renderAll();
     });
@@ -335,6 +372,7 @@ function populateSelectors() {
     scenario.dataset.bound = "1";
     scenario.addEventListener("change", () => {
       state.reportVersion = scenarioReportVersion(scenario.value);
+      clearGeneratedNarrativeCaches("scenario-change");
       if (reportVersion) reportVersion.value = state.reportVersion;
       applyReportVersion(state.reportVersion);
       renderRecommendedPeerPreview();
@@ -368,12 +406,16 @@ function populateSelectors() {
       } else {
         state.peers = peerTemplateBanks(state.peerTemplate);
       }
+      clearGeneratedNarrativeCaches("confirm-selection");
       state.confirmed = true;
       document.body.classList.add("analysis-ready");
       renderChoicePanels();
       syncHiddenSelects();
       updateSelectionSummary();
       renderAll();
+      if (typeof runPostConfirmModelGeneration === "function") {
+        void runPostConfirmModelGeneration({ reason: "confirm-selection" });
+      }
       if (typeof recordAnalysisSession === "function") {
         recordAnalysisSession("确认分析口径", {
           target: state.target,
@@ -385,7 +427,8 @@ function populateSelectors() {
       applyReportVersion(state.reportVersion);
       if (typeof setAppMode === "function") setAppMode("analysis");
       else if (typeof setWorkspaceTab === "function") setWorkspaceTab("overview");
-      document.getElementById("clientCommandCenter")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (typeof setPortalPage === "function") setPortalPage("answer");
+      else document.getElementById("clientCommandCenter")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
   if (restart) {
@@ -393,6 +436,7 @@ function populateSelectors() {
       state.confirmed = false;
       document.body.classList.remove("analysis-ready");
       if (typeof setAppMode === "function") setAppMode("setup");
+      if (typeof setPortalPage === "function") setPortalPage("launch");
       renderChoicePanels();
       syncHiddenSelects();
       updateSelectionSummary();

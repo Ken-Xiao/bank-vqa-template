@@ -34,9 +34,14 @@ function metricTimeSeriesSnapshot(metricKey = "nim") {
   const targetBank = state?.target;
   const peers = state?.peers || [];
   const types = state?.types || [];
+  const simulatedRow = typeof decisionWorkbenchRow === "function" ? decisionWorkbenchRow() : null;
+  const isSimulated = Boolean(simulatedRow?.__whatIfSimulation);
   const targetSeries = years.map((year) => {
     const row = allRecords.find((item) => item.bank === targetBank && item.year === year);
-    return { year, value: row?.[metricKey] ?? null };
+    if (isSimulated && year === state.year) {
+      return { year, value: simulatedRow?.[metricKey] ?? row?.[metricKey] ?? null, simulated: true };
+    }
+    return { year, value: row?.[metricKey] ?? null, simulated: false };
   });
   const peerAverageSeries = years.map((year) => {
     const rows = allRecords.filter((item) => peers.includes(item.bank) && item.year === year);
@@ -47,6 +52,43 @@ function metricTimeSeriesSnapshot(metricKey = "nim") {
     return { year, value: typeof avg === "function" ? avg(rows, metricKey) : null };
   });
   return { metricKey, years, targetSeries, peerAverageSeries, typeAverageSeries };
+}
+
+function whatIfIsActive(assumptions = typeof whatIfAssumptions === "function" ? whatIfAssumptions() : null) {
+  if (!assumptions) return false;
+  return Math.abs(Number(assumptions.nimBp) || 0) > 0
+    || Math.abs(Number(assumptions.nplBp) || 0) > 0
+    || Math.abs(Number(assumptions.costPp) || 0) > 0;
+}
+
+function decisionWorkbenchRow(row = typeof targetRecord === "function" ? targetRecord() : null) {
+  if (!row || !whatIfIsActive()) return row;
+  const scenario = typeof whatIfScenario === "function" ? whatIfScenario(row) : null;
+  if (!scenario?.simulated) return row;
+  return {
+    ...scenario.simulated,
+    __baseRecord: row,
+    __whatIfScenario: scenario,
+    __whatIfSimulation: true
+  };
+}
+
+function whatIfSimulationBadge(row = typeof decisionWorkbenchRow === "function" ? decisionWorkbenchRow() : null) {
+  if (!row?.__whatIfSimulation) return "";
+  const scenario = row.__whatIfScenario || (typeof whatIfScenario === "function" ? whatIfScenario(row.__baseRecord || targetRecord()) : null);
+  const scoreText = scenario?.scoreDelta == null ? "VQA待测算" : `VQA ${scenario.scoreDelta >= 0 ? "+" : ""}${scenario.scoreDelta}`;
+  const roaText = scenario?.roaDelta == null ? "ROA待测算" : `ROA ${scenario.roaDelta >= 0 ? "+" : ""}${scenario.roaDelta.toFixed(2)}pct`;
+  return `<span class="whatif-simulation-badge">模拟口径｜${scoreText}｜${roaText}</span>`;
+}
+
+function whatIfLinkedRefresh() {
+  if (typeof renderWhatIfControlPanel === "function") renderWhatIfControlPanel();
+  if (typeof updateClientCommandCenter === "function") updateClientCommandCenter();
+  if (typeof renderStep2Diagnosis === "function") renderStep2Diagnosis();
+  if (typeof renderMetricContextRail === "function") renderMetricContextRail();
+  if (typeof updateBenchmarkV1 === "function") updateBenchmarkV1();
+  if (typeof renderFormalReport === "function") renderFormalReport();
+  if (typeof renderGlobalBar === "function") renderGlobalBar();
 }
 
 function metricPercentile(row, metricKey) {
@@ -78,10 +120,15 @@ function peerHeatmapRows(rowOrMetricKeys = targetRecord(), maybeMetricKeys) {
   const banks = [row.bank || state.target, ...(state?.peers || [])].filter(Boolean);
   const uniqueBanks = [...new Set(banks)];
   const rows = uniqueBanks.map((bank) => {
-    const record = typeof latest === "function" ? latest(bank, state.year) : null;
+    const record = bank === row.bank || bank === state.target
+      ? row
+      : typeof latest === "function"
+        ? latest(bank, state.year)
+        : null;
     return {
       bank,
       isTarget: bank === row.bank || bank === state.target,
+      isSimulation: Boolean(record?.__whatIfSimulation),
       cells: metricKeys.map((key) => {
         const percentile = metricPercentile(record, key);
         return {

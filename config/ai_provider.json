@@ -1,11 +1,11 @@
 {
-  "version": "2026.05.2",
+  "version": "2026.06-deepseek-v1",
   "provider": "local",
-  "description": "AI 写稿仅读取事实包 JSON，不允许自行编造数字。provider=local 时使用本地模板；provider=http 时 POST 到 endpoint。",
+  "description": "AI 写稿仅读取事实包 JSON，不允许自行编造数字。provider=local 时使用本地模板；provider=http 时 POST 到本地代理，再由代理调用 DeepSeek。",
   "http": {
-    "endpoint": "",
-    "commentaryEndpoint": "",
-    "timeoutMs": 30000
+    "endpoint": "http://127.0.0.1:8788/api/llm-narrative",
+    "commentaryEndpoint": "http://127.0.0.1:8788/api/llm-commentary",
+    "timeoutMs": 45000
   },
   "validation": {
     "requireFactPackNumbers": true,

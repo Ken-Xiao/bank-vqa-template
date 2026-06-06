@@ -25,7 +25,7 @@ function v3NarrativeChapters() {
       id: "profit",
       label: "盈利结构与路径分化",
       chapter: "第二章",
-      question: "利润增长来自主业修复，还是来自拨备、投资收益或一次性因素？",
+      question: "我行的盈利质量在同业里排第几？为什么？",
       metrics: ["coreRevenueGrowth", "feeAssetRatio", "roa", "ppopGrowth"],
       answer: "核心营收、手续费资产比和 ROA 因子桥共同判断盈利质量。"
     },
@@ -33,7 +33,7 @@ function v3NarrativeChapters() {
       id: "nim",
       label: "息差防守与负债纪律",
       chapter: "第三章",
-      question: "负债端降本是否真的跟上资产端让价，还是定期化正在削弱重定价弹性？",
+      question: "净息差还能守住多久？守不住的话靠什么补？",
       metrics: ["nim", "nimGapBp", "earningAssetYield", "interestLiabilityCost"],
       answer: "息差对冲缺口、定期化和真实存贷利差共同定位负债纪律。"
     },
@@ -41,7 +41,7 @@ function v3NarrativeChapters() {
       id: "risk",
       label: "风险确认与拨备质量",
       chapter: "第四章",
-      question: "风险是否已经充分确认，还是先在零售、关注和逾期偏离中提前暴露？",
+      question: "风险数据是不是已经反映了真实经营压力？",
       metrics: ["npl", "personalLoanNpl", "overdueNplDeviation", "provisionCoverage"],
       answer: "零售剪刀差、利润质量三角和风险确认时差共同验证利润质量。"
     },
@@ -49,7 +49,7 @@ function v3NarrativeChapters() {
       id: "capital",
       label: "资本效率与轻装转型",
       chapter: "第五章",
-      question: "扩表是否创造价值，还是正在消耗核心一级资本和估值叙事？",
+      question: "我行的资本回报率是否值得继续追加投入？",
       metrics: ["cet1Buffer", "rwaDensity", "rwaProfitGrowthGap", "costIncomeRatio"],
       answer: "资本余量、RWA 密度和成本效率共同判断增长纪律。"
     },
@@ -194,6 +194,8 @@ function v3WorkbenchShell() {
   const sticky = document.createElement("div");
   sticky.className = "v3-sticky-summary analysis-content";
   sticky.id = "v3StickySummary";
+  sticky.dataset.workspaceTab = "report";
+  sticky.dataset.portalPage = "report";
   sticky.innerHTML = `
     <div class="v3-summary-main" id="v3SummaryMain"></div>
     <div class="v3-summary-actions">
@@ -207,6 +209,7 @@ function v3WorkbenchShell() {
   workbench.className = "v3-workbench analysis-content";
   workbench.id = "v3NarrativeWorkbench";
   workbench.dataset.workspaceTab = "overview";
+  workbench.dataset.portalPage = "report";
   workbench.innerHTML = `
     <aside class="v3-chapter-nav" id="v3ChapterNav"></aside>
     <div class="v3-chapter-panel">
@@ -221,7 +224,7 @@ function v3WorkbenchShell() {
   modal.hidden = true;
   modal.innerHTML = `
     <div class="v3-report-toolbar">
-      <b>Report Preview & Export</b>
+      <b>报告预览与导出</b>
       <span id="v3ReportCounter">1 / 1</span>
       <button class="btn secondary" id="v3PrevReportPage" type="button">上一页</button>
       <button class="btn secondary" id="v3NextReportPage" type="button">下一页</button>
@@ -255,7 +258,7 @@ function renderV3Summary() {
     <span><b>年份</b>${state.year}</span>
     <span><b>对标组</b>${state.peers.length}家</span>
     <span><b>报告版本</b>${state.reportVersion}</span>
-    <span><b>VQA 总分</b>${diagnosis ? diagnosis.score : "待生成"}</span>
+    <span><b>价值质量</b>${diagnosis ? diagnosis.score : "待生成"}</span>
     <span><b>最弱维度</b>${weakest}</span>`;
 }
 
@@ -341,7 +344,7 @@ function v3ChapterInsightHtml(id) {
     return `<div class="v3-insight-card v3-wide"><span>口径复核</span><h3>所有结论必须回到同一事实包</h3><p>当前规则版本：${typeof rulesVersionLabel === "function" ? rulesVersionLabel() : "未标注"}。目标银行、对标组、类型均值和报告版本已写入摘要条，导出报告应与章节导航保持同一页序。</p></div>`;
   }
   return `
-    <div class="v3-insight-card v3-wide"><span>Executive Dashboard</span><h3>最弱维度决定本轮汇报顺序</h3><div id="v3HarveyMirror">${typeof ibHarveyRows === "function" ? renderHarveyBallMatrix(ibHarveyRows()) : ""}</div></div>
+    <div class="v3-insight-card v3-wide"><span>经营质量仪表盘</span><h3>最弱维度决定本轮汇报顺序</h3><div id="v3HarveyMirror">${typeof ibHarveyRows === "function" ? renderHarveyBallMatrix(ibHarveyRows()) : ""}</div></div>
     <div class="v3-insight-card">${v3MetricTile("roa")}${v3MetricTile("nim")}${v3MetricTile("npl")}${v3MetricTile("cet1Buffer")}</div>`;
 }
 

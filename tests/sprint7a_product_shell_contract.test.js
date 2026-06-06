@@ -28,8 +28,15 @@ const workspace = fs.readFileSync("js/19-product-workspace.js", "utf8");
 [
   "appMode",
   "drawerOpen",
-  "activeDrawerTab"
+  "activeDrawerTab",
+  "whatIfScenario"
 ].forEach((needle) => assert(state.includes(needle), `state must include ${needle}`));
+
+[
+  "benchmarkiq.appMode",
+  "localStorage.setItem",
+  "localStorage.getItem"
+].forEach((needle) => assert(workspace.includes(needle), `workspace must persist appMode via ${needle}`));
 
 [
   "function setAppMode",

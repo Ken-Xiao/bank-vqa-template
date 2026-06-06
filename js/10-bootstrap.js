@@ -108,6 +108,14 @@ document.querySelectorAll(".figure-thumb").forEach((card) => {
 });
 
 async function initApp() {
+  // Phase 1 Tushare 指标库扩展：在 records 被任何模块消费前 merge
+  if (typeof extendMetricLabels === "function") extendMetricLabels();
+  if (typeof mergeTushareMetrics === "function") mergeTushareMetrics();
+
+  // Portal IA v10：初始化 Page Rail + Router
+  if (typeof initPageRail === "function") initPageRail();
+  if (typeof initPortalRouter === "function") initPortalRouter();
+
   await Promise.all([loadAnalysisRules(), loadMetricDictionary(), loadFieldCoverageMatrix(), loadLanguageDiscipline(), loadNarrativePrompts(), loadAiProviderConfig()]);
   setupMetricModal();
   populateSelectors();

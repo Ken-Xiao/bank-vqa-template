@@ -1,0 +1,16 @@
+file_type,files,mapped_fields
+liquidity_risk_long.csv,52,
+loan_npl_product_long.csv,52,businessLoanNpl;consumerLoanNpl;creditCardLoanNpl;housingLoanNpl;personalLoanNpl
+extraction_status.csv,52,
+loan_writeoff_long.csv,52,
+nim_long.csv,52,earningAssetYield;interestLiabilityCost;nim
+loan_5class_migration_long.csv,52,
+fee_commission_long.csv,52,
+loan_npl_industry_long.csv,52,
+financials_core_long.csv,52,assets;creditImpairLoss;debtInvestment;deposits;equity;fairValueChgGain;feeIncome;incomeTax;interestExpense;interestIncome;investIncome;liabilities;loans;netInterestIncome;netProfit;otherDebtInvestment;revenue;totalProfit;tradAsset
+special_metrics_long.csv,52,cet1;costIncomeRatio;liquidityCoverageRatio;liquidityRatio;loanDepositRatio;nim;npl;provisionCoverage;realLoanDepositSpread;roa;roe
+other_noninterest_income_long.csv,52,fairValueChgGain;fxGain;investIncome;otherNonInterestIncome
+provision_long.csv,52,assetImpairLoss;creditImpairLoss;otherAssetImpairLoss
+ifrs9_stage_distribution_long.csv,51,
+repricing_long.csv,51,
+ifrs9_stage_distribution_long .csv,1,

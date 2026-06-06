@@ -67,7 +67,7 @@ const pbPricing = fs.readFileSync("js/32-pb-pricing-model.js", "utf8");
   "situation",
   "complication",
   "step2-scr-list",
-  "进入专题深钻"
+  "进入专题分析"
 ].forEach((needle) => assert(workspace.includes(needle), `Topic cards must use compact SCR rendering: ${needle}`));
 
 [

@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>银行经营对标分析平台｜中文整页重设计稿</title>
+  <style>
+    :root {
+      --navy: #061d3c;
+      --blue: #0099d8;
+      --ink: #1c2733;
+      --muted: #5d6670;
+      --line: #dce4ec;
+      --soft: #f4f7fa;
+      --paper: #fbfcfd;
+      --good: #1f9e6f;
+      --warn: #d28f10;
+      --bad: #c0392b;
+      --shadow: 0 10px 28px rgba(6, 27, 58, .08);
+      --shadow-strong: 0 16px 44px rgba(6, 27, 58, .14);
+      --serif: "Songti SC", "Noto Serif CJK SC", "STSong", serif;
+      --sans: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: #edf2f7;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      background: linear-gradient(180deg, #eef4f8 0, #f8fafc 260px, #eef3f7 100%);
+      font-size: 14px;
+      line-height: 1.58;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 24px;
+      background: var(--navy);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(6, 27, 58, .20);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 98px;
+      height: 30px;
+      border-radius: 4px;
+      background: #fff;
+      color: var(--navy);
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .brand-copy {
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    .brand-copy strong {
+      overflow: hidden;
+      font-size: 13px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .brand-copy span {
+      overflow: hidden;
+      color: rgba(255,255,255,.72);
+      font-size: 11px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .top-actions button {
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 4px;
+      padding: 7px 12px;
+      color: #fff;
+      background: rgba(255,255,255,.10);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 264px minmax(0, 1fr);
+      min-height: calc(100vh - 58px);
+    }
+
+    .rail {
+      position: sticky;
+      top: 58px;
+      height: calc(100vh - 58px);
+      overflow: auto;
+      border-right: 1px solid var(--line);
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      padding: 18px 14px;
+    }
+
+    .rail-title {
+      display: grid;
+      gap: 6px;
+      padding: 0 8px 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+
+    .rail-title strong {
+      color: var(--navy);
+      font-family: var(--serif);
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .rail-title span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .rail-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border-radius: 6px;
+      padding: 10px 9px;
+      margin-bottom: 4px;
+      border: 1px solid transparent;
+    }
+
+    .rail-item:hover,
+    .rail-item.is-active {
+      background: #eef7fc;
+      border-color: #c8e9f7;
+    }
+
+    .rail-num {
+      display: grid;
+      place-items: center;
+      height: 28px;
+      border-radius: 4px;
+      background: #edf3f8;
+      color: var(--navy);
+      font-size: 12px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rail-item.is-active .rail-num {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .rail-main {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .rail-main strong {
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .rail-main span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .rail-sub {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 7px;
+    }
+
+    .rail-sub a {
+      border-radius: 4px;
+      padding: 3px 6px;
+      background: #fff;
+      border: 1px solid #e7eef5;
+      color: #516071;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 18px;
+    }
+
+    .canvas {
+      min-height: calc(100vh - 94px);
+      border: 1px solid var(--line);
+      background: var(--paper);
+      box-shadow: var(--shadow-strong);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 22px;
+      align-items: stretch;
+      padding: 26px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(6,29,60,.96), rgba(6,29,60,.86)),
+        linear-gradient(135deg, #0a315f, #0e5482);
+      color: #fff;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 34px;
+      line-height: 1.18;
+      letter-spacing: 0;
+      font-weight: 900;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 12px 0 0;
+      color: rgba(255,255,255,.78);
+      font-size: 14px;
+    }
+
+    .hero-note {
+      display: grid;
+      align-content: space-between;
+      gap: 14px;
+      border-left: 4px solid var(--blue);
+      background: rgba(255,255,255,.09);
+      padding: 16px;
+      border-radius: 6px;
+    }
+
+    .hero-note strong {
+      font-family: var(--serif);
+      font-size: 18px;
+    }
+
+    .hero-note span {
+      color: rgba(255,255,255,.72);
+      font-size: 12px;
+    }
+
+    .context-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 1px;
+      border-bottom: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .context-cell {
+      min-height: 68px;
+      padding: 12px 14px;
+      background: #fff;
+    }
+
+    .context-cell span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .context-cell strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--navy);
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .page {
+      scroll-margin-top: 76px;
+      padding: 24px 26px 26px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .page:nth-of-type(odd) {
+      background: #fbfdff;
+    }
+
+    .page-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 3px;
+      background: var(--blue);
+      border-radius: 99px;
+    }
+
+    .page h2 {
+      margin: 5px 0 0;
+      color: var(--navy);
+      font-family: var(--serif);
+      font-size: 27px;
+      line-height: 1.22;
+      letter-spacing: 0;
+      font-weight: 900;
+    }
+
+    .page-head p {
+      max-width: 760px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .page-status {
+      display: grid;
+      gap: 5px;
+      min-width: 160px;
+      text-align: right;
+    }
+
+    .page-status strong {
+      color: var(--navy);
+      font-size: 20px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .page-status span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .cols-2 { grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(210px, 1fr)); }
+    .cols-4 { grid-template-columns: repeat(4, minmax(160px, 1fr)); }
+
+    .card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 15px;
+    }
+
+    .card.is-blue { border-top: 5px solid var(--blue); }
+    .card.is-good { border-top: 5px solid var(--good); }
+    .card.is-warn { border-top: 5px solid var(--warn); }
+    .card.is-bad { border-top: 5px solid var(--bad); }
+
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--navy);
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 900;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .select-row {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr) 120px;
+      gap: 10px;
+      align-items: center;
+      min-height: 44px;
+      border-bottom: 1px solid #e7eef5;
+      padding: 9px 0;
+    }
+
+    .select-row:last-child { border-bottom: 0; }
+    .select-row span { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .select-row strong { color: var(--navy); font-size: 14px; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #d9e8f2;
+      border-radius: 4px;
+      padding: 5px 8px;
+      color: var(--navy);
+      background: #f7fbfe;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .metric {
+      border-left: 4px solid var(--blue);
+      padding-left: 11px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--navy);
+      font-size: 25px;
+      line-height: 1.05;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .question-layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .chair-note {
+      border: 1px solid #cfe6f3;
+      border-left: 5px solid var(--blue);
+      border-radius: 6px;
+      padding: 15px;
+      background: #f7fbfe;
+    }
+
+    .chair-note strong {
+      display: block;
+      color: var(--navy);
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .chair-note p { margin-top: 8px; }
+
+    .question-card {
+      display: grid;
+      grid-template-rows: auto minmax(76px, 1fr) auto;
+      gap: 9px;
+      min-height: 168px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--blue);
+      border-radius: 6px;
+      padding: 13px;
+      background: #fff;
+    }
+
+    .question-card b {
+      color: var(--blue);
+      font-size: 12px;
+    }
+
+    .question-card strong {
+      color: var(--navy);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .question-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .traffic {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+      gap: 9px;
+    }
+
+    .lamp {
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--warn);
+      border-radius: 6px;
+      padding: 11px;
+      background: #fff;
+    }
+
+    .lamp.bad { border-top-color: var(--bad); background: #fff7f7; }
+    .lamp.good { border-top-color: var(--good); background: #f7fcfa; }
+
+    .lamp span {
+      display: inline-grid;
+      place-items: center;
+      width: 25px;
+      height: 25px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .lamp strong {
+      display: block;
+      color: var(--navy);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .lamp em {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-style: normal;
+      font-size: 11px;
+    }
+
+    .evidence-chain {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 10px;
+      counter-reset: step;
+    }
+
+    .chain-step {
+      position: relative;
+      min-height: 120px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .chain-step::before {
+      counter-increment: step;
+      content: "0" counter(step);
+      display: block;
+      margin-bottom: 10px;
+      color: var(--blue);
+      font-weight: 900;
+      font-size: 18px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chain-step strong {
+      display: block;
+      color: var(--navy);
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .chain-step span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mini-table th,
+    .mini-table td {
+      border-bottom: 1px solid #e7eef5;
+      padding: 9px 10px;
+      text-align: left;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .mini-table th {
+      color: var(--navy);
+      background: #edf5fa;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .mini-table td {
+      color: var(--ink);
+      font-size: 12px;
+    }
+
+    .mini-table td:last-child,
+    .mini-table th:last-child {
+      text-align: right;
+    }
+
+    .topic-card {
+      min-height: 174px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 15px;
+      background: #fff;
+    }
+
+    .topic-card .tag {
+      display: inline-block;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      padding: 4px 7px;
+      background: #eaf6fb;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .topic-card strong {
+      display: block;
+      color: var(--navy);
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .topic-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .chart-placeholder {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: end;
+      min-height: 256px;
+      border: 1px solid #e1ebf2;
+      border-radius: 6px;
+      padding: 18px;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 45px, #e7eef5 46px),
+        linear-gradient(180deg, #fff, #f7fbfe);
+      overflow: hidden;
+    }
+
+    .bars {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      align-items: end;
+      height: 190px;
+    }
+
+    .bar {
+      min-height: 24px;
+      background: linear-gradient(180deg, var(--blue), #006ea5);
+      border-radius: 4px 4px 0 0;
+    }
+
+    .bar:nth-child(2) { height: 120px; opacity: .72; }
+    .bar:nth-child(3) { height: 164px; opacity: .88; }
+    .bar:nth-child(4) { height: 82px; opacity: .58; }
+    .bar:nth-child(5) { height: 142px; opacity: .78; }
+    .bar:nth-child(6) { height: 106px; opacity: .66; }
+
+    .story-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .story-item {
+      border-left: 4px solid var(--blue);
+      padding: 2px 0 2px 12px;
+    }
+
+    .story-item strong {
+      display: block;
+      color: var(--navy);
+      font-size: 14px;
+    }
+
+    .story-item span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .report-shell {
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr) 260px;
+      gap: 14px;
+    }
+
+    .thumbs {
+      display: grid;
+      gap: 8px;
+    }
+
+    .thumb {
+      height: 74px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--blue);
+      border-radius: 4px;
+      background: #fff;
+      padding: 8px;
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .page-editor {
+      min-height: 330px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 18px;
+    }
+
+    .page-editor h3 {
+      margin: 0;
+      color: var(--navy);
+      font-family: var(--serif);
+      font-size: 22px;
+    }
+
+    .page-editor .rule {
+      height: 4px;
+      width: 76px;
+      margin: 12px 0 16px;
+      background: var(--blue);
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #e7eef5;
+      padding: 9px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .control-row strong {
+      color: var(--navy);
+    }
+
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .source-card {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .source-card strong {
+      display: block;
+      color: var(--navy);
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .source-card .score {
+      color: var(--blue);
+      font-size: 26px;
+      line-height: 1;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .source-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer-note {
+      padding: 18px 26px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      .shell { grid-template-columns: 220px minmax(0, 1fr); }
+      .hero { grid-template-columns: 1fr; }
+      .context-strip { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+      .cols-2,
+      .report-shell,
+      .question-layout { grid-template-columns: 1fr; }
+      .cols-3,
+      .cols-4,
+      .source-grid,
+      .evidence-chain,
+      .traffic { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .topbar { position: static; height: auto; padding: 12px; align-items: flex-start; }
+      .shell { grid-template-columns: 1fr; }
+      .rail { position: static; height: auto; }
+      .main { padding: 10px; }
+      .hero,
+      .page { padding: 18px; }
+      .page-head { grid-template-columns: 1fr; }
+      .page-status { text-align: left; }
+      .cols-3,
+      .cols-4,
+      .source-grid,
+      .evidence-chain,
+      .traffic { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">经营对标</div>
+      <div class="brand-copy">
+        <strong>苏州农村商业银行 · 二零二五年董事会汇报底稿</strong>
+        <span>先定口径，再看结论、证据、专题、报告与数据复核</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button type="button">保存版本</button>
+      <button type="button">导出材料</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="rail" aria-label="一级目录">
+      <div class="rail-title">
+        <strong>任务流目录</strong>
+        <span>一级目录固定，二级入口只保留中文判断词。</span>
+      </div>
+      <a class="rail-item is-active" href="#page-01">
+        <span class="rail-num">01</span>
+        <span class="rail-main"><strong>设定口径</strong><span>目标银行、对标组、汇报场景</span><span class="rail-sub"><span>目标银行</span><span>对标组</span><span>汇报场景</span></span></span>
+      </a>
+      <a class="rail-item" href="#page-02">
+        <span class="rail-num">02</span>
+        <span class="rail-main"><strong>经营质量</strong><span>总判断、核心指标、董事会议题</span><span class="rail-sub"><span>总判断</span><span>核心指标</span><span>董事会议题</span></span></span>
+      </a>
+      <a class="rail-item" href="#page-03">
+        <span class="rail-num">03</span>
+        <span class="rail-main"><strong>证据地图</strong><span>异动归因、同业位置、市净率信号</span><span class="rail-sub"><span>异动归因</span><span>同业位置</span><span>市净率信号</span></span></span>
+      </a>
+      <a class="rail-item" href="#page-04">
+        <span class="rail-num">04</span>
+        <span class="rail-main"><strong>专题中心</strong><span>经营质量、风险资本、估值专题</span><span class="rail-sub"><span>经营质量</span><span>风险资本</span><span>估值专题</span></span></span>
+      </a>
+      <a class="rail-item" href="#page-05">
+        <span class="rail-num">05</span>
+        <span class="rail-main"><strong>专题深钻</strong><span>主图、专题观点、行动节奏</span><span class="rail-sub"><span>主图</span><span>专题观点</span><span>行动节奏</span></span></span>
+      </a>
+      <a class="rail-item" href="#page-06">
+        <span class="rail-num">06</span>
+        <span class="rail-main"><strong>报告工作室</strong><span>报告预览、章节编辑、导出控制</span><span class="rail-sub"><span>报告预览</span><span>章节编辑</span><span>导出控制</span></span></span>
+      </a>
+      <a class="rail-item" href="#page-07">
+        <span class="rail-num">07</span>
+        <span class="rail-main"><strong>数据复核</strong><span>字段口径、三源对照、血缘卡</span><span class="rail-sub"><span>字段口径</span><span>三源对照</span><span>血缘卡</span></span></span>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="canvas">
+        <section class="hero">
+          <div>
+            <div class="eyebrow">中文整页重设计稿</div>
+            <h1>把银行经营质量分析改成可汇报、可复核、可编辑的董事会工作台</h1>
+            <p>整页不再依赖英文副标题，一级目录只保留中文任务词；右侧内容用咨询汇报的判断句承接导航，先给结论，再给证据，再落到专题和报告。</p>
+          </div>
+          <aside class="hero-note">
+            <strong>版式原则</strong>
+            <span>左侧导航固定任务顺序，右侧画布填满剩余屏幕；每个主题按一页可读设计，内容不足时自然靠上，不强行拉伸。</span>
+          </aside>
+        </section>
+
+        <div class="context-strip">
+          <div class="context-cell"><span>目标银行</span><strong>苏州农村商业银行</strong></div>
+          <div class="context-cell"><span>报告年度</span><strong>二零二五年</strong></div>
+          <div class="context-cell"><span>对标组</span><strong>常熟、瑞丰、上海农商、苏州银行</strong></div>
+          <div class="context-cell"><span>汇报场景</span><strong>董事会完整汇报版</strong></div>
+          <div class="context-cell"><span>当前判断</span><strong>价值质量仍需先修复经营底盘</strong></div>
+        </div>
+
+        <section class="page" id="page-01">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">01 设定口径</div>
+              <h2>先把银行、参照组和汇报语气锁定，避免后续结论来回漂移</h2>
+              <p>这一页承担入口任务，不做最近项目列表，也不铺开长表；用户只需要完成目标、对标、类型和场景四类选择。</p>
+            </div>
+            <div class="page-status"><strong>四步</strong><span>完成后进入经营质量判断</span></div>
+          </div>
+          <div class="grid cols-2">
+            <div class="card is-blue">
+              <h3>汇报口径选择</h3>
+              <div class="select-row"><span>目标银行</span><strong>苏州农村商业银行</strong><span>已确认</span></div>
+              <div class="select-row"><span>银行类型</span><strong>农村商业银行</strong><span>主参照</span></div>
+              <div class="select-row"><span>区域范围</span><strong>长三角与同类型样本</strong><span>增强参照</span></div>
+              <div class="select-row"><span>汇报场景</span><strong>董事会完整汇报版</strong><span>强判断</span></div>
+            </div>
+            <div class="card">
+              <h3>对标组组织方式</h3>
+              <p>对标银行先按类型和区域成组，再让用户勾选保留；系统同时提示是否存在规模差异、区域差异和口径差异。</p>
+              <div class="pill-row" style="margin-top:12px">
+                <span class="pill">常熟农村商业银行</span>
+                <span class="pill">瑞丰农村商业银行</span>
+                <span class="pill">上海农村商业银行</span>
+                <span class="pill">苏州银行</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-02">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">02 经营质量</div>
+              <h2>先回答董事会最关心的一句话：价值质量问题到底卡在哪里</h2>
+              <p>首屏语言随汇报场景变化；董事会版强调约束与决策，资本市场版强调估值解释，管理层行动版强调修复闭环。</p>
+            </div>
+            <div class="page-status"><strong>四十八分</strong><span>经营质量分数</span></div>
+          </div>
+          <div class="grid cols-2">
+            <div class="card is-blue">
+              <h3>三十秒结论</h3>
+              <p>苏州农村商业银行当前价值质量仍需先修复经营底盘，核心约束不是单一指标下滑，而是息差、防风险确认和市净率解释尚未形成同一条经营故事线。</p>
+              <div class="grid cols-4" style="margin-top:14px">
+                <div class="metric"><span>经营质量分数</span><strong>48</strong></div>
+                <div class="metric"><span>最弱维度</span><strong>估值验证</strong></div>
+                <div class="metric"><span>数据可信度</span><strong>98%</strong></div>
+                <div class="metric"><span>建议语气</span><strong>强判断</strong></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>五维灯号</h3>
+              <div class="traffic">
+                <div class="lamp"><span>规</span><strong>规模与结构</strong><em>接近中位</em></div>
+                <div class="lamp bad"><span>盈</span><strong>盈利能力</strong><em>需重点复核</em></div>
+                <div class="lamp"><span>产</span><strong>资产质量</strong><em>接近中位</em></div>
+                <div class="lamp bad"><span>资</span><strong>风险与资本</strong><em>需重点复核</em></div>
+                <div class="lamp bad"><span>效</span><strong>能力与效率</strong><em>需重点复核</em></div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div class="question-layout">
+              <div class="chair-note">
+                <strong>董事会议题</strong>
+                <p>不把问题写成指标清单，而是写成可讨论、可决策、可追责的三条议题。</p>
+              </div>
+              <div class="grid cols-3">
+                <div class="question-card"><b>议题一</b><strong>低市净率是价值错配，还是经营质量折价？</strong><span>结合净资产收益率、广义不良和息差缺口判断。</span></div>
+                <div class="question-card"><b>议题二</b><strong>最弱维度应先修复，还是可以进入主动沟通？</strong><span>先验证估值约束是否真实影响经营质量。</span></div>
+                <div class="question-card"><b>议题三</b><strong>本期异动是周期扰动，还是结构性压力？</strong><span>用同业偏离、跨期动量和业务机制共同判断。</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-03">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">03 证据地图</div>
+              <h2>把总判断拆成四段证据链，让每个结论都能回到底稿</h2>
+              <p>证据地图不再堆放图表，而是把同业位置、异动归因、估值解释和口径风险串成一条可追溯路径。</p>
+            </div>
+            <div class="page-status"><strong>四类</strong><span>证据链入口</span></div>
+          </div>
+          <div class="evidence-chain">
+            <div class="chain-step"><strong>同业位置</strong><span>先看目标银行相对对标组和类型均值的位置。</span></div>
+            <div class="chain-step"><strong>异动归因</strong><span>再区分周期波动、结构压力和口径扰动。</span></div>
+            <div class="chain-step"><strong>估值解释</strong><span>用市净率与经营质量联读，避免单独定义低估。</span></div>
+            <div class="chain-step"><strong>口径复核</strong><span>高风险字段自动降语气，并进入数据复核页。</span></div>
+          </div>
+          <div class="grid cols-2" style="margin-top:14px">
+            <div class="card is-blue">
+              <h3>关键证据表</h3>
+              <table class="mini-table">
+                <thead><tr><th>证据项</th><th>目标银行</th><th>对标组</th><th>判断</th></tr></thead>
+                <tbody>
+                  <tr><td>净息差</td><td>1.41%</td><td>1.68%</td><td>弱于参照</td></tr>
+                  <tr><td>核心营收增速</td><td>-1.58%</td><td>5.27%</td><td>收入承压</td></tr>
+                  <tr><td>不良率</td><td>0.88%</td><td>0.88%</td><td>区间内</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <h3>证据语气规则</h3>
+              <p>若指标同时满足同业偏离、跨期动量和业务机制三项条件，结论进入主报告；若口径风险高，只保留为复核提示。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-04">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">04 专题中心</div>
+              <h2>专题入口按“为什么重要、证据在哪里、下一步做什么”组织</h2>
+              <p>专题中心承担分流，不在一屏里塞满所有明细；每张专题卡只保留一个管理问题和一组关键证据。</p>
+            </div>
+            <div class="page-status"><strong>六项</strong><span>可进入深钻专题</span></div>
+          </div>
+          <div class="grid cols-3">
+            <div class="topic-card"><span class="tag">估值验证</span><strong>市净率折价是否来自经营质量约束</strong><p>联读净资产收益率、息差缺口、风险确认和分红能力。</p></div>
+            <div class="topic-card"><span class="tag">息差防守</span><strong>资产端让价后负债端是否仍有对冲能力</strong><p>拆解存款结构、资产收益和重定价压力。</p></div>
+            <div class="topic-card"><span class="tag">零售风险</span><strong>零售暴露是否已经早于不良率显性化</strong><p>关注类、逾期偏离和分产品质量共同判断。</p></div>
+            <div class="topic-card"><span class="tag">存贷结构</span><strong>规模增长是否真正转化为客户经营质量</strong><p>看贷款资产比、存款负债比和结算沉淀。</p></div>
+            <div class="topic-card"><span class="tag">中收修复</span><strong>手续费资产比能否补上利润结构短板</strong><p>判断财富、结算、托管和代理业务贡献。</p></div>
+            <div class="topic-card"><span class="tag">资本效率</span><strong>新增资产投放是否匹配资本消耗</strong><p>把资本余量、风险加权资产密度和回报挂钩。</p></div>
+          </div>
+        </section>
+
+        <section class="page" id="page-05">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">05 专题深钻</div>
+              <h2>一个专题一张主图、一段判断、三步行动，避免重新回到长页面</h2>
+              <p>深钻页可以滚动，但单个专题优先控制在一屏内；放不下时只在专题内部向下延展，不拉伸卡片高度。</p>
+            </div>
+            <div class="page-status"><strong>一图三段</strong><span>专题标准结构</span></div>
+          </div>
+          <div class="grid cols-2">
+            <div class="card is-blue">
+              <h3>主图区域</h3>
+              <div class="chart-placeholder" aria-label="图表占位">
+                <div class="bars">
+                  <div class="bar" style="height:92px"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>专题观点与行动节奏</h3>
+              <div class="story-list">
+                <div class="story-item"><strong>原因</strong><span>息差缺口与核心营收增速共同解释估值折价，而不是单一市场情绪。</span></div>
+                <div class="story-item"><strong>影响</strong><span>若经营修复证据不足，市净率沟通只能停留在“低估”而不是“重估”。</span></div>
+                <div class="story-item"><strong>行动</strong><span>零到三个月复核口径，三到六个月形成经营修复证据，六到十二个月验证估值叙事。</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-06">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">06 报告工作室</div>
+              <h2>保留真正的报告编辑能力，而不是只做章节开关和导出按钮</h2>
+              <p>工作室左侧看页序，中间改正文，右侧控制语气、证据引用和导出范围；让报告生产从分析页自然进入交付页。</p>
+            </div>
+            <div class="page-status"><strong>三栏</strong><span>预览、编辑、控制</span></div>
+          </div>
+          <div class="report-shell">
+            <div class="thumbs">
+              <div class="thumb">封面与结论</div>
+              <div class="thumb">经营全景</div>
+              <div class="thumb">专题深钻</div>
+              <div class="thumb">行动路径</div>
+            </div>
+            <div class="page-editor">
+              <h3>董事会需要先判断：当前价值质量分数背后，最弱的经营约束是什么？</h3>
+              <div class="rule"></div>
+              <p>本页先用经营质量分数、五维灯号和最弱维度建立全局判断，再进入因果链拆解。文字区保留可编辑状态，证据引用可回跳到证据地图。</p>
+              <table class="mini-table" style="margin-top:18px">
+                <thead><tr><th>章节</th><th>状态</th><th>证据</th></tr></thead>
+                <tbody>
+                  <tr><td>经营质量答案</td><td>已生成</td><td>三项</td></tr>
+                  <tr><td>估值验证专题</td><td>待复核</td><td>五项</td></tr>
+                  <tr><td>数据口径附录</td><td>已同步</td><td>三源</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <h3>导出控制</h3>
+              <div class="controls">
+                <div class="control-row"><span>汇报版本</span><strong>董事会版</strong></div>
+                <div class="control-row"><span>判断语气</span><strong>强判断</strong></div>
+                <div class="control-row"><span>引用校验</span><strong>通过</strong></div>
+                <div class="control-row"><span>页序检查</span><strong>待确认</strong></div>
+                <div class="control-row"><span>导出格式</span><strong>网页、文档、演示稿</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page" id="page-07">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">07 数据复核</div>
+              <h2>把数据复核作为一级页面，让结论可信度能被看见、被追溯</h2>
+              <p>数据复核不再藏在页面底部；它需要展示三源对照、字段覆盖、口径风险和可进入主报告的判断边界。</p>
+            </div>
+            <div class="page-status"><strong>三源</strong><span>主数据、接口、年报抓取</span></div>
+          </div>
+          <div class="source-grid">
+            <div class="source-card"><strong>原主数据</strong><div class="score">96%</div><p>承担历史可比、指标口径和基础经营数据。</p></div>
+            <div class="source-card"><strong>接口数据</strong><div class="score">93%</div><p>承担行情、估值和部分市场反馈校验。</p></div>
+            <div class="source-card"><strong>年报抓取数据</strong><div class="score">98%</div><p>承担披露字段、脚注和口径解释补强。</p></div>
+          </div>
+          <div class="card is-blue" style="margin-top:14px">
+            <h3>字段口径矩阵</h3>
+            <table class="mini-table">
+              <thead><tr><th>字段</th><th>主数据</th><th>接口数据</th><th>年报抓取</th><th>结论边界</th></tr></thead>
+              <tbody>
+                <tr><td>净息差</td><td>可用</td><td>校验</td><td>脚注</td><td>保留口径说明</td></tr>
+                <tr><td>市净率</td><td>辅助</td><td>主用</td><td>解释</td><td>需联读经营质量</td></tr>
+                <tr><td>逾期偏离</td><td>可用</td><td>缺失</td><td>补充</td><td>披露不足时降语气</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="footer-note">本稿是页面方向设计图，用于确认中文信息架构、视觉密度和一级目录排布；确认后再同步到真实产品页面。</div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

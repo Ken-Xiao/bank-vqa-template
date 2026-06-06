@@ -17,8 +17,10 @@ var state = {
   dataStep: "type",
   activeTopic: "profit",
   appMode: "setup",
+  activePortalPage: "launch",
   drawerOpen: false,
   activeDrawerTab: "data",
+  whatIfScenario: { nimShift: 0, nplShift: 0, costIncomeShift: 0, active: false },
   currentProjectId: null,
   editedNarratives: {},
   includedTopics: {},
@@ -30,8 +32,10 @@ var state = {
 };
 
 var data = window.VQA_DATA || { banks: [], records: [], aliases: {} };
-var records = data.records || [];
+var readyData = window.VQA_DATA_READY || { records: [], metricQuality: [], aliases: {} };
+var records = Array.isArray(readyData.records) && readyData.records.length ? readyData.records : (data.records || []);
 var banks = data.banks || [];
+var readyMetricQuality = Array.isArray(readyData.metricQuality) ? readyData.metricQuality : [];
 var analysisRules = null;
 var metricDictionary = {};
 var fieldCoverageMatrix = [];
@@ -87,6 +91,7 @@ var metricLabel = {
   housingLoanNpl: "住房贷款不良率",
   consumerLoanNpl: "消费贷款不良率",
   businessLoanNpl: "经营贷款不良率",
+  creditCardLoanNpl: "信用卡贷款不良率",
   retailRiskMax: "零售最高分项不良率",
   retailRiskSpread: "零售分项风险分化",
   timeDepositShare: "定期存款占比",
@@ -107,10 +112,33 @@ var metricLabel = {
   bondInvestment: "债券投资",
   fundInvestment: "基金投资",
   trustWmInvestment: "信托及理财投资",
+  tradAsset: "交易性金融资产",
+  fvociAssets: "以公允价值计量且其变动计入其他综合收益的金融资产",
+  acAssets: "以摊余成本计量的金融资产",
+  htmInvest: "持有至到期投资",
+  afaAssets: "可供出售金融资产",
+  debtInvestment: "债权投资",
+  otherDebtInvestment: "其他债权投资",
+  fairValueChgGain: "公允价值变动损益",
+  fxGain: "汇兑损益",
+  investIncome: "投资收益",
+  otherNonInterestIncome: "其他非利息收入",
+  otherAssetImpairLoss: "其他资产减值损失",
   adminExpense: "管理费用",
   adminAssetRatio: "管理费用/资产",
   cashProfitRatio: "经营现金流/净利润",
   operatingCashFlow: "经营活动现金流净额",
+  cashflowInvAct: "投资活动现金流净额",
+  cashflowFncAct: "筹资活动现金流净额",
+  depositGrowthCF: "存款增加现金流",
+  loanIssuanceCF: "贷款投放现金流",
+  centralBankAdj: "存放央行款项变动",
+  loanDepositRatio: "存贷比",
+  peTtm: "市盈率",
+  divYield: "股息率",
+  divYieldTtm: "近十二个月股息率",
+  totalMarketValue: "总市值",
+  turnoverRate: "换手率",
   assets: "总资产",
   assetsChange: "总资产变化",
   liabilities: "总负债",

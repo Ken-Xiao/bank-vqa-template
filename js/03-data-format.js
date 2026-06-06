@@ -525,6 +525,146 @@ function renderMetricExplorer(keys = metricKeysForCoverage()) {
   content.innerHTML = state.confirmed ? metricExplorerHtml(metricExplorerSnapshot(state.dataMetric)) : metricExplorerHtml(metricExplorerSnapshot(state.dataMetric));
 }
 
+function readyQualityStatusMeta(status = "") {
+  const map = {
+    available: { label: "已可用", tone: "green", reason: "Ready 层已有可用值" },
+    source_missing: { label: "三源均缺", tone: "red", reason: "主数据、接口数据和年报抓取均未形成可用值" },
+    scraped_available_not_fieldized: { label: "年报待字段化", tone: "orange", reason: "年报明细已有相关行，但尚未稳定映射到前台字段" },
+    peer_insufficient: { label: "对标不足", tone: "yellow", reason: "目标银行有值，但对标组不足以计算均值或分位" },
+    calculation_input_missing: { label: "计算输入不足", tone: "yellow", reason: "派生指标缺少必要输入字段" },
+    source_conflict_review: { label: "口径待复核", tone: "orange", reason: "多源数值差异超过阈值，需要人工复核" }
+  };
+  return map[status] || { label: status || "未加载", tone: "gray", reason: "Ready 数据层未返回状态" };
+}
+
+function readyQualityFor(bank, year, metric) {
+  if (!Array.isArray(readyMetricQuality) || !readyMetricQuality.length) return null;
+  return readyMetricQuality.find((item) => item.bank === bank && Number(item.year) === Number(year) && item.metric === metric) || null;
+}
+
+function readySelectedBanks() {
+  return [state.target, ...(state.peers || [])].filter(Boolean);
+}
+
+function readyBridgeMetrics() {
+  return [
+    "peTtm",
+    "divYield",
+    "totalMarketValue",
+    "realLoanDepositSpread",
+    "loanDepositRatio",
+    "housingLoanNpl",
+    "consumerLoanNpl",
+    "businessLoanNpl",
+    "creditCardLoanNpl",
+    "tradAsset",
+    "fairValueChgGain",
+    "otherNonInterestIncome",
+    "cashflowInvAct",
+    "centralBankAdj"
+  ].filter((key, index, arr) => arr.indexOf(key) === index);
+}
+
+function readyBridgeRows() {
+  const row = targetRecord();
+  const banksForSelection = readySelectedBanks();
+  return readyBridgeMetrics().map((metric) => {
+    const targetQuality = readyQualityFor(state.target, state.year, metric);
+    const peerQuality = (state.peers || []).map((bank) => readyQualityFor(bank, state.year, metric)).filter(Boolean);
+    const peerAvailable = peerQuality.filter((item) => item.status === "available").length;
+    const peerTotal = Math.max((state.peers || []).length, 1);
+    const selectedQuality = banksForSelection.map((bank) => readyQualityFor(bank, state.year, metric)).filter(Boolean);
+    const topMissing = selectedQuality.find((item) => item.status !== "available");
+    const status = targetQuality?.status || (row?.[metric] != null ? "available" : "source_missing");
+    const meta = readyQualityStatusMeta(status);
+    return {
+      metric,
+      label: fieldName(metric),
+      targetValue: row?.[metric],
+      targetText: metricDisplayValue(metric, row?.[metric]),
+      status,
+      statusLabel: meta.label,
+      tone: meta.tone,
+      selectedSource: targetQuality?.selectedSource || row?._readyFieldSources?.[metric] || "",
+      peerCoverage: `${peerAvailable}/${peerTotal}`,
+      note: targetQuality?.missingReason || topMissing?.missingReason || meta.reason,
+      scrapedSource: targetQuality?.scrapedSource || ""
+    };
+  });
+}
+
+function readyBridgeSummary() {
+  const qualityRows = readySelectedBanks().flatMap((bank) =>
+    readyBridgeMetrics().map((metric) => readyQualityFor(bank, state.year, metric)).filter(Boolean)
+  );
+  const counts = qualityRows.reduce((acc, item) => {
+    acc[item.status] = (acc[item.status] || 0) + 1;
+    return acc;
+  }, {});
+  const available = counts.available || 0;
+  const total = qualityRows.length;
+  const readyRate = total ? available / total : null;
+  const scrapedWait = counts.scraped_available_not_fieldized || 0;
+  const sourceMissing = counts.source_missing || 0;
+  const targetMarket = ["peTtm", "divYield", "totalMarketValue", "turnoverRate"].filter((metric) => targetRecord()?.[metric] != null).length;
+  return {
+    total,
+    available,
+    readyRate,
+    scrapedWait,
+    sourceMissing,
+    targetMarket
+  };
+}
+
+function renderReadyDataBridge() {
+  const panel = document.getElementById("readyDataBridgePanel");
+  const kpis = document.getElementById("readyDataKpis");
+  const body = document.getElementById("readyDataComparisonBody");
+  if (!panel || !kpis || !body) return;
+  if (!Array.isArray(readyMetricQuality) || !readyMetricQuality.length) {
+    kpis.innerHTML = `<div class="ready-data-kpi tone-red"><span>Ready 层</span><b>未加载</b><em>请检查 data_ready.js</em></div>`;
+    body.innerHTML = `<tr><td colspan="6">Ready 数据层未加载，暂不能形成补充对照。</td></tr>`;
+    return;
+  }
+  const summary = readyBridgeSummary();
+  kpis.innerHTML = [
+    { label: "选定字段可用率", value: summary.readyRate == null ? "暂无" : `${(summary.readyRate * 100).toFixed(0)}%`, note: `${summary.available}/${summary.total} 个字段状态可用`, tone: summary.readyRate >= .8 ? "green" : summary.readyRate >= .55 ? "yellow" : "orange" },
+    { label: "前台市场补充", value: `${summary.targetMarket}/4`, note: "目标银行 PE、股息率、市值、换手率", tone: summary.targetMarket >= 3 ? "green" : "yellow" },
+    { label: "年报待字段化", value: String(summary.scrapedWait), note: "已有抓取明细，但尚未进入字段层", tone: summary.scrapedWait ? "orange" : "green" },
+    { label: "三源均缺", value: String(summary.sourceMissing), note: "需要回到源数据或手工补披露", tone: summary.sourceMissing ? "red" : "green" }
+  ].map((item) => `<div class="ready-data-kpi tone-${item.tone}">
+    <span>${htmlSafe(item.label)}</span>
+    <b>${htmlSafe(item.value)}</b>
+    <em>${htmlSafe(item.note)}</em>
+  </div>`).join("");
+  body.innerHTML = readyBridgeRows().map((row) => `
+    <tr class="tone-${htmlSafe(row.tone)}">
+      <td>${metricLink(row.metric, row.label)}</td>
+      <td>${htmlSafe(row.targetText)}</td>
+      <td><span class="ready-status-pill tone-${htmlSafe(row.tone)}">${htmlSafe(row.statusLabel)}</span></td>
+      <td>${htmlSafe(row.selectedSource || "暂无")}</td>
+      <td>${htmlSafe(row.peerCoverage)}</td>
+      <td>${htmlSafe(row.note)}${row.scrapedSource ? `<small>${htmlSafe(row.scrapedSource)}</small>` : ""}</td>
+    </tr>`).join("");
+  bindMetricLinks(body);
+}
+
+function renderLayeredTieout() {
+  const host = document.getElementById("layeredTieoutBody");
+  if (!host || typeof layeredFactModel !== "function") return;
+  const model = layeredFactModel();
+  host.innerHTML = model.topics.map((topic) => `
+    <div class="layered-tieout-row">
+      <b>${htmlSafe(topic.topicId)}</b>
+      <span>核心证据 ${topic.evidenceFacts.length}</span>
+      <span>数据边界 ${topic.boundaryFacts.length}</span>
+      <span>引用 ${topic.citations.length}</span>
+      <em>${htmlSafe(topic.factPackId)}</em>
+    </div>
+  `).join("");
+}
+
 function updateDataCoverage() {
   const selectedRows = selectedBankRecords();
   const keys = metricKeysForCoverage();
@@ -576,6 +716,8 @@ function updateDataCoverage() {
   renderFieldCoverageHeatmap(keys);
   renderFieldCoverageMatrixDetail();
   renderSprintBaselinePanel();
+  renderReadyDataBridge();
+  renderLayeredTieout();
   setHtml("coverageExportStory", `<b>底稿导出说明：</b>选定数据会生成“选择摘要、目标银行、对标银行、类型均值、指标完整性、指标口径、图表事实包”等工作表；全部数据会额外包含全样本明细。建议董事会汇报使用选定版，财务与战略复核使用全量版。`);
   setHtml("coverageDataStory", `<b>董办使用建议：</b>当前核心指标完整性为 ${coreRate == null ? "暂无" : `${(coreRate * 100).toFixed(1)}%`}。完整性高的指标可进入主报告；完整性不足的指标建议进入附录或作为待补数据清单，并在汇报中明确结论边界。`);
 }
@@ -750,6 +892,7 @@ function refreshDefaultPeersForTarget() {
 function applyPeerTemplate(template) {
   state.peerTemplate = template;
   if (template !== "manual") state.peers = peerTemplateBanks(template);
+  if (typeof clearGeneratedNarrativeCaches === "function") clearGeneratedNarrativeCaches("peer-template-change");
   renderChoicePanels();
   syncHiddenSelects();
   updateSelectionSummary();

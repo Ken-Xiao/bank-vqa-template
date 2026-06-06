@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>董事会议题卡片排版 mock｜Kami rhythm × RSM palette</title>
+  <style>
+    :root {
+      --rsm-navy: #061d3c;
+      --rsm-blue: #0099d8;
+      --rsm-ink: #1c2733;
+      --rsm-muted: #5d6670;
+      --rsm-line: #dce4ec;
+      --rsm-soft: #f4f7fa;
+      --rsm-paper: #fbfaf6;
+      --rsm-white: #ffffff;
+      --rsm-good: #1f9e6f;
+      --rsm-warn: #d28f10;
+      --rsm-risk: #c0392b;
+      --shadow-card: 0 10px 28px rgba(6, 27, 58, .08);
+      --shadow-emph: 0 16px 44px rgba(6, 27, 58, .14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #eef3f7;
+      color: var(--rsm-ink);
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .page {
+      width: min(1480px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 18px;
+      padding: 18px 22px;
+      border-left: 6px solid var(--rsm-blue);
+      background: var(--rsm-white);
+      box-shadow: var(--shadow-card);
+    }
+
+    .intro span,
+    .mock-kicker,
+    .question-meta,
+    .evidence-label {
+      color: var(--rsm-blue);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .intro h1 {
+      margin: 4px 0 0;
+      color: var(--rsm-navy);
+      font-family: "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1.18;
+      letter-spacing: .02em;
+    }
+
+    .intro p {
+      max-width: 900px;
+      margin: 8px 0 0;
+      color: var(--rsm-muted);
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .intro b {
+      color: var(--rsm-navy);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .mock {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid var(--rsm-line);
+      border-top: 5px solid var(--rsm-navy);
+      background: var(--rsm-white);
+      box-shadow: var(--shadow-card);
+    }
+
+    .mock-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--rsm-line);
+    }
+
+    .mock-head h2 {
+      margin: 4px 0 0;
+      color: var(--rsm-navy);
+      font-family: "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .mock-head p {
+      margin: 6px 0 0;
+      color: var(--rsm-muted);
+      font-size: 13px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .mock-tag {
+      display: inline-grid;
+      place-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid #cfe5f1;
+      background: #eef8fd;
+      color: var(--rsm-navy);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .question {
+      color: var(--rsm-navy);
+      font-family: "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+      font-weight: 500;
+      letter-spacing: .01em;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    .evidence {
+      color: #526578;
+      font-size: 12px;
+      line-height: 1.55;
+      font-weight: 700;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    .evidence strong {
+      color: var(--rsm-navy);
+      font-weight: 900;
+    }
+
+    .jump {
+      align-self: end;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 28px;
+      padding: 0 9px;
+      border: 1px solid #cfe5f1;
+      background: #f8fcff;
+      color: var(--rsm-blue);
+      font-size: 12px;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    /* Option A */
+    .memo-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .memo-card {
+      display: grid;
+      grid-template-rows: auto minmax(78px, auto) auto auto;
+      gap: 10px;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--rsm-line);
+      border-left: 5px solid var(--rsm-blue);
+      background: var(--rsm-paper);
+    }
+
+    .memo-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+    }
+
+    .memo-index {
+      color: var(--rsm-navy);
+      font-family: Charter, Georgia, serif;
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .memo-card .question {
+      font-size: 19px;
+      line-height: 1.28;
+    }
+
+    .evidence-line {
+      display: grid;
+      gap: 4px;
+      padding-top: 10px;
+      border-top: 1px solid #e5edf4;
+    }
+
+    /* Option B */
+    .docket {
+      display: grid;
+      gap: 10px;
+    }
+
+    .docket-row {
+      display: grid;
+      grid-template-columns: 84px minmax(300px, 1.12fr) minmax(260px, .88fr) 108px;
+      gap: 14px;
+      align-items: stretch;
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid var(--rsm-line);
+      background: #fff;
+    }
+
+    .docket-row.is-focus {
+      border-left: 5px solid var(--rsm-blue);
+      box-shadow: var(--shadow-card);
+    }
+
+    .docket-num {
+      display: grid;
+      place-items: center;
+      border-right: 1px solid var(--rsm-line);
+      color: var(--rsm-navy);
+      font-family: Charter, Georgia, serif;
+      font-size: 28px;
+      font-weight: 500;
+    }
+
+    .docket-main {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .docket-main .question {
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .docket-proof {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+      padding: 10px;
+      background: var(--rsm-soft);
+    }
+
+    .decision-pill {
+      align-self: center;
+      justify-self: end;
+      padding: 6px 9px;
+      border: 1px solid #cfe5f1;
+      background: #eef8fd;
+      color: var(--rsm-navy);
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    /* Option C */
+    .brief-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, .8fr) minmax(0, 1.2fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .brief-aside {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      padding: 16px;
+      border: 1px solid var(--rsm-line);
+      border-top: 5px solid var(--rsm-blue);
+      background: var(--rsm-paper);
+    }
+
+    .brief-aside h3 {
+      margin: 0;
+      color: var(--rsm-navy);
+      font-family: "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1.18;
+    }
+
+    .brief-aside p {
+      margin: 0;
+      color: var(--rsm-muted);
+      font-size: 13px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .brief-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .brief-card {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--rsm-line);
+      background: #fff;
+    }
+
+    .brief-card b {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid #cfe5f1;
+      color: var(--rsm-blue);
+      font-family: Charter, Georgia, serif;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .brief-body {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .brief-body .question {
+      font-size: 18px;
+      line-height: 1.28;
+    }
+
+    .mini-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .mini-facts span {
+      padding: 3px 7px;
+      background: #eef8fd;
+      color: var(--rsm-navy);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    @media (max-width: 1100px) {
+      .memo-strip,
+      .brief-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .docket-row {
+        grid-template-columns: 56px minmax(0, 1fr);
+      }
+      .docket-proof,
+      .decision-pill {
+        grid-column: 2;
+        justify-self: stretch;
+      }
+      .intro,
+      .mock-head {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="intro">
+      <div>
+        <span>Kami rhythm × RSM consulting palette</span>
+        <h1>三个董事会议题：从“普通卡片”改成可上会的阅读对象</h1>
+        <p>以下 3 个 mock 只用于选择方向。文字节奏参考 Kami 的纸面排版：问题句优先、证据紧随、减少装饰；色系、线条和密度仍按 BenchmarkIQ / RSM 咨询规范。</p>
+      </div>
+      <b>目标模块：#step2BoardQuestions</b>
+    </header>
+
+    <section class="mock">
+      <div class="mock-head">
+        <div>
+          <span class="mock-kicker">Option A · Board memo strip</span>
+          <h2>推荐：三张董事会 memo 卡，问题占主位，证据作为脚注</h2>
+          <p>适合现在的三卡横排结构，工程改动小；比原版更像董事会材料，扫读顺序清楚。</p>
+        </div>
+        <span class="mock-tag">最适合直接落到当前 Portal</span>
+      </div>
+      <div class="memo-strip">
+        <a class="memo-card" href="#">
+          <div class="memo-top">
+            <span class="question-meta">估值验证</span>
+            <span class="memo-index">01</span>
+          </div>
+          <div class="question">苏州农村商业银行的低 PB 是价值错配，还是经营质量折价？</div>
+          <div class="evidence-line">
+            <span class="evidence-label">Evidence</span>
+            <div class="evidence"><strong>实际 PB 0.55x</strong>；DDM 理论 PB 1.18x；ROE 10.84%。</div>
+          </div>
+          <span class="jump">进入估值证据</span>
+        </a>
+        <a class="memo-card" href="#">
+          <div class="memo-top">
+            <span class="question-meta">估值验证</span>
+            <span class="memo-index">02</span>
+          </div>
+          <div class="question">当前最弱维度应先修复，还是可以进入主动沟通？</div>
+          <div class="evidence-line">
+            <span class="evidence-label">Evidence</span>
+            <div class="evidence"><strong>VQA 48</strong>；估值验证 37；信号：价值质量仍需先修复经营底盘。</div>
+          </div>
+          <span class="jump">查看行动顺序</span>
+        </a>
+        <a class="memo-card" href="#">
+          <div class="memo-top">
+            <span class="question-meta">异动预警</span>
+            <span class="memo-index">03</span>
+          </div>
+          <div class="question">本期异动是周期波动，还是结构性问题？</div>
+          <div class="evidence-line">
+            <span class="evidence-label">Evidence</span>
+            <div class="evidence">核心营收增速：周期性；定期存款占比：混合。</div>
+          </div>
+          <span class="jump">进入异动归因</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="mock">
+      <div class="mock-head">
+        <div>
+          <span class="mock-kicker">Option B · Evidence docket</span>
+          <h2>证据案卷式：每个议题一行，横向串起问题、证据和决策用途</h2>
+          <p>更像审阅清单，适合董事会秘书或管理层快速逐条过会；信息密度最高。</p>
+        </div>
+        <span class="mock-tag">高密度 / 强证据感</span>
+      </div>
+      <div class="docket">
+        <a class="docket-row is-focus" href="#">
+          <div class="docket-num">01</div>
+          <div class="docket-main">
+            <span class="question-meta">估值验证</span>
+            <div class="question">低 PB 是价值错配，还是经营质量折价？</div>
+          </div>
+          <div class="docket-proof">
+            <span class="evidence-label">核心证据</span>
+            <div class="evidence">实际 PB 0.55x；DDM 理论 PB 1.18x；ROE 10.84%。</div>
+          </div>
+          <div class="decision-pill">决定是否进入<br />估值叙事重构</div>
+        </a>
+        <a class="docket-row" href="#">
+          <div class="docket-num">02</div>
+          <div class="docket-main">
+            <span class="question-meta">经营底盘</span>
+            <div class="question">最弱维度应先修复，还是可以主动沟通？</div>
+          </div>
+          <div class="docket-proof">
+            <span class="evidence-label">核心证据</span>
+            <div class="evidence">VQA 48；估值验证 37；价值质量仍需先修复经营底盘。</div>
+          </div>
+          <div class="decision-pill">决定 0-12 月<br />行动优先级</div>
+        </a>
+        <a class="docket-row" href="#">
+          <div class="docket-num">03</div>
+          <div class="docket-main">
+            <span class="question-meta">异动预警</span>
+            <div class="question">本期异动是周期波动，还是结构性问题？</div>
+          </div>
+          <div class="docket-proof">
+            <span class="evidence-label">核心证据</span>
+            <div class="evidence">核心营收增速：周期性；定期存款占比：混合。</div>
+          </div>
+          <div class="decision-pill">决定是否进入<br />专题深钻</div>
+        </a>
+      </div>
+    </section>
+
+    <section class="mock">
+      <div class="mock-head">
+        <div>
+          <span class="mock-kicker">Option C · Chair brief</span>
+          <h2>主席摘要式：左侧先给一句会议主持口径，右侧列三条讨论题</h2>
+          <p>更有 Kami 的纸面叙事味道，适合把“董事会议题”作为一个独立摘要块，不只是三张入口卡。</p>
+        </div>
+        <span class="mock-tag">叙事最强 / 占用空间较大</span>
+      </div>
+      <div class="brief-layout">
+        <aside class="brief-aside">
+          <span class="mock-kicker">Board chair note</span>
+          <h3>本轮会议不先讨论指标高低，而先确认估值折价是否来自经营质量约束。</h3>
+          <p>三条议题按“估值解释、修复顺序、异动性质”展开。每条议题必须能回到一个证据锚点，并导向一个管理动作。</p>
+          <a class="jump" href="#">查看完整证据地图</a>
+        </aside>
+        <div class="brief-stack">
+          <a class="brief-card" href="#">
+            <b>01</b>
+            <div class="brief-body">
+              <span class="question-meta">估值验证</span>
+              <div class="question">低 PB 是价值错配，还是经营质量折价？</div>
+              <div class="mini-facts"><span>PB 0.55x</span><span>DDM 1.18x</span><span>ROE 10.84%</span></div>
+            </div>
+          </a>
+          <a class="brief-card" href="#">
+            <b>02</b>
+            <div class="brief-body">
+              <span class="question-meta">行动优先级</span>
+              <div class="question">最弱维度应先修复，还是可以进入主动沟通？</div>
+              <div class="mini-facts"><span>VQA 48</span><span>估值验证 37</span><span>先修复底盘</span></div>
+            </div>
+          </a>
+          <a class="brief-card" href="#">
+            <b>03</b>
+            <div class="brief-body">
+              <span class="question-meta">异动预警</span>
+              <div class="question">本期异动是周期波动，还是结构性问题？</div>
+              <div class="mini-facts"><span>核心营收：周期性</span><span>定期存款：混合</span></div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

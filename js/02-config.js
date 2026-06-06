@@ -281,3 +281,31 @@ function topicSignalText(level) {
   if (level === "yellow") return signals.yellow || "黄色：存在结构性修复空间";
   return signals.red || "红色：需优先解释经营质量压力";
 }
+
+/* PRD8-L01: 董事会风格问题式专题标题映射 */
+function topicQuestionTitles() {
+  return {
+    /* 5 大专题入口标题（工作台首屏） */
+    profit: "我行的盈利质量在同业里排第几？为什么？",
+    spread: "净息差还能守住多久？守不住的话靠什么补？",
+    risk: "风险数据是不是已经反映了真实经营压力？",
+    capital: "我行的资本回报率是否值得继续追加投入？",
+    valuation: "市场是否合理地定价了我行的经营质量？",
+
+    /* 正式报告 9 大章节标题 */
+    panorama: "当前价值质量分数背后，最弱的经营约束是什么？",
+    macro: "同样的下行和竞争，目标银行的资产收益率是否传导更快、收入缓冲是否更薄？",
+    capital: "扩表是否创造价值，还是正在消耗核心一级资本和估值叙事？",
+    nim: "负债端降本是否真的跟上资产端让价，还是定期化正在削弱重定价弹性？",
+    spread: "净息差还能守住多久？守不住的话靠什么补？",
+    riskChapter: "风险是否已经充分确认，还是先在零售、关注和逾期偏离中提前暴露？",
+    capitalChapter: "当前应该先修经营底盘、写入风险资本纪律，还是已经可以交付转型投入？",
+    sequence: "转型应该如何排序？先修息差对冲、风险确认，还是先投入资本效率？",
+    appendix: "本轮结论的样本边界、指标口径和数据完整性是否足够支撑董事会汇报？"
+  };
+}
+
+function topicQuestionTitle(topicKey, fallback = null) {
+  const titles = topicQuestionTitles();
+  return titles[topicKey] || fallback || `请确认「${topicKey}」的董事会问题表述`;
+}

@@ -1,0 +1,16 @@
+metric,name,status,formula,source,coverage,non_null,base_population,review_note
+adminExpense,管理费用,proxy_candidate,yuan/10000,income.admin_exp,0.7905982905982906,185,234,需确认 BQ 管理费用是否为 admin_exp，不可沿用 biz_tax_surchg
+netInterestIncome,净利息收入,derived_formula,(yuan-yuan)/10000,income.int_income - income.int_exp,0.7905982905982906,185,234,
+coreRevenue,核心营收,derived_formula,万元+万元,netInterestIncome + feeIncome,0.7905982905982906,185,234,
+nonInterestShare,非息占比,derived_formula,%,(revenue - netInterestIncome) / revenue,0.7905982905982906,185,234,
+feeAssetRatio,手续费资产比,derived_formula,%,feeIncome / assets,0.7905982905982906,185,234,
+loanAssetRatio,贷款/资产,derived_formula,%,loans / assets,0.7649572649572649,179,234,
+depositLiabilityRatio,存款/负债,derived_formula,%,deposits / liabilities,0.7905982905982906,185,234,
+cashProfitRatio,经营现金流/净利润,derived_formula,%,operatingCashFlow / netProfit,0.7905982905982906,185,234,
+costIncomeRatio,成本收入比,proxy_candidate,%,income.admin_exp / income.revenue,0.7905982905982906,185,234,费用字段需业务确认
+fvChangeRatio,公允价值变动占利润比,derived_formula,%,income.fv_value_chg_gain / income.total_profit,0.7905982905982906,185,234,
+ocfToRevenue,经营现金流营收比,derived_formula,%,cashflow.n_cashflow_act / income.revenue,0.7905982905982906,185,234,
+creditImpairLoss,信用减值损失,proxy_candidate,yuan/10000,cashflow.credit_impa_loss,0.5726495726495726,134,234,现金流补充资料字段，不能直接替代利润表信用减值
+depositGrowthCF,存款增加现金流口径,proxy_candidate,yuan/10000,cashflow.n_incr_dep_cbob or n_depos_incr_fi,0.7863247863247863,184,234,候选字段口径不同，需人工二选一
+loanIssuanceCF,贷款投放现金流口径,proxy_candidate,yuan/10000,cashflow.n_incr_clt_loan_adv,0.7863247863247863,184,234,需确认是否为客户贷款及垫款增加
+centralBankAdj,存放央行变动,derived_formula,yuan/10000 YoY,YoY balancesheet.cash_reser_cb,0.6324786324786325,148,234,需跨期计算，见衍生字段表

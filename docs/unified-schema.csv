@@ -1,0 +1,66 @@
+metric_code,metric_name,theme,is_critical,source_type,source_detail
+incomeTax,所得税,利润表详情(万元),False,✓ 直接映射,income.income_tax
+interestExpense,利息支出,利润表详情(万元),False,✓ 直接映射,income.int_exp
+interestIncome,利息收入,利润表详情(万元),False,✓ 直接映射,income.int_income
+netProfit,净利润,盈利概览(万元),False,✓ 直接映射,income.n_income
+revenue,营业收入,盈利概览(万元),False,✓ 直接映射,income.revenue
+adminExpense,管理费用,盈利质量,False,✓ 直接映射,income.biz_tax_surchg
+equity,股东权益,资产负债(万元),False,✓ 直接映射,balancesheet.total_hldr_eqy_inc_min_int
+realLoanDepositSpread,真实存贷利差,息差负债,False,🔧 需推导,BQ 现有源字段: 真实存贷利差
+bondInvestment,债券投资,投资结构,False,🔧 需推导,BQ 现有源字段: 债券合计
+fundInvestment,基金投资,投资结构,False,🔧 需推导,BQ 现有源字段: 基金
+trustWmInvestment,信托及理财投资,投资结构,False,🔧 需推导,BQ 现有源字段: 信托及理财
+nonInterestShare,非息占比%,盈利指标,False,🔧 需推导,BQ 现有源字段: 非息占比%
+roe,ROE%,盈利指标,False,🔧 需推导,BQ 现有源字段: ROE%
+coreRevenue,核心营收,盈利概览(万元),False,🔧 需推导,BQ 现有源字段: 核心营收
+feeIncome,手续费净收入,盈利概览(万元),False,🔧 需推导,BQ 现有源字段: 手续费净收入
+netInterestIncome,净利息收入,盈利概览(万元),False,🔧 需推导,BQ 现有源字段: 净利息收入
+netProfitGrowth,净利润增速%,盈利概览(万元),False,🔧 需推导,BQ 现有源字段: 净利润增速%
+ppop,PPOP,盈利概览(万元),False,🔧 需推导,BQ 现有源字段: PPOP
+ppopGrowth,PPOP增速%,盈利概览(万元),False,🔧 需推导,BQ 现有源字段: PPOP增速%
+revenueGrowth,营业收入增速%,盈利概览(万元),False,🔧 需推导,BQ 现有源字段: 营业收入增速%
+coreRevenueGrowth,核心营收增速,盈利质量,True,🔧 需推导,BQ 现有源字段: 核心营收增速%
+operatingCashFlow,经营活动现金流净额,盈利质量,False,🔧 需推导,BQ 现有源字段: 经营活动净额
+roa,总资产收益率,盈利质量,True,🔧 需推导,BQ 现有源字段: ROA%
+trueCoreNonInterest,真实核心非息占比,盈利质量,False,🔧 需推导,BQ 现有源字段: 真实核心非息%
+volatileIncomeShare,高波动收入占比,盈利质量,False,🔧 需推导,BQ 现有源字段: 高波动收入%
+assets,资产总计,资产负债(万元),False,🔧 需推导,BQ 现有源字段: 资产总计
+deposits,存款总额,资产负债(万元),False,🔧 需推导,BQ 现有源字段: 存款总额
+liabilities,负债合计,资产负债(万元),False,🔧 需推导,BQ 现有源字段: 负债合计
+loans,贷款总额,资产负债(万元),False,🔧 需推导,BQ 现有源字段: 贷款总额
+overdueRatio,逾期率%,资产质量,False,🔧 需推导,BQ 现有源字段: 逾期率%
+specialMentionRatio,关注率%,资产质量,False,🔧 需推导,BQ 现有源字段: 关注率%
+basicEps,基本每股收益,资本估值,False,🔧 需推导,BQ 现有源字段: 基本EPS(元)
+cet1Buffer,核心一级资本余量,资本估值,True,🔧 需推导,BQ 现有源字段: CET1余量bp
+costIncomeRatio,成本收入比,资本估值,False,🔧 需推导,BQ 现有源字段: 成本收入比%
+pb,市净率,资本估值,True,🔧 需推导,BQ 现有源字段: PB(年末)
+pbMid,年中市净率,资本估值,False,🔧 需推导,BQ 现有源字段: PB(年中)
+cet1,核心一级充足%,资本充足率,False,🔧 需推导,BQ 现有源字段: 核心一级充足%
+hiddenNplExposure,隐性不良暴露率,风险拨备,True,🔧 需推导,BQ 现有源字段: 隐性不良暴露率%
+overdueNplDeviation,逾期不良偏离度,风险拨备,True,🔧 需推导,BQ 现有源字段: 逾期-不良偏离度
+corporateTimeDeposit,公司定期,存款结构(万元),False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+personalTimeDeposit,个人定期,存款结构(万元),False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+earningAssetYield,生息资产收益率,息差负债,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+interestLiabilityCost,计息负债成本率,息差负债,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+nim,净息差,息差负债,True,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+nimGapPoint,NIM缺口,息差负债,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+liquidityCoverageRatio,流动性覆盖率,流动性,True,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+liquidityRatio,流动性比率,流动性,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+carBuffer,资本充足率余量,资本估值,True,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+estimatedRwa,估算风险加权资产,资本估值,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+rwaDensity,风险加权资产密度,资本估值,True,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+businessLoanNpl,经营贷款不良率,零售结构,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+businessLoanShare,经营贷款占比,零售结构,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+consumerLoanNpl,消费贷款不良率,零售结构,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+consumerLoanShare,消费贷款占比,零售结构,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+housingLoanNpl,住房贷款不良率,零售结构,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+housingLoanShare,住房贷款占比,零售结构,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+billDiscountNpl,票据贴现不良率,风险拨备,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+corporateLoanNpl,公司贷款不良率,风险拨备,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+npl,不良率,风险拨备,True,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+personalLoanNpl,个贷不良率,风险拨备,False,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+provisionCoverage,拨备覆盖率,风险拨备,True,❌ 缺失,年报附注披露，Tushare 三表不覆盖，需 PDF 抽取或手工
+nimGapBp,息差对冲缺口,息差负债,False,📊 已是派生,BQ 内部公式: (当年生息资产收益率变化 - 当年计息负债成本率变化) * 100
+timeDepositShare,定期存款占比,息差负债,False,📊 已是派生,BQ 内部公式: (公司定期 + 个人定期) / 存款总额 * 100
+feeAssetRatio,手续费资产比,盈利质量,True,📊 已是派生,BQ 内部公式: 手续费净收入 / 资产总计 * 100
+profitPpopGap,净利与拨备前利润增速缺口,风险拨备,False,📊 已是派生,BQ 内部公式: 净利润增速 - PPOP增速

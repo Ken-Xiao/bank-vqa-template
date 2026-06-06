@@ -364,8 +364,12 @@ function bindWhatIfControls() {
     input.dataset.bound = "true";
     input.addEventListener("input", () => {
       state.whatIfAssumptions = { ...whatIfAssumptions(), [key]: Number(input.value) || 0 };
-      renderWhatIfControlPanel();
-      if (typeof renderFormalReport === "function") renderFormalReport();
+      if (typeof whatIfLinkedRefresh === "function") {
+        whatIfLinkedRefresh();
+      } else {
+        renderWhatIfControlPanel();
+        if (typeof renderFormalReport === "function") renderFormalReport();
+      }
     });
   });
 }

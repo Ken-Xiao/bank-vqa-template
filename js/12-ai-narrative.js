@@ -30,6 +30,12 @@ function narrativeUsesOnlyFactPackNumbers(text, facts) {
   });
 }
 
+function narrativeTopicFactPack(topicId) {
+  return typeof layeredTopicFactModel === "function"
+    ? layeredTopicFactModel(topicId)
+    : buildTopicFactPackObject(topicId);
+}
+
 async function callAiNarrativeEndpoint(factPack, channel) {
   const endpoint = aiProviderConfig?.http?.endpoint;
   if (!endpoint || aiProviderConfig?.provider !== "http") return null;
@@ -55,7 +61,9 @@ async function generateTopicNarrativeDraftAsync(topic, facts, channel) {
   const localDraft = generateTopicNarrativeDraft(topic, facts, channel);
   if (aiProviderConfig?.provider !== "http" || !aiProviderConfig?.http?.endpoint) return localDraft;
   try {
-    const pack = buildTopicFactPackObject(topic.id);
+    const pack = typeof layeredTopicFactModel === "function"
+      ? layeredTopicFactModel(topic.id)
+      : buildTopicFactPackObject(topic.id);
     const remote = await callAiNarrativeEndpoint(pack, channel);
     if (!remote) return localDraft;
     const sanitized = sanitizeComplianceText(remote, topic.forbiddenPhrases);
@@ -200,7 +208,7 @@ function downgradeNarrativeByRisk(text, facts = []) {
 
 function generateTopicNarrativeDraft(topic, facts, channel) {
   const base = topicAiDraft(topic, facts);
-  const pack = buildTopicFactPackObject(topic.id);
+  const pack = narrativeTopicFactPack(topic.id);
   const prompt = narrativePrompts?.channels?.[channel] || {};
   const judgement = pack.judgement;
   const citations = topicCitationFacts(topic, facts);
@@ -350,7 +358,7 @@ function regenerateTopicNarratives(topicId = state.activeTopic) {
   setProjectStatus("已基于最新事实包重新生成本专题解读。");
 }
 
-async function regenerateTopicNarrativesWithAi(topicId = state.activeTopic) {
+async function generateTopicNarrativesWithAiForTopic(topicId = state.activeTopic) {
   ensureEditedNarratives();
   ["board", "market", "action"].forEach((channel) => {
     delete state.editedNarratives[narrativeStorageKey(topicId, channel)];
@@ -361,6 +369,11 @@ async function regenerateTopicNarrativesWithAi(topicId = state.activeTopic) {
     const text = await generateTopicNarrativeDraftAsync(topic, facts, channel);
     state.editedNarratives[narrativeStorageKey(topicId, channel)] = text;
   }
+  return state.editedNarratives;
+}
+
+async function regenerateTopicNarrativesWithAi(topicId = state.activeTopic) {
+  await generateTopicNarrativesWithAiForTopic(topicId);
   renderTopicWorkbench();
   buildPrintDeck();
   const mode = aiProviderConfig?.provider === "http" && aiProviderConfig?.http?.endpoint ? "AI接口" : "本地模板";
@@ -396,4 +409,79 @@ function bindTopicNarrativeEditors(host, topicId) {
 function initAiNarrativeModule() {
   ensureEditedNarratives();
   ensureIncludedTopics();
+}
+
+/* PRD-L01-Phase1: 本地语言强度分层 */
+
+/**
+ * 根据 Z-Score 和风险等级判断语言表达强度
+ * @param {number} zScore - 标准分（相对对标组）
+ * @param {string} riskLevel - 风险等级（L1|L2|L3|L4）
+ * @returns {string} "strong" | "implicit" | "tentative"
+ */
+function languageStrengthTier(zScore, riskLevel = "L3") {
+  const absZ = Math.abs(zScore || 0);
+
+  /* strong: 信号强 + 风险低 */
+  if (absZ > 1.5 && (riskLevel === "L1" || riskLevel === "L2")) {
+    return "strong";
+  }
+
+  /* implicit: 信号中等 或 风险中等 */
+  if (absZ > 0.8 || riskLevel === "L3") {
+    return "implicit";
+  }
+
+  /* tentative: 信号弱 或 风险高 */
+  return "tentative";
+}
+
+/**
+ * 根据强度等级生成差异化表述模板
+ * @param {string} strength - 强度等级（strong|implicit|tentative）
+ * @param {string} claim - 核心观点
+ * @param {string} evidence - 证据描述
+ * @returns {string} 差异化表述文本
+ */
+function phraseByStrength(strength, claim, evidence) {
+  const templates = {
+    strong: `${claim}，证据：${evidence}`,
+    implicit: `${claim}的可能性较大，${evidence}可作为初步参照`,
+    tentative: `${claim}仍需进一步验证，${evidence}仅供口径参考`
+  };
+  return templates[strength] || templates.implicit;
+}
+
+/**
+ * 为断言或章节标题自动套用强度模板（主要用于 L4 风险降级）
+ * @param {string} topicKey - 专题 ID
+ * @param {object} context - 上下文，包含 zScore, riskLevel, claim, evidence 等
+ * @returns {string} 带强度修饰的断言文本
+ */
+function formalAssertionWithStrength(topicKey, context = {}) {
+  const {
+    zScore = 0,
+    riskLevel = "L3",
+    claim = null,
+    evidence = null,
+    row = targetRecord()
+  } = context;
+
+  /* 获取基础断言（来自 formalAssertionTitle） */
+  const baseAssertion = typeof formalAssertionTitle === "function"
+    ? formalAssertionTitle(topicKey, row)
+    : `关于${topicKey}的分析`;
+
+  /* 若无明确证据且风险为 L4，使用 tentative 模板 */
+  if (riskLevel === "L4" && !evidence) {
+    return `${baseAssertion}仍需进一步验证。`;
+  }
+
+  /* 若有完整上下文，使用强度分层模板 */
+  if (claim && evidence) {
+    const strength = languageStrengthTier(zScore, riskLevel);
+    return phraseByStrength(strength, claim, evidence);
+  }
+
+  return baseAssertion;
 }

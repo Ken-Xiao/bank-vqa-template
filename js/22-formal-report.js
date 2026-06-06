@@ -64,15 +64,16 @@ function formalConsultingReadout(topicKey, row = targetRecord(), peers = peerRec
 
 function formalAssertionTitle(topicKey, row = targetRecord()) {
   const target = formalBankName(row);
+  /* PRD8-L01: 改为董事会问题式表述 */
   const map = {
-    profit: `${target}盈利质量要先解释核心营收与净利润是否同向改善`,
-    nim: `${target}息差判断要同时拆开资产收益、负债成本和存款结构`,
-    risk: `${target}风险判断不能只看不良率，还要看逾期偏离和拨备缓冲`,
-    capital: `${target}资本效率取决于资本余量能否支撑风险加权资产扩张`,
-    valuation: `${target}估值修复取决于经营质量、资本效率和风险确认的共同改善`,
-    capitalMarket: `${target}资本市场定价需要由经营质量和资本回报共同解释`,
-    retailRisk: `${target}零售风险需要分产品识别真实压力来源`,
-    depositLoanDeepDive: `${target}存贷结构决定息差防守和资产扩张质量`
+    profit: `我行的盈利质量在同业里排第几？为什么？`,
+    nim: `净息差还能守住多久？守不住的话靠什么补？`,
+    risk: `风险数据是不是已经反映了真实经营压力？`,
+    capital: `我行的资本回报率是否值得继续追加投入？`,
+    valuation: `市场是否合理地定价了我行的经营质量？`,
+    capitalMarket: `资本市场定价是否反映了${target}的真实经营质量？`,
+    retailRisk: `零售风险是否先于综合不良率在关注和逾期中提前暴露？`,
+    depositLoanDeepDive: `存贷结构是否依然支撑息差防守和资产扩张可持续性？`
   };
   return map[topicKey] || `${target}本页结论需要回到选定样本和口径边界验证`;
 }
@@ -659,21 +660,44 @@ function formalReportSections(root = document) {
   return [...scope.querySelectorAll("#formalReport > header, #formalReport > section")];
 }
 
+/**
+ * PR-A (Sprint 7D-0): 给每个 formal-section 补全 6 个 dataset 属性，
+ * 作为 reportModel 契约的基础。出错时只记日志不抛异常，回退安全。
+ *   data-id / data-section-id / data-section-title / data-page-role
+ *   data-deck-type / data-included / data-module-label / data-slide-index / data-slide-total
+ */
 function applyFormalReportContract(root = document) {
-  const sections = formalReportSections(root);
-  const total = sections.length;
-  sections.forEach((section, index) => {
-    const id = section.id || `formal-section-${index + 1}`;
-    section.id = id;
-    section.dataset.slideIndex = String(index + 1);
-    section.dataset.slideTotal = String(total);
-    section.dataset.sectionId = id;
-    section.dataset.sectionTitle = formalReportSectionTitle(section, index);
-    section.dataset.moduleLabel = formalReportModuleLabel(section);
-    section.dataset.pageRole = formalReportPageRole(section);
-    section.dataset.deckType = formalReportDeckType(section);
-  });
-  return sections;
+  try {
+    const sections = formalReportSections(root);
+    const total = sections.length;
+    sections.forEach((section, index) => {
+      try {
+        const id = section.id || `formal-section-${index + 1}`;
+        section.id = id;
+        section.dataset.slideIndex = String(index + 1);
+        section.dataset.slideTotal = String(total);
+        section.dataset.sectionId = id;
+        section.dataset.id = id;
+        section.dataset.sectionTitle = formalReportSectionTitle(section, index);
+        section.dataset.moduleLabel = formalReportModuleLabel(section);
+        section.dataset.pageRole = formalReportPageRole(section);
+        section.dataset.deckType = formalReportDeckType(section);
+        // data-included: 显式契约属性。默认 true；当 structureIncluded === "false" 或 hidden 时为 false。
+        const explicitlyExcluded = section.dataset.structureIncluded === "false" || section.hidden === true;
+        section.dataset.included = explicitlyExcluded ? "false" : "true";
+      } catch (sectionErr) {
+        if (typeof console !== "undefined" && console.warn) {
+          console.warn("[reportModel] applyFormalReportContract section error", section?.id, sectionErr);
+        }
+      }
+    });
+    return sections;
+  } catch (err) {
+    if (typeof console !== "undefined" && console.warn) {
+      console.warn("[reportModel] applyFormalReportContract failed", err);
+    }
+    return [];
+  }
 }
 
 function formalReportModel(root = document) {
@@ -683,7 +707,7 @@ function formalReportModel(root = document) {
     : formalReportSections(scope);
   if (typeof applyReportStructureContract === "function") applyReportStructureContract(scope);
   return sections
-    .filter((section) => section.dataset?.structureIncluded !== "false" && !section.hidden)
+    .filter((section) => section.dataset?.included !== "false" && section.dataset?.structureIncluded !== "false" && !section.hidden)
     .map((section, index) => {
       const title = section.dataset.sectionTitle || formalReportSectionTitle(section, index);
       const role = section.dataset.pageRole || formalReportPageRole(section);
@@ -816,6 +840,10 @@ function buildFormalReportHtml({ exportMode = false } = {}) {
       ${formalPeerMatrixSection(row)}
       ${formalConsistencySection(row)}
       ${topicSections}
+      ${typeof formalProfitQualitySection === "function" ? formalProfitQualitySection(row) : ""}
+      ${typeof formalDividendValuationSection === "function" ? formalDividendValuationSection(row) : ""}
+      ${typeof formalIfrs9ClassificationSection === "function" ? formalIfrs9ClassificationSection(row) : ""}
+      ${typeof formalCashFlowDepthSection === "function" ? formalCashFlowDepthSection(row) : ""}
       ${formalSensitivitySection(row)}
       ${formalActionSection(row)}
       ${formalAppendixSection()}
