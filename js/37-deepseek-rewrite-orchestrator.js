@@ -173,6 +173,106 @@ function collectRewriteCitationKeys(factPack = {}) {
   return facts.map((fact) => fact.metricKey || fact.factId || fact.key).filter(Boolean).slice(0, 8);
 }
 
+function factPackVerificationSummary(factPack = {}) {
+  const summary = factPack.dataVerification?.summary || factPack.context?.dataVerification?.summary || {};
+  return {
+    total: Number(summary.total || 0),
+    matched: Number(summary.matched || 0),
+    conflict: Number(summary.conflict || 0),
+    mainOnly: Number(summary.mainOnly || 0),
+    pending: Number(summary.pending || 0),
+    missing: Number(summary.missing || 0),
+    verifiedRate: summary.verifiedRate == null ? null : Number(summary.verifiedRate)
+  };
+}
+
+function rewriteRequestEnvelope(block = {}) {
+  const verification = factPackVerificationSummary(block.factPack || {});
+  return {
+    protocolVersion: "20260607-sprint12-v1",
+    kind: "evidence-rewrite-block",
+    blockId: block.blockId,
+    blockType: block.blockType,
+    channel: block.channel,
+    target: state.target,
+    year: state.year,
+    selectionKey: block.rewriteSelectionKey || currentAnalysisSelectionKey(),
+    evidenceProtocol: {
+      factPackRequired: true,
+      dataVerificationRequired: true,
+      citationRequired: true,
+      outputLanguage: "zh-CN",
+      style: "券商研究员和咨询顾问合并风格",
+      requiredSections: ["观点", "证据", "机制", "建议"],
+      prohibitions: ["禁止讲方法论", "禁止编造数字", "禁止投资建议"],
+      toneRule: verification.conflict || verification.mainOnly || verification.pending
+        ? "存在口径差异、主表单源或待字段化时必须降级为审慎表述"
+        : "核验充分时允许形成结论先行的强判断"
+    },
+    prompt: block.prompt,
+    factPack: block.factPack,
+    dataVerification: verification,
+    expectedResponse: {
+      viewpoint: "一句核心观点",
+      conclusion: "结论先行的自然语言段落",
+      evidence: [{ metric: "指标代码", text: "证据描述" }],
+      soWhat: "对其他页面和报告主线的含义",
+      actions: [{ window: "0-3个月", action: "落地动作", trackingMetric: "复核指标" }],
+      citations: ["事实包字段或指标代码"],
+      qualityWarnings: ["数据边界或降级原因"]
+    },
+    responseContract: "回传结构必须能被 normalizeRewritePackage 标准化为观点、证据、机制、建议和引用清单。"
+  };
+}
+
+function normalizeRewritePackage(payload = {}, fallbackText = "") {
+  const explanationPackage = payload.explanationPackage || payload.package || payload.structuredPackage || null;
+  const pkg = explanationPackage || payload;
+  const evidence = Array.isArray(pkg.evidence) ? pkg.evidence : [];
+  const actions = Array.isArray(pkg.actions) ? pkg.actions : [];
+  const citations = Array.isArray(pkg.citations) ? pkg.citations : [];
+  const qualityWarnings = Array.isArray(pkg.qualityWarnings) ? pkg.qualityWarnings : [];
+  const text = [
+    pkg.viewpoint ? `观点：${pkg.viewpoint}` : "",
+    pkg.conclusion || payload.text || payload.content || payload.commentary || fallbackText,
+    evidence.length ? `证据：${evidence.map((item) => item?.text || item?.metric || "").filter(Boolean).join("；")}。` : "",
+    pkg.soWhat ? `机制与含义：${pkg.soWhat}` : "",
+    actions.length ? `建议：${actions.map((item) => `${item.window || "待定窗口"}：${item.action || ""}${item.trackingMetric ? `，跟踪${item.trackingMetric}` : ""}`).filter((line) => !line.endsWith("：")).join("；")}。` : ""
+  ].filter(Boolean).join("");
+  return {
+    viewpoint: pkg.viewpoint || "",
+    conclusion: pkg.conclusion || payload.text || payload.content || payload.commentary || fallbackText,
+    evidence,
+    soWhat: pkg.soWhat || pkg.mechanism || "",
+    actions,
+    citations,
+    qualityWarnings,
+    text: text || fallbackText,
+    explanationPackage
+  };
+}
+
+function validateRewritePackageAgainstProtocol(payload = {}, block = {}) {
+  const normalized = normalizeRewritePackage(payload, localRewriteFallback(block, block.factPack));
+  const warnings = normalized.qualityWarnings.slice();
+  const envelope = rewriteRequestEnvelope(block);
+  if (!block.factPack || !Object.keys(block.factPack).length) warnings.push("factPack 缺失，不能调用 DeepSeek 强判断。");
+  if (!envelope.dataVerification || typeof envelope.dataVerification.total !== "number") warnings.push("dataVerification 缺失，结论语气必须降级。");
+  if (!normalized.text) warnings.push("回传结构未提供可展示文本。");
+  if (!normalized.viewpoint && !normalized.conclusion) warnings.push("回传结构缺少观点或结论。");
+  if (!normalized.citations.length && collectRewriteCitationKeys(block.factPack).length) warnings.push("回传结构缺少 citations。");
+  if (/方法论|计算过程|系统逻辑/.test(normalized.text)) warnings.push("回传文本包含方法论叙述。");
+  if (/买入|卖出|目标价|投资建议/.test(normalized.text)) warnings.push("回传文本包含投资建议。");
+  if (envelope.dataVerification.conflict || envelope.dataVerification.mainOnly || envelope.dataVerification.pending) {
+    if (!/审慎|复核|脚注|降级|边界/.test(normalized.text)) warnings.push("核验存在差异或单源字段，但回传未体现审慎表述。");
+  }
+  return {
+    ...normalized,
+    warnings,
+    ok: !warnings.some((warning) => /缺失|方法论|投资建议|未提供|缺少|未体现/.test(warning))
+  };
+}
+
 function localRewriteFallback(block = {}, factPack = {}) {
   if (block.blockType === "evidence.map.deviation" && typeof localEvidenceMapCommentaryDraft === "function") return localEvidenceMapCommentaryDraft(factPack);
   if (block.blockType === "bank.summary" && typeof localBankCommentaryDraft === "function") return localBankCommentaryDraft(factPack, block.channel || "board");
@@ -200,6 +300,7 @@ function localRewriteFallback(block = {}, factPack = {}) {
 async function callRewriteBlock(block = {}) {
   const fallbackText = localRewriteFallback(block, block.factPack);
   const endpoint = typeof aiProviderConfig !== "undefined" ? (aiProviderConfig?.http?.commentaryEndpoint || aiProviderConfig?.http?.endpoint) : "";
+  const envelope = rewriteRequestEnvelope(block);
   if (!endpoint || aiProviderConfig?.provider !== "http") {
     return validateRewriteResult({
       blockId: block.blockId,
@@ -217,27 +318,21 @@ async function callRewriteBlock(block = {}) {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        kind: "evidence-rewrite-block",
-        blockId: block.blockId,
-        channel: block.channel,
-        prompt: block.prompt,
-        factPack: block.factPack
-      }),
+      body: JSON.stringify(envelope),
       signal: controller.signal
     });
     if (!response.ok) throw new Error("rewrite endpoint failed");
     const payload = await response.json();
-    const explanationPackage = payload.explanationPackage || payload.package || payload.structuredPackage || null;
-    const text = payload.text || payload.content || payload.commentary || explanationPackage?.conclusion || fallbackText;
+    const protocolResult = validateRewritePackageAgainstProtocol(payload, block);
+    const warnings = protocolResult.warnings || [];
     return validateRewriteResult({
       blockId: block.blockId,
       source: payload.source || "deepseek",
-      status: "valid",
-      text,
-      explanationPackage,
-      citations: explanationPackage?.citations || payload.citations || collectRewriteCitationKeys(block.factPack),
-      qualityWarnings: explanationPackage?.qualityWarnings || payload.qualityWarnings || [],
+      status: protocolResult.ok ? "valid" : "degraded",
+      text: protocolResult.ok ? protocolResult.text : fallbackText,
+      explanationPackage: protocolResult.explanationPackage || null,
+      citations: protocolResult.citations.length ? protocolResult.citations : collectRewriteCitationKeys(block.factPack),
+      qualityWarnings: warnings,
       generatedAt: new Date().toISOString()
     }, block);
   } catch (error) {
@@ -341,6 +436,10 @@ async function runEvidenceRewriteOrchestrator(options = {}) {
 if (typeof window !== "undefined") {
   window.rewriteBlockRegistry = rewriteBlockRegistry;
   window.buildRewritePlan = buildRewritePlan;
+  window.factPackVerificationSummary = factPackVerificationSummary;
+  window.rewriteRequestEnvelope = rewriteRequestEnvelope;
+  window.normalizeRewritePackage = normalizeRewritePackage;
+  window.validateRewritePackageAgainstProtocol = validateRewritePackageAgainstProtocol;
   window.callRewriteBlock = callRewriteBlock;
   window.validateRewriteResult = validateRewriteResult;
   window.applyRewriteResult = applyRewriteResult;

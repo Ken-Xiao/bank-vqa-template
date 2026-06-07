@@ -173,6 +173,22 @@ npm run test:rewrite-orchestrator
   - 口径差异和主表单源必须降低语气
   - 不允许讲方法论，不允许编造数字，不允许给投资建议
 
+### Sprint 12A：DeepSeek 证据协议封装
+
+已新增前端调用协议的第一层封装：
+
+- `rewriteRequestEnvelope`：把每次模型调用包装为统一请求，包含 `factPack`、`dataVerification`、输出要求和禁止事项。
+- `factPackVerificationSummary`：把事实包里的年报核验状态压缩成模型可读的语气约束。
+- `normalizeRewritePackage`：把 DeepSeek 回传的结构化包统一转成前台可展示的观点、证据、机制、建议。
+- `validateRewritePackageAgainstProtocol`：检查回传是否缺少引用、是否讲方法论、是否编造数字或包含投资建议；不符合要求时降级为本地模板。
+- 新增契约测试：`tests/sprint12_deepseek_protocol_contract.test.js`，并纳入 `npm run test:rewrite-orchestrator`。
+
+下一步 Sprint 12B 建议：
+
+1. 对齐 `server/deepseek-commentary-proxy.js`，让 proxy 也识别 `protocolVersion` 和 `evidenceProtocol`。
+2. 增加本地-only 模式的端到端请求样例，验证 envelope -> proxy -> normalized package -> 前台写回。
+3. 把回传结构写入 AI 治理面板，显示“模型文本 / 本地降级 / 质量警告 / 引用缺口”。
+
 ## 给下个聊天的快速入口
 
 下个聊天可以先读：
