@@ -107,6 +107,16 @@ function trialReadinessChecks() {
     title: "关键指标完整性",
     text: criticalRate == null ? "暂无完整性结果。" : `核心指标在当前样本中的平均完整性为 ${(criticalRate * 100).toFixed(1)}%。`
   });
+  if (typeof annualVerificationEvidenceSummary === "function" && typeof reportReadinessFromVerification === "function") {
+    const verification = annualVerificationEvidenceSummary(["roa", "roe", "nim", "npl", "provisionCoverage", "cet1", "liquidityCoverageRatio"], state.target, state.year);
+    const readiness = reportReadinessFromVerification(verification);
+    rows.push({
+      key: "annual-verification-readiness",
+      status: readiness.level === "appendix" ? "bad" : readiness.level === "caution" ? "warn" : "ok",
+      title: `年报核验状态：${readiness.label}`,
+      text: readiness.text
+    });
+  }
   rows.push({
     key: "topics",
     status: topics >= 3 ? "ok" : topics > 0 ? "warn" : "bad",
@@ -214,7 +224,7 @@ function updateTrialCheckPanel() {
   list.innerHTML = checks.map((item) => `
     <div class="trial-check-item ${item.status}">
       <span class="trial-dot"></span>
-      <div><b>${item.title}</b><br/>${item.text}</div>
+      <div><b>${item.key === "annual-verification-readiness" ? `<span class="report-readiness-pill">${item.title}</span>` : item.title}</b><br/>${item.text}</div>
     </div>
   `).join("");
   renderExportHistory();

@@ -11,7 +11,9 @@ const layered = fs.readFileSync("js/36-layered-fact-model.js", "utf8");
   "sourceRefs",
   "qualityStatus",
   "ready_record_wide",
-  "ready_metric_quality"
+  "ready_metric_quality",
+  "function evidenceAnnualVerificationRows",
+  "annual_report_verification_2025"
 ].forEach((needle) => assert(builder.includes(needle), `missing ${needle}`));
 
 assert(layered.includes("buildEvidencePack"), "layered fact model must route evidence through shared builder");

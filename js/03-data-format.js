@@ -650,6 +650,191 @@ function renderReadyDataBridge() {
   bindMetricLinks(body);
 }
 
+function readyFieldGovernanceFor(metric) {
+  if (!Array.isArray(readyFieldGovernance) || !readyFieldGovernance.length) return null;
+  return readyFieldGovernance.find((item) => item.metric === metric) || null;
+}
+
+function annualVerificationStatusMeta(status = "") {
+  const map = {
+    matched: { label: "已核验", tone: "green", reason: "主表和核验源差异在阈值内" },
+    source_conflict_review: { label: "差异待复核", tone: "orange", reason: "主表和核验源差异超过阈值" },
+    scraped_pending_fieldization: { label: "年报待字段化", tone: "yellow", reason: "年报已有相关明细，但尚未稳定映射到字段" },
+    main_only: { label: "主表单源", tone: "yellow", reason: "主表已有值，核验源暂缺" },
+    filled_from_validation: { label: "核验源补值", tone: "green", reason: "主表暂缺，核验源已有可用值" },
+    missing: { label: "三源缺失", tone: "red", reason: "主表、接口和年报抓取均未形成可用值" }
+  };
+  return map[status] || { label: status || "未加载", tone: "gray", reason: "年报核验层未返回状态" };
+}
+
+function annualVerificationSelectedRows() {
+  if (!Array.isArray(annualReportVerification) || !annualReportVerification.length) return [];
+  const selected = readySelectedBanks().map(resolveBank).filter(Boolean);
+  const selectedSet = new Set(selected);
+  return annualReportVerification
+    .filter((row) => selectedSet.has(resolveBank(row.bank)) && Number(row.year) === 2025)
+    .sort((a, b) => {
+      const bankDiff = selected.indexOf(resolveBank(a.bank)) - selected.indexOf(resolveBank(b.bank));
+      if (bankDiff) return bankDiff;
+      return String(a.metricName || a.metric).localeCompare(String(b.metricName || b.metric), "zh-Hans-CN");
+    });
+}
+
+function annualVerificationSummary(rows) {
+  const counts = rows.reduce((acc, row) => {
+    acc[row.verificationStatus] = (acc[row.verificationStatus] || 0) + 1;
+    return acc;
+  }, {});
+  const verified = (counts.matched || 0) + (counts.filled_from_validation || 0);
+  const review = counts.source_conflict_review || 0;
+  const fieldization = counts.scraped_pending_fieldization || 0;
+  const mainOnly = counts.main_only || 0;
+  return {
+    total: rows.length,
+    verified,
+    review,
+    fieldization,
+    mainOnly,
+    verifiedRate: rows.length ? verified / rows.length : null
+  };
+}
+
+function annualVerificationRowsForBank(bank = state.target, year = state.year, metrics = []) {
+  if (!Array.isArray(annualReportVerification) || !annualReportVerification.length) return [];
+  const canonical = resolveBank(bank || state.target);
+  const metricSet = new Set((metrics || []).filter(Boolean));
+  return annualReportVerification.filter((row) => {
+    const sameBank = resolveBank(row.bank) === canonical;
+    const sameYear = Number(row.year) === Number(year);
+    const sameMetric = !metricSet.size || metricSet.has(row.metric);
+    return sameBank && sameYear && sameMetric;
+  });
+}
+
+function annualVerificationEvidenceSummary(metrics = [], bank = state.target, year = state.year) {
+  const rows = annualVerificationRowsForBank(bank, year, metrics);
+  const summary = annualVerificationSummary(rows);
+  const critical = rows.filter((row) => row.verificationStatus === "source_conflict_review" || row.verificationStatus === "missing");
+  const caution = rows.filter((row) => row.verificationStatus === "main_only" || row.verificationStatus === "scraped_pending_fieldization");
+  return {
+    rows,
+    summary,
+    critical,
+    caution,
+    metrics: metrics || []
+  };
+}
+
+function reportReadinessFromVerification(verification = annualVerificationEvidenceSummary()) {
+  const summary = verification.summary || {};
+  const total = Number(summary.total || 0);
+  const review = Number(summary.review || 0);
+  const pending = Number(summary.fieldization || 0) + Number(summary.mainOnly || 0);
+  const verifiedRate = summary.verifiedRate;
+  if (!total) {
+    if (Array.isArray(verification.metrics) && verification.metrics.length) {
+      return {
+        level: "caution",
+        label: "审慎表述",
+        tone: "yellow",
+        text: "该组指标未进入二零二五年报核心核验表，当前按主表和专题事实包使用，正式报告需保留来源脚注。"
+      };
+    }
+    return {
+      level: "appendix",
+      label: "附录披露",
+      tone: "red",
+      text: "当前证据未形成年报核验记录，结论应先进入附录或待补清单。"
+    };
+  }
+  if (review > 0) {
+    return {
+      level: "caution",
+      label: "审慎表述",
+      tone: "orange",
+      text: `${review} 项核心指标存在口径差异，正式上会前需要复核底稿。`
+    };
+  }
+  if (verifiedRate >= 0.75 && pending === 0) {
+    return {
+      level: "board",
+      label: "可上会",
+      tone: "green",
+      text: `${summary.verified}/${total} 项证据已完成核验，可进入主报告判断。`
+    };
+  }
+  return {
+    level: "caution",
+    label: pending > 0 ? "审慎表述" : "可上会",
+    tone: pending > 0 ? "yellow" : "green",
+    text: pending > 0
+      ? `${pending} 项证据仍依赖主表或待字段化，结论可使用但需保留脚注。`
+      : `${summary.verified}/${total} 项证据已核验，未发现明显口径冲突。`
+  };
+}
+
+function verificationBadgeHtml(verification = annualVerificationEvidenceSummary(), options = {}) {
+  const readiness = reportReadinessFromVerification(verification);
+  const summary = verification.summary || {};
+  const label = options.label || readiness.label;
+  const note = options.note || readiness.text;
+  const detail = summary.total ? `核验 ${summary.verified}/${summary.total}` : (readiness.level === "caution" ? "主表证据" : "核验待补");
+  return `<div class="verification-badge tone-${htmlSafe(readiness.tone)}">
+    <span>${htmlSafe(label)}</span>
+    <b>${htmlSafe(detail)}</b>
+    <em>${htmlSafe(note)}</em>
+  </div>`;
+}
+
+function renderAnnualReportVerification() {
+  const panel = document.getElementById("annualReportVerificationPanel");
+  const kpis = document.getElementById("annualVerificationKpis");
+  const body = document.getElementById("annualVerificationBody");
+  if (!panel || !kpis || !body) return;
+  if (!Array.isArray(annualReportVerification) || !annualReportVerification.length) {
+    kpis.innerHTML = `<div class="ready-data-kpi tone-red"><span>年报核验层</span><b>未加载</b><em>请检查 annualReportVerification</em></div>`;
+    body.innerHTML = `<tr><td colspan="7">二零二五年报核验层未加载，暂不能展示差异复核。</td></tr>`;
+    return;
+  }
+  const rows = annualVerificationSelectedRows();
+  const summary = annualVerificationSummary(rows);
+  kpis.innerHTML = [
+    { label: "核验字段", value: String(summary.total), note: "目标银行和对标组的核心指标", tone: summary.total ? "green" : "red" },
+    { label: "已核验 / 可补值", value: String(summary.verified), note: summary.verifiedRate == null ? "暂无可核验字段" : `占比 ${(summary.verifiedRate * 100).toFixed(0)}%`, tone: summary.verifiedRate >= .75 ? "green" : summary.verifiedRate >= .35 ? "yellow" : "orange" },
+    { label: "差异待复核", value: String(summary.review), note: "需要回到底稿确认口径", tone: summary.review ? "orange" : "green" },
+    { label: "年报待字段化", value: String(summary.fieldization + summary.mainOnly), note: "解释待补的真实原因", tone: summary.fieldization || summary.mainOnly ? "yellow" : "green" }
+  ].map((item) => `<div class="ready-data-kpi tone-${item.tone}">
+    <span>${htmlSafe(item.label)}</span>
+    <b>${htmlSafe(item.value)}</b>
+    <em>${htmlSafe(item.note)}</em>
+  </div>`).join("");
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="7">当前目标银行和对标组暂无二零二五年报核验记录。</td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map((row) => {
+    const meta = annualVerificationStatusMeta(row.verificationStatus);
+    const governance = readyFieldGovernanceFor(row.metric);
+    const sourceRole = governance?.sourceRole === "validation" ? "年报核验" :
+      governance?.sourceRole === "supplement" ? "接口补充" :
+      governance?.sourceRole === "detail-only" ? "附注明细" : "经营主表";
+    const scrapedText = row.scrapedValue == null
+      ? (row.relatedScrapedTables ? "已有明细，待字段化" : "暂无")
+      : metricDisplayValue(row.metric, row.scrapedValue);
+    const diffText = row.differenceAbs == null ? meta.reason : `${meta.reason}；差异 ${metricDisplayValue(row.metric, row.differenceAbs)}`;
+    return `<tr class="tone-${htmlSafe(meta.tone)}">
+      <td>${htmlSafe(displayBankName(row.bank))}</td>
+      <td>${metricLink(row.metric, row.metricName || fieldName(row.metric))}</td>
+      <td>${htmlSafe(metricDisplayValue(row.metric, row.mainValue))}</td>
+      <td>${htmlSafe(scrapedText)}${row.relatedScrapedTables ? `<small>${htmlSafe(row.relatedScrapedTables)}</small>` : ""}</td>
+      <td><span class="ready-status-pill tone-${htmlSafe(meta.tone)}">${htmlSafe(meta.label)}</span><small>${htmlSafe(diffText)}</small></td>
+      <td>${htmlSafe(sourceRole)}<small>${htmlSafe(governance?.replacementStrategy || "按 Ready 层规则进入报告。")}</small></td>
+      <td>${htmlSafe(row.managementAction || meta.reason)}</td>
+    </tr>`;
+  }).join("");
+  bindMetricLinks(body);
+}
+
 function renderLayeredTieout() {
   const host = document.getElementById("layeredTieoutBody");
   if (!host || typeof layeredFactModel !== "function") return;
@@ -692,6 +877,7 @@ function updateDataCoverage() {
     `附录指标：${appendixReady.slice(0, 4).map((item) => fieldName(item.key)).join("、") || "暂无"}`,
     `待补指标：${pending.slice(0, 4).map((item) => fieldName(item.key)).join("、") || "暂无"}`
   ].map((line) => `<span>${line}</span>`).join(""));
+  renderAnnualReportVerification();
   const rowsHtml = keys.map((key) => {
     const selectedRate = completeness(selectedRows, key);
     const allRate = completeness(records, key);

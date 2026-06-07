@@ -987,6 +987,16 @@ function renderTopicWorkbench() {
   const narratives = typeof getTopicNarratives === "function" ? getTopicNarratives(topic.id) : null;
   const draft = narratives || topicAiDraft(topic, facts);
   const judgement = topicJudgement(topic.id, facts);
+  const topicVerification = typeof annualVerificationEvidenceSummary === "function"
+    ? annualVerificationEvidenceSummary(
+      [...new Set((judgement.evidence || facts || []).map((fact) => fact.指标代码).filter(Boolean))].slice(0, 6),
+      state.target,
+      state.year
+    )
+    : null;
+  const topicReadiness = topicVerification && typeof reportReadinessFromVerification === "function"
+    ? reportReadinessFromVerification(topicVerification)
+    : null;
   const insight = typeof topicInsightTriangle === "function" ? topicInsightTriangle(topic.id) : null;
   const firstEvidence = judgement.evidence[0] || availableFacts[0];
   const insightCurrentValue = insight?.currentValue && insight.currentValue !== "待补"
@@ -1009,6 +1019,7 @@ function renderTopicWorkbench() {
       <div><span>变化方向</span><b>${insightTrend}</b></div>
       <div><span>机制解释</span><b>${insightMechanism}</b></div>
     </div>
+    ${topicVerification && typeof verificationBadgeHtml === "function" ? `<div class="topic-verification-note">${verificationBadgeHtml(topicVerification, { label: topicReadiness?.label || "专题证据强度" })}</div>` : ""}
     <div class="topic-report-controls">
       <label class="topic-include-toggle"><input type="checkbox" data-topic-include="${topic.id}" ${isTopicIncluded(topic.id) ? "checked" : ""} />纳入 HTML/PPTX 报告</label>
       <button type="button" class="btn secondary" id="regenerateTopicNarrative">重新生成本专题解读</button>

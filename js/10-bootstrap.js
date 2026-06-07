@@ -107,6 +107,32 @@ document.querySelectorAll(".figure-thumb").forEach((card) => {
   card.appendChild(explain);
 });
 
+function loadReadyDataLayerScript() {
+  if (window.VQA_DATA_READY) {
+    if (typeof hydrateReadyDataLayer === "function") hydrateReadyDataLayer();
+    return;
+  }
+  if (document.querySelector('script[data-ready-layer-script="1"]')) return;
+  const script = document.createElement("script");
+  script.src = "data_ready.js?v=20260606-ready-v2";
+  script.async = true;
+  script.dataset.readyLayerScript = "1";
+  script.onload = () => {
+    if (typeof hydrateReadyDataLayer === "function") hydrateReadyDataLayer();
+  };
+  script.onerror = () => {
+    console.warn("[bootstrap] data_ready.js not loaded, Ready data layer will be unavailable");
+    document.body?.setAttribute("data-ready-layer", "unavailable");
+  };
+  document.body.appendChild(script);
+}
+
+function scheduleReadyDataLayerLoad() {
+  const schedule = () => window.setTimeout(loadReadyDataLayerScript, 0);
+  if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(schedule);
+  else schedule();
+}
+
 async function initApp() {
   // Phase 1 Tushare 指标库扩展：在 records 被任何模块消费前 merge
   if (typeof extendMetricLabels === "function") extendMetricLabels();
@@ -116,9 +142,27 @@ async function initApp() {
   if (typeof initPageRail === "function") initPageRail();
   if (typeof initPortalRouter === "function") initPortalRouter();
 
-  await Promise.all([loadAnalysisRules(), loadMetricDictionary(), loadFieldCoverageMatrix(), loadLanguageDiscipline(), loadNarrativePrompts(), loadAiProviderConfig()]);
+  if (!analysisRules && typeof fallbackAnalysisRules === "function") {
+    analysisRules = fallbackAnalysisRules();
+    applyAnalysisRules();
+    renderRulesVersionBadge();
+  }
   setupMetricModal();
   populateSelectors();
+  scheduleReadyDataLayerLoad();
+  const providerReady = typeof loadAiProviderConfig === "function"
+    ? loadAiProviderConfig().catch(() => (typeof fallbackAiProviderConfig === "function" ? fallbackAiProviderConfig() : null))
+    : Promise.resolve(null);
+  await Promise.all([
+    loadAnalysisRules(),
+    loadMetricDictionary(),
+    loadFieldCoverageMatrix(),
+    loadLanguageDiscipline(),
+    loadNarrativePrompts()
+  ]);
+  renderChoicePanels();
+  syncHiddenSelects();
+  updateSelectionSummary();
   initProjectsModule();
   initAiNarrativeModule();
   initChartNarrativeModule();
@@ -131,7 +175,20 @@ async function initApp() {
   if (typeof initCeamStructureEditorModule === "function") initCeamStructureEditorModule();
   if (typeof initLlmCommentaryModule === "function") initLlmCommentaryModule();
   if (typeof initDecisionWorkbenchModule === "function") initDecisionWorkbenchModule();
+  providerReady.then(() => {
+    if (typeof updateBankCommentaryPanel === "function") updateBankCommentaryPanel();
+    if (typeof renderAiGovernancePanel === "function") renderAiGovernancePanel();
+  });
 }
 
-initApp();
+initApp().catch((error) => {
+  console.error("[bootstrap] initApp failed", error);
+  if (typeof fallbackAnalysisRules === "function" && !analysisRules) analysisRules = fallbackAnalysisRules();
+  try {
+    if (typeof populateSelectors === "function") populateSelectors();
+    if (typeof updateSelectionSummary === "function") updateSelectionSummary();
+  } catch (fallbackError) {
+    console.error("[bootstrap] fallback selector render failed", fallbackError);
+  }
+});
 window.addEventListener("scroll", updateActiveNav, { passive: true });

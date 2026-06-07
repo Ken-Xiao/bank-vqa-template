@@ -13,6 +13,12 @@ function evidenceQualityRows() {
   return [];
 }
 
+function evidenceAnnualVerificationRows() {
+  if (typeof annual_report_verification_2025 !== "undefined" && Array.isArray(annual_report_verification_2025)) return annual_report_verification_2025;
+  if (typeof annualReportVerification !== "undefined" && Array.isArray(annualReportVerification)) return annualReportVerification;
+  return [];
+}
+
 function normalizeEvidenceValue(value) {
   if (value == null || value === "" || Number.isNaN(value)) return null;
   return value;
@@ -105,7 +111,8 @@ function buildEvidencePack({ blockId = "unknown", facts = [], calculations = [],
     calculations: normalizedCalculations,
     quality: normalizedQuality,
     ready_record_wide: evidenceReadyRows().length,
-    ready_metric_quality: evidenceQualityRows().length
+    ready_metric_quality: evidenceQualityRows().length,
+    annual_report_verification_2025: evidenceAnnualVerificationRows().length
   };
   return {
     ...pack,
@@ -117,4 +124,5 @@ if (typeof window !== "undefined") {
   window.normalizeReadyMetricFact = normalizeReadyMetricFact;
   window.buildEvidencePack = buildEvidencePack;
   window.validateEvidencePackLineage = validateEvidencePackLineage;
+  window.evidenceAnnualVerificationRows = evidenceAnnualVerificationRows;
 }

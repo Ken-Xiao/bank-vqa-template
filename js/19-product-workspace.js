@@ -579,6 +579,10 @@ function step2TopicCards(row = typeof targetRecord === "function" ? targetRecord
     const judgement = state?.confirmed && typeof topicJudgement === "function" ? topicJudgement(topic.id, facts) : null;
     const ceam = state?.confirmed && typeof ceamNarrativeBlock === "function" ? ceamNarrativeBlock(topic, facts, "board") : null;
     const evidence = judgement?.evidence?.[0];
+    const evidenceMetrics = (judgement?.evidence || facts || []).map((fact) => fact.指标代码).filter(Boolean);
+    const topicVerification = typeof annualVerificationEvidenceSummary === "function"
+      ? annualVerificationEvidenceSummary([...new Set(evidenceMetrics)].slice(0, 6), row?.bank || state.target, row?.year || state.year)
+      : null;
     const primaryMetric = evidence ? `${evidence.指标名称} ${evidence.目标值}，${evidence.分位}` : "确认分析后补充关键证据";
     return {
       ...topic,
@@ -592,7 +596,8 @@ function step2TopicCards(row = typeof targetRecord === "function" ? targetRecord
       complication: ceam?.Claim || judgement?.headline || topic.mechanism || "确认分析后生成该专题的关键矛盾。",
       evidenceText: ceam?.Evidence || primaryMetric,
       mechanismText: ceam?.Attribution || topic.mechanism || "确认专题机制后补充归因解释。",
-      action: ceam?.Meaning || topic.actions?.[0] || "进入专题分析，补齐证据、机制和行动。"
+      action: ceam?.Meaning || topic.actions?.[0] || "进入专题分析，补齐证据、机制和行动。",
+      topicVerification
     };
   });
 }
@@ -661,6 +666,10 @@ function renderStep2PeerPosition(row) {
   if (!state?.confirmed || !row || !scores.length) {
     return "<div class=\"empty-card\">确认样本后生成五维灯号。</div>";
   }
+  const verifiedMetrics = scores.map((item) => item.weakestMetric?.key).filter(Boolean);
+  const verification = typeof annualVerificationEvidenceSummary === "function"
+    ? annualVerificationEvidenceSummary(verifiedMetrics.length ? verifiedMetrics : ["roa", "nim", "npl", "cet1", "liquidityCoverageRatio"], row.bank, row.year)
+    : null;
   const heatmap = renderStep2PeerHeatmap(row);
   const sparcCards = scores.map((item) => {
     const signal = typeof sparcSignalLevel === "function" ? sparcSignalLevel(item.score) : { level: "neutral", label: "待补", lamp: "待补" };
@@ -673,7 +682,7 @@ function renderStep2PeerPosition(row) {
         <p class="step2-sparc-readout"><b>${step2Esc(readout.metricName)}</b><span>${step2Esc(readout.metricValue)}</span><i>${step2Esc(readout.action)}</i></p>
       </div>`;
   }).join("");
-  return `${heatmap}${sparcCards}`;
+  return `${verification && typeof verificationBadgeHtml === "function" ? verificationBadgeHtml(verification, { label: "同业证据核验" }) : ""}${heatmap}${sparcCards}`;
 }
 
 function renderStep2PeerHeatmap(row) {
@@ -698,6 +707,15 @@ function renderStep2PeerHeatmap(row) {
 
 function renderStep2TopChanges(model) {
   // 新设计（2026-06-02 重构）：chip 网格只显示指标名 + 数值；下方段落统一文字分析
+  const verificationMetrics = [
+    ...(model.positive || []),
+    ...(model.negative || []),
+    ...(model.deviations || []),
+    ...(model.cross || [])
+  ].map((item) => item.key).filter(Boolean);
+  const verification = typeof annualVerificationEvidenceSummary === "function"
+    ? annualVerificationEvidenceSummary([...new Set(verificationMetrics)].slice(0, 8), state.target, state.year)
+    : null;
   const renderChips = (items, mode = "momentum") => items.length
     ? items.slice(0, 5).map((item) => {
         const card = step2ChangeCardModel(item, mode);
@@ -744,7 +762,7 @@ function renderStep2TopChanges(model) {
       </div>
     </section>`;
 
-  return `<div class="step2-change-stack step2-change-compact-grid">
+  return `${verification && typeof verificationBadgeHtml === "function" ? verificationBadgeHtml(verification, { label: "异动证据核验" }) : ""}<div class="step2-change-stack step2-change-compact-grid">
     ${renderLane("扰动信号", "先判断本期变化是否只是阶段扰动", [
       { title: "正向变化", items: model.positive },
       { title: "负向变化", items: model.negative }
@@ -760,12 +778,16 @@ function renderStep2PbAnswer(row, peers) {
   if (!state?.confirmed || !row) return "<div class=\"empty-card\">确认样本后生成市净率估值答案。</div>";
   const pb = typeof theoreticalPB === "function" ? theoreticalPB(row) : null;
   const drivers = typeof pbDriverRanking === "function" ? pbDriverRanking(row, peers).slice(0, 3) : [];
+  const verification = typeof annualVerificationEvidenceSummary === "function"
+    ? annualVerificationEvidenceSummary(["roa", "roe", "nim", "npl", "cet1"], row.bank, row.year)
+    : null;
   const gap = pb?.actual == null || pb?.pb == null ? null : pb.actual - pb.pb;
   const pricing = typeof pbPricingFactorReadout === "function" ? pbPricingFactorReadout(row, peers) : null;
   const pricingSource = pricing && typeof pbPricingModel !== "undefined"
     ? pbPricingModel.conclusions.slice(0, 2).map((item) => item.replace(/。$/, "")).join("；")
     : "";
   return `
+    ${verification && typeof verificationBadgeHtml === "function" ? verificationBadgeHtml(verification, { label: "估值证据核验" }) : ""}
     <div class="step2-pb-head">
       <span>${step2Esc(pricing?.typeNote?.headline || pb?.label || "市净率答案待补")}</span>
       <b>${step2Metric("pb", row.pb)} / 类型中位 ${pricing?.anchor ? step2Metric("pb", pricing.anchor.median) : "待补"} / DDM ${step2Metric("theoreticalPb", pb?.pb)}</b>
@@ -791,6 +813,7 @@ function renderStep2Topics(cards) {
       <span>${step2Esc(card.signal)}｜${step2Esc(card.languageLevel || "L2")} ${step2Esc(card.languageLabel || "审慎判断")}</span>
       <h4>${step2Esc(card.headline)}</h4>
       <em>${step2Esc(card.title)}</em>
+      ${card.topicVerification && typeof verificationBadgeHtml === "function" ? verificationBadgeHtml(card.topicVerification, { label: "专题证据强度" }) : ""}
       <div class="step2-scr-list">
         <div><b>S</b><p>${step2Esc(card.situation)}</p></div>
         <div><b>C</b><p>${step2Esc(card.complication)}</p></div>
@@ -990,17 +1013,23 @@ function updateClientCommandCenter() {
   }
   const weakest = diagnosis.labels?.[diagnosis.weakest] || "关键质量维度";
   const action = diagnosis.dimensions?.[diagnosis.weakest]?.actionTitle || "形成专项修复动作";
+  const verification = typeof annualVerificationEvidenceSummary === "function"
+    ? annualVerificationEvidenceSummary(["roa", "roe", "nim", "npl", "provisionCoverage", "cet1", "liquidityCoverageRatio"], row?.bank || state.target, row?.year || state.year)
+    : null;
+  const readiness = verification && typeof reportReadinessFromVerification === "function"
+    ? reportReadinessFromVerification(verification)
+    : null;
   title.textContent = `${displayBankName(state.target)}${row?.__whatIfSimulation ? "模拟口径 " : ""}价值质量 ${diagnosis.score}分：${diagnosis.signal}`;
-  text.textContent = `${row?.__whatIfSimulation ? "本次读数已叠加情景假设；" : ""}当前最需要优先修复的是${weakest}。建议先围绕“${action}”形成 3-12 个月闭环，再进入董事会汇报稿编排。`;
+  text.textContent = `${row?.__whatIfSimulation ? "本次读数已叠加情景假设；" : ""}当前最需要优先修复的是${weakest}。建议先围绕“${action}”形成 3-12 个月闭环，再进入董事会汇报稿编排。${readiness ? `证据口径判断为${readiness.label}：${readiness.text}` : ""}`;
   if (dataQuality) {
     dataQuality.textContent = quality == null ? "待复核" : `${(quality * 100).toFixed(1)}%`;
     dataQuality.className = quality == null ? "" : quality >= 0.8 ? "good" : quality >= 0.6 ? "warn" : "bad";
   }
   if (weak) weak.textContent = weakest;
   if (status) {
-    const ready = slides.length >= 6 && (quality == null || quality >= 0.8);
-    status.textContent = ready ? "可进入交付复核" : "需补充复核";
-    status.className = ready ? "good" : "warn";
+    const ready = slides.length >= 6 && (quality == null || quality >= 0.8) && (!readiness || readiness.level !== "appendix");
+    status.textContent = readiness?.label || (ready ? "可进入交付复核" : "需补充复核");
+    status.className = readiness?.tone === "green" && ready ? "good" : readiness?.tone === "red" ? "bad" : "warn";
   }
   if (typeof renderGuidedPathPanel === "function") renderGuidedPathPanel();
   if (typeof renderStep2Diagnosis === "function") renderStep2Diagnosis();

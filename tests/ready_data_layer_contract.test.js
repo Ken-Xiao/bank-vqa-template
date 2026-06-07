@@ -23,6 +23,10 @@ const requiredFiles = [
   "data_governance/ready_record_wide.csv",
   "data_governance/ready_metric_quality.json",
   "data_governance/ready_metric_quality.csv",
+  "data_governance/field_source_governance.json",
+  "data_governance/field_source_governance.csv",
+  "data_governance/annual_report_verification_2025.json",
+  "data_governance/annual_report_verification_2025.csv",
 ];
 
 for (const rel of requiredFiles) {
@@ -35,9 +39,11 @@ const ready = loadReadyJs();
 const records = readJson(path.join(GOV, "ready_record_wide.json"));
 const quality = readJson(path.join(GOV, "ready_metric_quality.json"));
 
-assert.strictEqual(ready.version, "20260605-ready-v1", "ready version must be stable");
+assert.strictEqual(ready.version, "20260606-ready-v2", "ready version must be stable");
 assert(Array.isArray(ready.records), "data_ready.js must expose records");
 assert(Array.isArray(ready.metricQuality), "data_ready.js must expose metric quality");
+assert(Array.isArray(ready.fieldGovernance), "data_ready.js must expose field governance");
+assert(Array.isArray(ready.annualReportVerification), "data_ready.js must expose annual report verification");
 assert(records.length >= 300, "ready wide records should cover the current bank-year base");
 assert(quality.length > records.length, "quality table should have metric-level rows");
 

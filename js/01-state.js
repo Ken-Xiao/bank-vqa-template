@@ -32,14 +32,31 @@ var state = {
 };
 
 var data = window.VQA_DATA || { banks: [], records: [], aliases: {} };
-var readyData = window.VQA_DATA_READY || { records: [], metricQuality: [], aliases: {} };
+var readyData = window.VQA_DATA_READY || { records: [], metricQuality: [], fieldGovernance: [], annualReportVerification: [], aliases: {} };
 var records = Array.isArray(readyData.records) && readyData.records.length ? readyData.records : (data.records || []);
 var banks = data.banks || [];
 var readyMetricQuality = Array.isArray(readyData.metricQuality) ? readyData.metricQuality : [];
+var readyFieldGovernance = Array.isArray(readyData.fieldGovernance) ? readyData.fieldGovernance : [];
+var annualReportVerification = Array.isArray(readyData.annualReportVerification) ? readyData.annualReportVerification : [];
 var analysisRules = null;
 var metricDictionary = {};
 var fieldCoverageMatrix = [];
 var languageDiscipline = null;
+
+function hydrateReadyDataLayer() {
+  const nextReady = window.VQA_DATA_READY || null;
+  if (!nextReady || !Array.isArray(nextReady.records)) return false;
+  readyData = nextReady;
+  if (Array.isArray(nextReady.records) && nextReady.records.length) records = nextReady.records;
+  readyMetricQuality = Array.isArray(nextReady.metricQuality) ? nextReady.metricQuality : [];
+  readyFieldGovernance = Array.isArray(nextReady.fieldGovernance) ? nextReady.fieldGovernance : [];
+  annualReportVerification = Array.isArray(nextReady.annualReportVerification) ? nextReady.annualReportVerification : [];
+  document.body?.setAttribute("data-ready-layer", "loaded");
+  if (typeof updateDataCoverage === "function") updateDataCoverage();
+  if (typeof updateBankCommentaryPanel === "function") updateBankCommentaryPanel();
+  if (typeof updateEvidenceMapCommentaryPanel === "function") updateEvidenceMapCommentaryPanel();
+  return true;
+}
 
 var metricLabel = {
   roa: "总资产收益率",

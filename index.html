@@ -802,6 +802,20 @@
               </table>
             </div>
           </div>
+          <div class="annual-verification-panel" id="annualReportVerificationPanel" aria-label="2025 年报核验层">
+            <div class="ready-data-head">
+              <span>二零二五年报核验层</span>
+              <h3>核心指标先判断主表和年报抓取是否能互相验证</h3>
+              <p>本区读取 annualReportVerification，展示主表值、接口补充值、年报抓取值和差异状态；待补不再只显示为缺失，而是拆成核验源暂缺、年报待字段化和三源均缺。</p>
+            </div>
+            <div class="ready-data-kpis" id="annualVerificationKpis"></div>
+            <div class="ready-data-table-wrap">
+              <table class="ready-data-table">
+                <thead><tr><th>银行</th><th>指标</th><th>主表值</th><th>年报抓取值</th><th>差异状态</th><th>字段职责</th><th>管理动作</th></tr></thead>
+                <tbody id="annualVerificationBody"><tr><td colspan="7">确认分析后展示二零二五年报核验。</td></tr></tbody>
+              </table>
+            </div>
+          </div>
           <section class="layered-tieout-panel" id="layeredTieoutPanel">
             <div class="section-head">
               <span>分层链路</span>
@@ -1422,8 +1436,7 @@
   </div>
   <script src="data.js"></script>
   <script src="data_tushare.js?v=20260602-phase1" onerror="console.warn('[bootstrap] data_tushare.js not loaded, Tushare metrics will be unavailable')"></script>
-  <script src="data_ready.js?v=20260605-ready-v1" onerror="console.warn('[bootstrap] data_ready.js not loaded, Ready data layer will be unavailable')"></script>
-  <script src="js/01-state.js"></script>
+  <script src="js/01-state.js?v=20260607-async-ready"></script>
   <script src="js/02-config.js"></script>
   <script src="js/03-data-format.js"></script>
   <script src="js/04-ui-selection.js?v=20260606-auto-model"></script>
@@ -1437,7 +1450,7 @@
   <script src="js/23-investment-evidence.js?v=20260605-portal-v14"></script>
   <script src="js/09-projects.js?v=20260530-benchmarkiq-v2"></script>
   <script src="js/11-fact-pack.js"></script>
-  <script src="js/12-ai-narrative.js?v=20260606-auto-model"></script>
+  <script src="js/12-ai-narrative.js?v=20260607-async-ready"></script>
   <script src="js/13-pptx-export.js?v=20260530-rsm-v5"></script>
   <script src="js/14-report-profiles.js?v=20260530-client-language"></script>
   <script src="js/15-chart-narrative.js?v=20260530-product-storyline"></script>
@@ -1454,7 +1467,7 @@
   <script src="js/30-export-sequence-qa.js?v=20260531-export-qa-v2"></script>
   <script src="js/31-ceam-structure-editor.js?v=20260531-ceam-v2"></script>
   <script src="js/32-pb-pricing-model.js?v=20260601-pb-pricing"></script>
-  <script src="js/33-llm-commentary.js?v=20260606-rewrite-orchestrator"></script>
+  <script src="js/33-llm-commentary.js?v=20260607-async-ready"></script>
   <script src="js/38-evidence-pack-builder.js?v=20260606-rewrite-orchestrator"></script>
   <script src="js/36-layered-fact-model.js?v=20260606-rewrite-orchestrator"></script>
   <script src="js/34-decision-workbench.js?v=20260601-decision-workbench"></script>
@@ -1466,6 +1479,6 @@
   <script src="js/38-tushare-phase2-analyses.js?v=20260602-phase2"></script>
   <script src="js/42-portal-router.js?v=20260605-portal-v14"></script>
   <script src="js/43-page-rail.js?v=20260605-portal-v14"></script>
-  <script src="js/10-bootstrap.js"></script>
+  <script src="js/10-bootstrap.js?v=20260607-async-ready"></script>
 </body>
 </html>

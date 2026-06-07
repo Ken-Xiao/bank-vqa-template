@@ -11,12 +11,12 @@ const formatJs = read("js/03-data-format.js");
 const css = read("styles/app.css");
 
 assert(
-  html.includes('<script src="data_ready.js?v=20260605-ready-v1"'),
-  "index.html must load data_ready.js before state initialization",
+  !html.includes('<script src="data_ready.js?v=20260606-ready-v2"'),
+  "index.html must not synchronously load data_ready.js before Launch renders",
 );
 assert(
-  html.indexOf("data_ready.js?v=20260605-ready-v1") < html.indexOf("js/01-state.js"),
-  "data_ready.js must load before js/01-state.js",
+  stateJs.includes("function hydrateReadyDataLayer"),
+  "state module must support async Ready data hydration",
 );
 assert(
   html.includes('id="readyDataBridgePanel"'),
@@ -32,7 +32,7 @@ assert(
   "state module must read VQA_DATA_READY",
 );
 assert(
-  stateJs.includes("readyData.records") && stateJs.includes("readyMetricQuality"),
+  stateJs.includes("readyData.records") && stateJs.includes("readyMetricQuality") && stateJs.includes("annualReportVerification"),
   "state module must expose Ready records and metric quality",
 );
 assert(

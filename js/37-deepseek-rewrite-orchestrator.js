@@ -124,6 +124,7 @@ function buildRewriteFactPack(block = {}) {
 }
 
 function rewritePromptForBlock(block = {}, factPack = {}) {
+  const verification = factPack.dataVerification?.summary || {};
   return {
     role: block.title || "证据驱动解读",
     instruction: [
@@ -132,12 +133,20 @@ function rewritePromptForBlock(block = {}, factPack = {}) {
       "每个核心判断必须绑定 factPack 中至少两个事实。",
       "如果证据不足，必须降低语气并写出缺口。",
       "不得编造事实包之外数字。",
+      "必须读取 dataVerification：年报核验完成的指标可以支撑强判断，口径差异、主表单源或待字段化指标必须降低语气。",
       "语言风格应接近券商研究员和咨询顾问：观点明确、证据紧跟、管理含义清楚。"
     ],
     outputSchema: ["viewpoint", "conclusion", "evidence", "soWhat", "actions", "citations", "qualityWarnings"],
     factPackSummary: {
       blockId: block.blockId,
-      lineageStatus: factPack.evidencePack?.lineageStatus || factPack.lineageStatus || "partial"
+      lineageStatus: factPack.evidencePack?.lineageStatus || factPack.lineageStatus || "partial",
+      annualVerification: {
+        total: verification.total || 0,
+        matched: verification.matched || 0,
+        conflict: verification.conflict || 0,
+        mainOnly: verification.mainOnly || 0,
+        pending: verification.pending || 0
+      }
     }
   };
 }
@@ -179,7 +188,7 @@ function localRewriteFallback(block = {}, factPack = {}) {
     const evidence = `${first?.label || first?.metricName || "核心指标"}${first?.targetValue ?? first?.value ?? ""}${second ? `，以及${second.label || second.metricName}${second.targetValue ?? second.value ?? ""}` : ""}`;
     const lead = typeof localCommentaryClaim === "function" ? localCommentaryClaim(strengthContext.strength, target, claim) : `${target}${claim}`;
     const proof = typeof localCommentaryEvidenceSentence === "function" ? localCommentaryEvidenceSentence(strengthContext.strength, evidence) : `关键证据是${evidence}`;
-    return `${lead}。${proof}。管理含义是先处理有来源支撑的差距，数据不足的指标不进入强判断。`;
+    return `${lead}。${proof}。管理含义是先处理有来源支撑的差距，数据不足的指标不进入强判断；正式报告应优先保留可核验指标。`;
   }
   if (block.blockType === "report.section") {
     const title = factPack.section?.sectionTitle || block.title || "本章节";

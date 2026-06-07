@@ -1,7 +1,12 @@
 /* Bank VQA module: 12-ai-narrative.js — PRD-25~29 AI写稿与人工编辑 */
 
 var narrativePrompts = null;
-var aiProviderConfig = null;
+
+function fallbackAiProviderConfig() {
+  return { provider: "local", http: { endpoint: "", commentaryEndpoint: "" }, validation: { fallbackToLocal: true } };
+}
+
+var aiProviderConfig = fallbackAiProviderConfig();
 
 async function loadAiProviderConfig() {
   try {
@@ -9,8 +14,9 @@ async function loadAiProviderConfig() {
     if (!response.ok) throw new Error("ai provider unavailable");
     aiProviderConfig = await response.json();
   } catch (error) {
-    aiProviderConfig = { provider: "local", http: { endpoint: "" }, validation: { fallbackToLocal: true } };
+    aiProviderConfig = fallbackAiProviderConfig();
   }
+  return aiProviderConfig;
 }
 
 function factPackNumberTokens(facts) {

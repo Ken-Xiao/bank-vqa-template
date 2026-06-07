@@ -9,7 +9,7 @@ from pathlib import Path
 
 BASE = Path(__file__).resolve().parent
 GOV = BASE / "data_governance"
-VERSION = "20260605-ready-v1"
+VERSION = "20260606-ready-v2"
 
 READY_FIELDS = [
     "roa", "roe", "revenue", "netProfit", "coreRevenueGrowth", "revenueGrowth",
@@ -51,6 +51,13 @@ SCRAPED_PRIORITY_METRICS = {
     "otherDebtInvestment", "tradAsset", "fairValueChgGain", "fxGain",
     "investIncome", "otherNonInterestIncome", "otherAssetImpairLoss",
     "earningAssetYield", "interestLiabilityCost",
+}
+
+DETAIL_ONLY_METRICS = {
+    "housingLoanNpl", "consumerLoanNpl", "businessLoanNpl", "creditCardLoanNpl",
+    "personalLoanNpl", "tradAsset", "debtInvestment", "otherDebtInvestment",
+    "fairValueChgGain", "fxGain", "investIncome", "otherNonInterestIncome",
+    "otherAssetImpairLoss",
 }
 
 CALCULATED_METRICS = {
@@ -173,6 +180,77 @@ FIELD_SOURCE_TABLES = {
     "otherNonInterestIncome": {"other_noninterest_income_long.csv"},
     "otherAssetImpairLoss": {"provision_long.csv"},
 }
+
+CORE_VERIFICATION_METRICS = [
+    "nim", "npl", "provisionCoverage", "cet1", "liquidityCoverageRatio",
+    "roa", "roe", "costIncomeRatio",
+]
+
+FIELD_TOLERANCE = {
+    "nim": 0.03,
+    "npl": 0.03,
+    "provisionCoverage": 1.0,
+    "cet1": 0.05,
+    "liquidityCoverageRatio": 2.0,
+    "roa": 0.03,
+    "roe": 0.10,
+    "costIncomeRatio": 0.20,
+}
+
+METRIC_NAMES = {
+    "nim": "净息差",
+    "npl": "不良贷款率",
+    "provisionCoverage": "拨备覆盖率",
+    "cet1": "核心一级资本充足率",
+    "liquidityCoverageRatio": "流动性覆盖率",
+    "roa": "总资产收益率",
+    "roe": "净资产收益率",
+    "costIncomeRatio": "成本收入比",
+}
+
+
+def field_source_role(field: str) -> str:
+    if field in MARKET_METRICS:
+        return "supplement"
+    if field in DETAIL_ONLY_METRICS:
+        return "detail-only"
+    if field in SCRAPED_PRIORITY_METRICS:
+        return "validation"
+    if field in FIELD_SOURCE_TABLES:
+        return "detail-only"
+    return "primary"
+
+
+def field_governance_row(field: str) -> dict:
+    role = field_source_role(field)
+    related_tables = sorted(FIELD_SOURCE_TABLES.get(field, set()))
+    if role == "supplement":
+        replacement = "补充主表缺口，不覆盖经营财报主口径；进入报告时标注市场快照口径。"
+        report_use = "资本市场专题、估值解释、附录"
+    elif role == "validation":
+        replacement = "主数据优先；年报抓取用于 2025 核验，主表缺失时可补值，但需保留来源和页码。"
+        report_use = "主报告可用，需保留核验脚注"
+    elif role == "detail-only":
+        replacement = "仅进入专题 drill 或后端明细事实表，不硬塞进前端宽表。"
+        report_use = "专题明细、数据复核、附录"
+    else:
+        replacement = "作为 Portal 默认经营主表；补充源只解释差异，不直接覆盖。"
+        report_use = "默认诊断、对标、正式报告"
+    return {
+        "metric": field,
+        "metricName": METRIC_NAMES.get(field, field),
+        "sourceRole": role,
+        "primarySource": "main" if role in {"primary", "validation", "detail-only"} else "",
+        "supplementSource": "tushare_market" if field in MARKET_METRICS else ("tushare" if role == "supplement" else ""),
+        "validationSource": "annual_report_scraped" if related_tables else "",
+        "detailTables": ";".join(related_tables),
+        "unitPolicy": "金额字段统一为万元；比例字段统一为百分比；市场字段保留 Tushare 原始披露单位并在展示层格式化。",
+        "signPolicy": "利息支出、所得税、信用减值等损益字段先按披露正负号登记，再在计算层统一方向。",
+        "consolidationPolicy": "默认采用合并口径；母公司或单体口径只能进入 detail-only 或脚注。",
+        "replacementStrategy": replacement,
+        "reportUse": report_use,
+        "conflictThreshold": FIELD_TOLERANCE.get(field, 0.05),
+    }
 
 
 def load_js_object(path: Path, var_name: str) -> dict:
@@ -356,6 +434,62 @@ def write_csv(path: Path, rows: list[dict], fieldnames: list[str]):
         writer.writerows(rows)
 
 
+def verification_status(metric: str, main_value, tushare_value, scraped_value, related_tables: str) -> tuple[str, str, float | None, float | None]:
+    main_number = to_number(main_value)
+    scraped_number = to_number(scraped_value)
+    tushare_number = to_number(tushare_value)
+    reference = scraped_number if scraped_number is not None else tushare_number
+    if main_number is not None and reference is not None:
+        diff = round(main_number - reference, 6)
+        base = abs(reference) if abs(reference) > 1e-9 else None
+        pct = round(abs(diff) / base, 6) if base else None
+        tolerance = FIELD_TOLERANCE.get(metric, 0.05)
+        if abs(diff) <= tolerance:
+            return "matched", "主表值与核验源在容忍阈值内，可进入主报告。", diff, pct
+        return "source_conflict_review", "主表值与核验源差异超过阈值，需复核单位、符号或合并口径。", diff, pct
+    if main_number is not None and related_tables:
+        return "scraped_pending_fieldization", "主表已有值，年报有相关明细但暂未稳定映射到该字段。", None, None
+    if main_number is not None:
+        return "main_only", "主表已有值，核验源暂缺；正式报告保留主数据口径说明。", None, None
+    if reference is not None:
+        return "filled_from_validation", "主表缺值，核验源已有值；可作为补充值但需保留来源。", None, None
+    return "missing", "三源均未形成可核验值，不能进入强结论。", None, None
+
+
+def build_verification_rows(metric_quality: list[dict]) -> list[dict]:
+    rows = []
+    for item in metric_quality:
+        if int(item.get("year") or 0) != 2025:
+            continue
+        metric = item.get("metric")
+        if metric not in CORE_VERIFICATION_METRICS:
+            continue
+        status, action, diff, pct = verification_status(
+            metric,
+            item.get("mainValue"),
+            item.get("tushareValue"),
+            item.get("scrapedValue"),
+            item.get("relatedScrapedTables") or "",
+        )
+        rows.append({
+            "bank": item.get("bank"),
+            "year": item.get("year"),
+            "metric": metric,
+            "metricName": METRIC_NAMES.get(metric, metric),
+            "mainValue": item.get("mainValue"),
+            "tushareValue": item.get("tushareValue"),
+            "scrapedValue": item.get("scrapedValue"),
+            "selectedSource": item.get("selectedSource"),
+            "scrapedSource": item.get("scrapedSource"),
+            "relatedScrapedTables": item.get("relatedScrapedTables"),
+            "verificationStatus": status,
+            "differenceAbs": diff,
+            "differencePct": pct,
+            "managementAction": action,
+        })
+    return rows
+
+
 def main() -> None:
     GOV.mkdir(exist_ok=True)
     vqa = load_js_object(BASE / "data.js", "VQA_DATA")
@@ -415,6 +549,9 @@ def main() -> None:
         ready["_readyFieldStatus"] = field_status
         ready_records.append(ready)
 
+    field_governance = [field_governance_row(field) for field in READY_FIELDS]
+    annual_report_verification = build_verification_rows(metric_quality)
+
     payload = {
         "version": VERSION,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
@@ -424,6 +561,8 @@ def main() -> None:
             "mergePolicy": "main_preserved_market_tushare_scraped_fills_missing",
         },
         "aliases": aliases,
+        "fieldGovernance": field_governance,
+        "annualReportVerification": annual_report_verification,
         "records": ready_records,
         "metricQuality": metric_quality,
     }
@@ -434,6 +573,14 @@ def main() -> None:
     )
     (GOV / "ready_metric_quality.json").write_text(
         json.dumps(metric_quality, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    (GOV / "field_source_governance.json").write_text(
+        json.dumps(field_governance, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    (GOV / "annual_report_verification_2025.json").write_text(
+        json.dumps(annual_report_verification, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     (BASE / "data_ready.js").write_text(
@@ -451,10 +598,24 @@ def main() -> None:
         "relatedScrapedTables",
     ]
     write_csv(GOV / "ready_metric_quality.csv", metric_quality, quality_fields)
+    governance_fields = [
+        "metric", "metricName", "sourceRole", "primarySource", "supplementSource",
+        "validationSource", "detailTables", "unitPolicy", "signPolicy",
+        "consolidationPolicy", "replacementStrategy", "reportUse", "conflictThreshold",
+    ]
+    write_csv(GOV / "field_source_governance.csv", field_governance, governance_fields)
+    verification_fields = [
+        "bank", "year", "metric", "metricName", "mainValue", "tushareValue",
+        "scrapedValue", "selectedSource", "scrapedSource", "relatedScrapedTables",
+        "verificationStatus", "differenceAbs", "differencePct", "managementAction",
+    ]
+    write_csv(GOV / "annual_report_verification_2025.csv", annual_report_verification, verification_fields)
 
     print(f"generated {BASE / 'data_ready.js'}")
     print(f"generated {GOV / 'ready_record_wide.json'}")
     print(f"generated {GOV / 'ready_metric_quality.json'}")
+    print(f"generated {GOV / 'field_source_governance.json'}")
+    print(f"generated {GOV / 'annual_report_verification_2025.json'}")
 
 
 if __name__ == "__main__":

@@ -79,6 +79,7 @@ function bankCommentaryFactPack(row = typeof targetRecord === "function" ? targe
     } : null,
     topics,
     dataQuality: typeof criticalMetricCompleteness === "function" ? criticalMetricCompleteness() : null,
+    dataVerification: bankCommentaryAnnualVerification(row?.bank || state.target, state.year),
     guardrails: {
       noExternalNumbers: true,
       citeFactPackOnly: true,
@@ -99,6 +100,45 @@ function bankCommentaryAnomalyRow(item = {}) {
     direction: item.momentum?.direction || "",
     acceleration: item.momentum?.acceleration || ""
   };
+}
+
+function bankCommentaryAnnualVerification(bank, year = state.year) {
+  if (!Array.isArray(annualReportVerification) || !annualReportVerification.length) {
+    return { rows: [], summary: { total: 0, matched: 0, conflict: 0, mainOnly: 0, pending: 0, missing: 0, verifiedRate: null } };
+  }
+  const canonical = typeof resolveBank === "function" ? resolveBank(bank || state.target) : (bank || state.target);
+  const rows = annualReportVerification
+    .filter((item) => (typeof resolveBank === "function" ? resolveBank(item.bank) : item.bank) === canonical && Number(item.year) === Number(year))
+    .map((item) => ({
+      metric: item.metric,
+      metricName: item.metricName || (typeof fieldName === "function" ? fieldName(item.metric) : item.metric),
+      mainValue: item.mainValue,
+      scrapedValue: item.scrapedValue,
+      status: item.verificationStatus,
+      selectedSource: item.selectedSource,
+      scrapedSource: item.scrapedSource,
+      action: item.managementAction
+    }));
+  const summary = rows.reduce((acc, item) => {
+    if (item.status === "matched" || item.status === "filled_from_validation") acc.matched += 1;
+    if (item.status === "source_conflict_review") acc.conflict += 1;
+    if (item.status === "main_only") acc.mainOnly += 1;
+    if (item.status === "scraped_pending_fieldization") acc.pending += 1;
+    if (item.status === "missing") acc.missing += 1;
+    acc.total += 1;
+    return acc;
+  }, { total: 0, matched: 0, conflict: 0, mainOnly: 0, pending: 0, missing: 0, verifiedRate: null });
+  summary.verifiedRate = summary.total ? summary.matched / summary.total : null;
+  return { rows, summary };
+}
+
+function bankCommentaryVerificationSentence(verification = {}) {
+  const summary = verification.summary || {};
+  if (!summary.total) return "年报核验层尚未形成足够记录，相关判断应保留数据边界。";
+  if (summary.conflict) return `年报核验层提示${summary.conflict}项核心指标存在口径差异，结论可以成立，但正式上会前需要先复核底稿。`;
+  if (summary.verifiedRate >= 0.75) return `年报核验层已有${summary.matched}/${summary.total}项核心指标完成交叉验证，当前判断具备进入主报告的基础。`;
+  if (summary.mainOnly || summary.pending) return `年报核验层显示仍有${summary.mainOnly + summary.pending}项依赖主表或待字段化，当前判断应使用审慎语气。`;
+  return "年报核验层未发现明显冲突，但仍需保留来源脚注。";
 }
 
 function evidenceMapFactPack(row = typeof targetRecord === "function" ? targetRecord() : null, peers = typeof peerRecords === "function" ? peerRecords() : []) {
@@ -160,6 +200,7 @@ function evidenceMapFactPack(row = typeof targetRecord === "function" ? targetRe
       roe: row?.roe ?? null,
       roa: row?.roa ?? null
     },
+    dataVerification: bankCommentaryAnnualVerification(row?.bank || state.target, state.year),
     guardrails: {
       conclusionFirst: true,
       noMethodologyNarration: true,
@@ -177,6 +218,7 @@ function evidenceMapPrompt(pack = evidenceMapFactPack()) {
       "结论先行：第一句直接判断异动偏离对经营质量的含义。",
       "不要解释方法论，不要讲系统如何计算，不要写“需要综合分析”这类空话。",
       "必须基于事实包中的同业位置、异动偏离、估值锚和数据边界生成。",
+      "必须读取 dataVerification：已核验的证据可以形成强判断，口径差异或主表单源必须降低语气。",
       "语言风格为券商研究员和咨询公司合并风格：观点明确、证据紧跟、管理含义清楚。"
     ].join("\n"),
     requiredStructure: ["核心观点", "关键证据", "与其他页面的关联", "管理含义"],
@@ -188,24 +230,27 @@ function localCommentaryStrengthContext(pack = {}) {
   const priority = pack.anomalyMap?.priority || [];
   const anomalyZ = priority.map((item) => Math.abs(Number(item.z) || 0)).sort((a, b) => b - a)[0] || 0;
   const quality = Number(pack.dataQuality ?? pack.readyDataQuality ?? 0);
-  const riskLevel = quality >= 0.9 ? "L2" : quality >= 0.75 ? "L3" : "L4";
+  const verification = pack.dataVerification?.summary || {};
+  const hasConflict = Number(verification.conflict || 0) > 0;
+  const hasPending = Number(verification.mainOnly || 0) + Number(verification.pending || 0) + Number(verification.missing || 0) > 0;
+  const riskLevel = hasConflict ? "L4" : hasPending ? "L3" : quality >= 0.9 ? "L2" : quality >= 0.75 ? "L3" : "L4";
   const zScore = Math.max(anomalyZ, Math.abs((Number(pack.diagnosis?.score) || 50) - 50) / 12);
   const strength = typeof languageStrengthTier === "function" ? languageStrengthTier(zScore, riskLevel) : (zScore > 1.2 ? "strong" : "implicit");
   return { strength, zScore, riskLevel, quality };
 }
 
 function localCommentaryClaim(strength, target, claim) {
-  if (strength === "strong") return `${target}当前的直接判断是：${claim}`;
-  if (strength === "tentative") return `${target}当前只能形成审慎判断：${claim}仍需结合数据边界复核`;
-  return `${target}当前较明确的判断是：${claim}`;
+  if (strength === "strong") return `${target}本轮可以直接下判断：${claim}`;
+  if (strength === "tentative") return `${target}本轮应先保留审慎判断：${claim}，但结论强度取决于底稿复核`;
+  return `${target}当前较清晰的判断是：${claim}`;
 }
 
 function localCommentaryEvidenceSentence(strength, evidence) {
-  if (!evidence) return "关键证据仍不足，当前结论应先保留在复核层。";
+  if (!evidence) return "证据还不足以支撑强判断，当前结论应先留在复核层。";
   if (typeof phraseByStrength === "function") {
-    return phraseByStrength(strength, "关键证据已经指向同一经营约束", evidence);
+    return phraseByStrength(strength, "证据已经集中指向同一经营约束", evidence);
   }
-  return `关键证据是：${evidence}`;
+  return `证据上，${evidence}`;
 }
 
 function localEvidenceMapCommentaryDraft(pack = evidenceMapFactPack()) {
@@ -222,11 +267,13 @@ function localEvidenceMapCommentaryDraft(pack = evidenceMapFactPack()) {
   const evidence = priority.length
     ? priority.slice(0, 3).map((item) => `${item.label}${item.current}、对标${item.peer}，${item.signal}`).join("；")
     : "异动偏离未形成足够强的共振信号";
-  const claim = `${weak}是本轮经营质量判断的优先验证点，${signal}需要由同业位置、异动偏离和估值锚共同支撑`;
+  const verificationText = bankCommentaryVerificationSentence(pack.dataVerification);
+  const claim = `${weak}已经是本轮经营质量判断的优先验证点，${signal}不是单一指标波动，而是需要看差距是否正在扩大`;
   return [
     `${localCommentaryClaim(strength, target, claim)}。`,
     `${localCommentaryEvidenceSentence(strength, `${evidence}${second ? `；其中${second.label}需要和${first?.label || weak}联读` : ""}`)}。`,
-    `与其他页面的关系是：同业位置负责判断差距是否真实，异动偏离负责判断差距是否正在扩大，估值锚负责判断市场是否已经定价这类压力；当前估值参考为${pbText}。`,
+    `这张证据地图的作用不是复述指标，而是把同业位置、异动偏离和估值锚串起来：差距是否真实、压力是否扩大、市场是否已经给出折价；当前估值参考为${pbText}。`,
+    `数据边界上，${verificationText}`,
     `管理含义是：先把${first?.label || weak}放入专题深钻和报告主线，再决定是否形成董事会行动项；${strength === "tentative" ? "若数据边界未补齐，正式报告应降低结论强度。" : "若这些指标继续偏离对标组，正式报告应保持结论先行。"}`
   ].join("");
 }
@@ -348,7 +395,8 @@ function bankCommentaryPrompt(pack = bankCommentaryFactPack(), channel = "board"
       `请为${pack.displayBank}${pack.year}年银行经营质量分析生成${label}。`,
       "必须使用咨询表达：先给判断，再给证据，再解释机制，最后给管理含义。",
       "不得编造事实包之外的数字，不得给投资建议，不得使用空泛方法论。",
-      "如果事实包数据不足，应明确降级表达并说明需要补充的数据。"
+      "如果事实包数据不足，应明确降级表达并说明需要补充的数据。",
+      "必须读取 dataVerification：核验完成的指标可进入主判断，存在口径差异或主表单源的指标只能作为审慎判断。"
     ].join("\n"),
     requiredStructure: ["核心判断", "关键证据", "机制解释", "管理含义"],
     factPack: pack
@@ -371,16 +419,18 @@ function localBankCommentaryDraft(pack = bankCommentaryFactPack(), channel = "bo
     deviation ? `${deviation.label}相对对标组${deviation.signal}` : ""
   ].filter(Boolean).join("；");
   const strength = localCommentaryStrengthContext(pack).strength;
-  const claim = `${weak}需要被放在本轮管理议程前列，而不是只作为单项指标波动处理`;
+  const verificationText = bankCommentaryVerificationSentence(pack.dataVerification);
+  const claim = `${weak}应放在本轮管理议程前列，而不是被处理成单项指标波动`;
   const channelLead = channel === "market"
-    ? "对资本市场沟通时，重点不是宣称估值修复，而是说明经营质量、风险确认和同业位置能否支撑估值叙事。"
+    ? "资本市场沟通的重点不应是提前宣称估值修复，而是说明经营质量、风险确认和同业位置是否足以支撑估值叙事。"
     : channel === "action"
-      ? "对管理层而言，这段评论应落到责任动作、复盘指标和时间窗口。"
-      : "对董事会而言，这段评论应先回答价值质量约束是否已经影响下一阶段经营优先级。";
+      ? "管理层版本要落到责任动作、复盘指标和时间窗口，避免停留在泛泛的指标解释。"
+      : "董事会版本应先回答价值质量约束是否已经影响下一阶段经营优先级。";
   return [
     `${localCommentaryClaim(strength, target, claim)}。`,
     `${localCommentaryEvidenceSentence(strength, evidence)}。`,
-    `从机制上看，这一判断需要把同业位置、PB定价和异动偏离放在同一条证据链中复核；${topic?.headline || "专题证据将决定该判断能否进入正式报告主线"}。`,
+    `从机制上看，问题不在于某个指标单点偏低，而在于同业位置、PB定价和异动偏离是否同时指向同一个经营约束；${topic?.headline || "专题证据将决定该判断能否进入正式报告主线"}。`,
+    `数据边界上，${verificationText}`,
     `管理含义是：${channelLead}${diagnosis?.action ? `下一步建议围绕“${diagnosis.action}”形成0-3个月复核动作。` : "下一步应先补齐事实包，再决定是否形成强判断。"}`
   ].join("");
 }
@@ -638,6 +688,7 @@ function bankCommentaryExportRows() {
       分析年份: pack.year || "",
       VQA信号: pack.diagnosis?.signal || "",
       最弱维度: pack.diagnosis?.weakest || "",
+      年报核验: bankCommentaryVerificationSentence(pack.dataVerification),
       事实包约束: pack.guardrails?.citeFactPackOnly ? "仅引用事实包" : "未启用",
       评论正文: commentary.text
     };
