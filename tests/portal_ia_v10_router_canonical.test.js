@@ -17,22 +17,23 @@ const css = fs.readFileSync("styles/app.css", "utf8");
   'data-portal-page="evidence"',
   'data-portal-page="topics"',
   'data-portal-page="report"',
+  'data-portal-page="benchmark"',
   'data-portal-page="data"'
 ].forEach((needle) => assert(html.includes(needle), `missing canonical page shell marker: ${needle}`));
 
 [
   'src="js/42-portal-router.js',
   'src="js/43-page-rail.js',
-  'src="js/10-bootstrap.js"'
+  'src="js/10-bootstrap.js'
 ].forEach((needle) => assert(html.includes(needle), `missing router script: ${needle}`));
 assert(
   html.indexOf('src="js/42-portal-router.js') < html.indexOf('src="js/43-page-rail.js')
-    && html.indexOf('src="js/43-page-rail.js') < html.indexOf('src="js/10-bootstrap.js"'),
+    && html.indexOf('src="js/43-page-rail.js') < html.indexOf('src="js/10-bootstrap.js'),
   "portal router and page rail must load before bootstrap"
 );
 
 [
-  'var PORTAL_PAGES = ["launch", "answer", "evidence", "topics", "report", "data"]',
+  'var PORTAL_PAGES = ["launch", "answer", "evidence", "topics", "report", "benchmark", "data"]',
   "function setPortalPage",
   "function getPortalPage",
   "function initPortalRouter",
@@ -86,6 +87,7 @@ assert(router.includes("skipPortal: true"), "router must sync app mode without r
   'body[data-app-page="evidence"] [data-portal-page]:not([data-portal-page~="evidence"])',
   'body[data-app-page="topics"] [data-portal-page]:not([data-portal-page~="topics"])',
   'body[data-app-page="report"] [data-portal-page]:not([data-portal-page~="report"])',
+  'body[data-app-page="benchmark"] [data-portal-page]:not([data-portal-page~="benchmark"])',
   'body[data-app-page="data"] [data-portal-page]:not([data-portal-page~="data"])'
 ].forEach((needle) => assert(css.includes(needle), `CSS missing page visibility rule: ${needle}`));
 

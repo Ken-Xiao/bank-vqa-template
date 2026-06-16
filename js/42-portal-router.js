@@ -12,23 +12,25 @@
  *   6. 错误降级：任何无效 page 都 fall back 到 launch
  */
 
-var PORTAL_PAGES = ["launch", "answer", "evidence", "topics", "report", "data"];
+var PORTAL_PAGES = ["launch", "answer", "evidence", "topics", "report", "benchmark", "data"];
 
 var PORTAL_PAGE_LABELS = {
-  launch: "设定口径",
-  answer: "经营质量",
+  launch: "入口工作台",
+  answer: "董事会入口",
   evidence: "证据地图",
-  topics: "专题分析",
-  report: "报告工作室",
+  topics: "专题与风控",
+  report: "报告入口",
+  benchmark: "数据入口",
   data: "数据复核",
 };
 
 var PORTAL_PAGE_SUMMARY = {
-  launch: "目标银行、对标组、汇报场景",
-  answer: "总判断、核心指标、董事会议题",
+  launch: "数据入口、报告入口、角色入口",
+  answer: "30秒总判断、董事会议题、行动优先级",
   evidence: "异动归因、同业位置、市净率信号",
-  topics: "专题入口、机制深钻、行动节奏",
-  report: "报告预览、章节编辑、导出控制",
+  topics: "风险机制、专题链路、行动节奏",
+  report: "报告预览、章节编辑、附录与导出",
+  benchmark: "选定银行 × 9 域 × 因果链追溯",
   data: "字段口径、三源对照、血缘卡",
 };
 
@@ -49,6 +51,9 @@ var PORTAL_PAGE_SUB = {
   report:      [{ key: "preview",    label: "报告预览" },
                 { key: "structure",  label: "章节编辑" },
                 { key: "export",     label: "导出控制" }],
+  benchmark:   [{ key: "selectBank", label: "选银行" },
+                { key: "peerGroup",  label: "对标组" },
+                { key: "domainPanel",label: "数据域" }],
   data:        [{ key: "fields",     label: "字段口径" },
                 { key: "triSource",  label: "三源对照" },
                 { key: "lineage",    label: "血缘卡" }],
@@ -64,8 +69,9 @@ function normalizePortalPage(p) {
 }
 
 function portalPageEnabled(page) {
-  // launch 总是可达；其他页面需要 state.confirmed
+  // launch / benchmark 总是可达（benchmark 是纯数据对标，不依赖 confirmed）
   if (page === "launch") return true;
+  if (page === "benchmark") return true;
   if (typeof state !== "undefined" && state.confirmed) return true;
   if (typeof document !== "undefined" && document.body && document.body.dataset.appState !== "setup") return true;
   return false;
@@ -78,6 +84,7 @@ function portalWorkspaceTab(page) {
     evidence: "overview",
     topics: "topics",
     report: "report",
+    benchmark: "overview",
     data: "data",
   };
   return map[page] || "overview";
@@ -100,9 +107,12 @@ function setPortalPage(page, options) {
   if (target !== "launch" && typeof setWorkspaceTab === "function") {
     setWorkspaceTab(portalWorkspaceTab(target));
   }
-  // URL hash 同步（不触发自己的 hashchange）
+  // URL hash 同步（不触发自己的 hashchange）— 保留 #page/X 后面的 ?query 部分
   if (!options.skipHash && typeof window !== "undefined" && window.location) {
-    var newHash = "#page/" + target;
+    var prevHash = window.location.hash || "";
+    var qIdx = prevHash.indexOf("?");
+    var qPart = qIdx >= 0 ? prevHash.substring(qIdx) : "";
+    var newHash = "#page/" + target + qPart;
     if (window.location.hash !== newHash) {
       try {
         history.replaceState(null, "", newHash);
@@ -191,6 +201,8 @@ function initPortalRouter() {
 // 与 setAppMode 协同：保持向后兼容
 function syncAppModeFromPortalPage(page) {
   if (typeof setAppMode !== "function") return;
+  // benchmark 是无门槛直达页，不触发 setAppMode（避开 analysis 引擎的卡顿）
+  if (page === "benchmark") return;
   var modeMap = {
     launch: "setup",
     answer: "analysis",

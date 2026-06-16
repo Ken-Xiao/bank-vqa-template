@@ -8,15 +8,28 @@
   <link rel="stylesheet" href="styles/app.css?v=20260606-evidence-commentary" />
   <link rel="stylesheet" href="styles/rsm-consulting-ppt.css?v=20260530-client-spine" />
   <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-v7" />
+  <link rel="stylesheet" href="styles/benchmark.css?v=20260615-benchmark-v1" />
   <link rel="stylesheet" href="styles/print.css?v=20260531-prd-v6" media="print" />
 
 </head>
 <body data-app-state="setup" data-app-page="launch">
   <header class="global-bar" id="globalBar" aria-label="经营对标全局导航">
     <button class="global-brand" id="globalBrandHome" type="button" data-app-mode-target="setup" aria-label="返回设定口径">经营对标</button>
-    <div class="global-context">
-      <span id="globalBankContext">待选择银行</span>
-      <b id="globalVqaSignal">确认口径后生成诊断</b>
+    <div class="global-context" role="status" aria-live="polite">
+      <!-- Sprint 17 线 B：4 个 context pill 对齐 v10 mock。
+           保留 globalBankContext / globalVqaSignal id 供 js/19/33 调用 -->
+      <span class="context-pill" data-pill-key="bank" id="globalBankPill">
+        <b id="globalBankContext">待选择银行</b>
+      </span>
+      <span class="context-pill" data-pill-key="peer" id="globalPeerPill">
+        对标：<b id="globalPeerContext">待设置</b>
+      </span>
+      <span class="context-pill" data-pill-key="scenario" id="globalScenarioPill">
+        场景：<b id="globalScenarioContext">董事会判断</b>
+      </span>
+      <span class="context-pill" data-pill-key="status" id="globalStatusPill">
+        <b id="globalVqaSignal">确认口径后生成诊断</b>
+      </span>
     </div>
     <nav class="global-steps" aria-label="三步工作流">
       <button type="button" data-app-mode-target="setup"><span>1</span>设定口径</button>
@@ -24,6 +37,7 @@
       <button type="button" data-app-mode-target="report"><span>3</span>出报告</button>
     </nav>
     <div class="global-actions">
+      <button class="global-benchmark-direct" id="globalBenchmarkDirect" type="button" data-page-link="benchmark" aria-label="直接进入数据对标，无需先完成口径设定">数据对标</button>
       <button class="global-tool-toggle" id="openToolDrawer" type="button" aria-controls="toolDrawer" aria-expanded="false">工具箱</button>
       <button class="global-export-toggle" id="globalExportToggle" type="button">导出</button>
     </div>
@@ -58,8 +72,71 @@
     </section>
 
     <section class="workspace">
+      <!-- PR-S2：6 章节 hero (Editorial × McKinsey)。CHAPTER kicker + 衬线大字 + lede。
+           顺序：chapter-hero 在 page-header 之前（叙事在前 / 状态在后） -->
+      <div class="chapter-hero-host" data-chapter-hero-host="launch"   data-portal-page="launch"></div>
+      <div class="page-header-host"  data-page-header="launch"          data-portal-page="launch"></div>
+      <div class="chapter-hero-host" data-chapter-hero-host="answer"   data-portal-page="answer"></div>
+      <div class="page-header-host"  data-page-header="answer"          data-portal-page="answer"></div>
+      <div class="chapter-hero-host" data-chapter-hero-host="evidence" data-portal-page="evidence"></div>
+      <div class="page-header-host"  data-page-header="evidence"        data-portal-page="evidence"></div>
+      <div class="chapter-hero-host" data-chapter-hero-host="topics"   data-portal-page="topics"></div>
+      <div class="page-header-host"  data-page-header="topics"          data-portal-page="topics"></div>
+      <div class="chapter-hero-host" data-chapter-hero-host="report"   data-portal-page="report"></div>
+      <div class="page-header-host"  data-page-header="report"          data-portal-page="report"></div>
+      <div class="chapter-hero-host" data-chapter-hero-host="data"     data-portal-page="data"></div>
+      <div class="page-header-host"  data-page-header="data"            data-portal-page="data"></div>
       <div class="control-surface step-shell step1-content" id="step1Content" data-step-shell="setup" data-portal-page="launch" aria-label="设定口径">
-        <div class="selection-intro">
+        <section class="entry-decision-panel" id="entryDecisionPanel" aria-label="选择工作入口">
+          <header class="entry-decision-head">
+            <span>入口工作台</span>
+            <h2>先选择工作方式，再进入对应分析页面</h2>
+            <p>数据入口负责选银行、看指标和追因果；报告入口负责组织结论、沉淀附录和导出汇报。角色入口会把页面默认带到最常用的分析深度。</p>
+          </header>
+          <div class="entry-workflow-grid" aria-label="主工作流入口">
+            <button type="button" class="entry-route-card is-data" data-entry-route="data" data-page-link="benchmark">
+              <span>数据入口</span>
+              <b>从指标和对标开始</b>
+              <em>选择目标银行、对标组、9 个数据域和因果链分解。</em>
+            </button>
+            <button type="button" class="entry-route-card is-report" data-entry-route="report" data-page-link="report">
+              <span>报告入口</span>
+              <b>从汇报和交付开始</b>
+              <em>审阅正式报告、收集数据附录、调整章节并导出。</em>
+            </button>
+          </div>
+          <div class="entry-role-grid" aria-label="按角色进入">
+            <button type="button" class="entry-role-card" data-entry-role="board" data-page-link="answer">
+              <span>董事会 / 行长室</span>
+              <b>先看总答案</b>
+              <em>30 秒判断、董事会议题、行动优先级。</em>
+            </button>
+            <button type="button" class="entry-role-card" data-entry-role="cfo" data-page-link="benchmark">
+              <span>CFO / 财务</span>
+              <b>先看指标矩阵</b>
+              <em>口径、分位、趋势、分解和附录证据。</em>
+            </button>
+            <button type="button" class="entry-role-card" data-entry-role="cro" data-page-link="topics">
+              <span>CRO / 风控</span>
+              <b>先看风险机制</b>
+              <em>资产质量、对公零售、IFRS9 和拨备链。</em>
+            </button>
+            <button type="button" class="entry-role-card" data-entry-role="expert" data-page-link="data">
+              <span>研究 / 专家</span>
+              <b>先看数据底稿</b>
+              <em>字段覆盖、三源对照、血缘和口径复核。</em>
+            </button>
+          </div>
+        </section>
+        <div class="launch-disclosure-toggle" id="launchDisclosureToggle" data-portal-page="launch" role="region" aria-label="背景介绍切换">
+          <div class="launch-disclosure-summary">
+            <span>设定口径</span>
+            <b>页头已说明本次汇报的样本边界与诊断进度</b>
+            <p>背景介绍、客户问题、分析路径、交付形态默认折叠；首次接触本产品的人可一键展开。</p>
+          </div>
+          <button type="button" class="launch-disclosure-btn" id="launchDisclosureBtn" aria-expanded="false" aria-controls="launchBackgroundGroup">展开背景介绍</button>
+        </div>
+        <div class="selection-intro" data-launch-disclosure="background">
           <div>
             <span>分析口径设置</span>
           <h2>先确定分析对象与参照样本，再形成可辩护的同业位置判断</h2>
@@ -71,7 +148,7 @@
             <div><b>03 输出建议</b><span>把关键发现转化为董事会可审阅、管理层可承接的行动顺序。</span></div>
           </div>
         </div>
-        <div class="project-briefing-grid">
+        <div class="project-briefing-grid" data-launch-disclosure="background">
           <div class="briefing-card is-primary">
             <span>客户问题</span>
             <b>目标银行当前价值质量差异主要来自哪里，下一步应优先修复什么？</b>
@@ -308,7 +385,7 @@
           </div>
         </div>
       </section>
-      <section class="v5-value-panel analysis-content" id="v5ValuePanel" data-workspace-tab="overview" data-overview-depth="secondary" data-portal-page="topics" aria-label="价值创造与估值归因">
+      <section class="v5-value-panel analysis-content" id="v5ValuePanel" data-workspace-tab="overview" data-overview-depth="secondary" data-portal-page="topics" data-topics-disclosure="advanced" aria-label="价值创造与估值归因">
         <div class="v5-panel-head">
           <div>
             <span>价值质量专题</span>
@@ -359,7 +436,7 @@
           </div>
         </div>
       </section>
-      <section class="ib-evidence-panel analysis-content" id="ibEvidencePanel" data-workspace-tab="overview" data-overview-depth="secondary" data-portal-page="topics" aria-label="投行级证据页">
+      <section class="ib-evidence-panel analysis-content" id="ibEvidencePanel" data-workspace-tab="overview" data-overview-depth="secondary" data-portal-page="topics" data-topics-disclosure="advanced" aria-label="投行级证据页">
         <div class="ib-evidence-head">
           <div>
             <span>投行级证据包</span>
@@ -416,6 +493,8 @@
         </section>
         <div class="section-bridge" id="step2BridgeEvidence" data-portal-page="evidence">先用总答案定调，再用三类证据判断结论是否可上会。</div>
         <div class="step2-evidence-grid" data-portal-page="evidence" aria-label="三类核心证据">
+          <!-- Huashu Sprint H3：纵向 3 段 proof column（同业位置 / 异动偏离 / 估值锚）-->
+          <div id="evidenceProofColumnMount" data-evidence-proof-column-mount data-portal-page="evidence"></div>
           <section class="step-focus-section step2-evidence-section" id="step2PeerPosition" data-portal-page="evidence" aria-label="同业位置证据">
             <span>证据一 · 同业位置</span>
             <h3 id="step2PeerTitle">五维灯号显示哪些能力支撑或拖累价值质量</h3>
@@ -443,12 +522,26 @@
           <h3 id="step2TopicsTitle">专题默认折叠为问题、证据、机制和行动</h3>
           <div class="step2-topic-grid" id="step2TopicGrid"></div>
         </section>
+        <!-- Sprint 16 Topics 减载：默认折叠以下 8 个深钻 mount，由 topicsDisclosureToggle 一键展开 -->
+        <div class="topics-disclosure-toggle" id="topicsDisclosureToggle" data-portal-page="topics" role="region" aria-label="深钻与衍生分析切换">
+          <div class="topics-disclosure-summary">
+            <span>专题深钻</span>
+            <b>机制因果链与衍生分析默认折叠</b>
+            <p>展开后可看到交叉信号引擎、利润质量、估值与衍生分析；点过一次后切换状态会持久化。</p>
+          </div>
+          <button type="button" class="topics-disclosure-btn" id="topicsDisclosureBtn" aria-expanded="false" aria-controls="topicsAdvancedGroup">展开机制深钻</button>
+        </div>
         <!-- 衍生分析挂载点：利润质量 + 估值三维 -->
-        <div id="profitQualityMount" data-tushare-mount="profit-quality" data-phase="1" data-portal-page="topics"></div>
-        <div id="dividendValueMount" data-tushare-mount="dividend-value" data-phase="1" data-portal-page="topics"></div>
+        <!-- Sprint 14A 交叉信号引擎：4 条因果链 -->
+        <div id="crossSignalNimMount" data-cross-signal-mount="nim" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        <div id="crossSignalRoaMount" data-cross-signal-mount="roa" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        <div id="crossSignalRiskMount" data-cross-signal-mount="risk" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        <div id="crossSignalValueMount" data-cross-signal-mount="value" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        <div id="profitQualityMount" data-tushare-mount="profit-quality" data-phase="1" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        <div id="dividendValueMount" data-tushare-mount="dividend-value" data-phase="1" data-portal-page="topics" data-topics-disclosure="advanced"></div>
         <!-- 金融资产分类 + 现金流深度 -->
-        <div id="assetClassificationMount" data-tushare-mount="asset-classification" data-phase="2" data-portal-page="topics"></div>
-        <div id="cashFlowDepthMount" data-tushare-mount="cashflow-depth" data-phase="2" data-portal-page="topics"></div>
+        <div id="assetClassificationMount" data-tushare-mount="asset-classification" data-phase="2" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        <div id="cashFlowDepthMount" data-tushare-mount="cashflow-depth" data-phase="2" data-portal-page="topics" data-topics-disclosure="advanced"></div>
         <div class="section-bridge" id="step2BridgeActions" data-portal-page="answer topics">最后把诊断翻译成管理层可承接的时间表，而不是停留在指标解释。</div>
         <section class="step-focus-section step2-action-section" id="step2ActionPath" data-portal-page="answer topics" aria-label="行动路径">
           <span>行动路径</span>
@@ -721,7 +814,7 @@
         </div>
       </article>
 
-      <article class="method-card analysis-content" id="topicWorkbenchSection" data-workspace-tab="topics" data-portal-page="topics" style="margin-top:18px;">
+      <article class="method-card analysis-content" id="topicWorkbenchSection" data-workspace-tab="topics" data-portal-page="topics" data-topics-disclosure="advanced" style="margin-top:18px;">
         <div class="section-kicker">分析专题主体</div>
         <h2>专题判断：把关键指标差异转化为董事会可讨论的问题</h2>
         <p>每个专题均围绕目标银行、对标银行和类型均值展开，重点说明事实依据、形成机制、管理含义和下一步验证指标。</p>
@@ -949,6 +1042,8 @@
 
         <aside class="report-control-rail is-docked is-collapsed" id="reportControlRail" aria-label="报告交付控制台">
           <button class="layout-collapse-toggle rail-toggle" id="toggleReportControlRail" type="button" data-layout-collapse-target="reportControlRail" aria-controls="reportControlRail" aria-expanded="true" aria-label="收起交付控制台">收起交付控制台</button>
+          <!-- Huashu Sprint H4：证据质量控制台（章节结构 / 语言强度 / 证据质量 三组）-->
+          <div id="reportEvidenceQualityMount" data-report-quality-mount data-portal-page="report"></div>
           <section class="board-review-panel" id="boardReviewPanel" aria-label="董办复核">
             <div class="board-review-head">
               <div>
@@ -1402,6 +1497,90 @@
           </table>
         </section>
       </div>
+      <!-- ====================== 数据附录章节（仅 report page 显示） ====================== -->
+      <section class="bm-report-appendix" id="benchmarkReportAppendix"
+               data-portal-page="report"
+               aria-label="来自数据对标的附录">
+        <header class="bm-appendix-head">
+          <div class="bm-appendix-kicker">附录 · 数据对标</div>
+          <h2 class="bm-appendix-title">来自数据对标的关键证据</h2>
+          <p class="bm-appendix-sub">读者在数据对标中点击「加入报告附录」收集的故事线。每条按当前 state 实时重绘，所以截面时点/对标组的变更会同步反映。</p>
+        </header>
+        <div class="bm-appendix-body" id="benchmarkReportAppendixBody"></div>
+        <footer class="bm-appendix-foot" id="benchmarkReportAppendixFoot"></footer>
+      </section>
+
+      <!-- ====================== Benchmark Page (新增 portal-page) ====================== -->
+      <section class="bm-shell" id="benchmarkPageShell"
+               data-portal-page="benchmark"
+               aria-label="纯数据对标页">
+        <!-- 左侧：选择面板 -->
+        <aside class="bm-side" aria-label="对标设定">
+          <section class="bm-pane">
+            <div class="bm-pane-h"><span class="bm-pane-kicker">第一步</span><h3>选定目标银行</h3></div>
+            <div class="bm-bank-search"><input type="search" id="bmBankSearch" placeholder="搜索银行名称或代码" autocomplete="off" /></div>
+            <div class="bm-bank-type-tabs" id="bmBankTypeTabs"></div>
+            <div class="bm-bank-list" id="bmBankList"></div>
+          </section>
+          <section class="bm-pane">
+            <div class="bm-pane-h"><span class="bm-pane-kicker">第二步</span><h3>选择对标参照</h3></div>
+            <div class="bm-peer-toggles" id="bmPeerToggles">
+              <label class="bm-toggle"><input type="checkbox" data-peer-key="national_type" checked />
+                <span><b>全国同类型均值</b><em id="bmHintNational">所选银行所属类型的全国均值</em></span></label>
+              <label class="bm-toggle"><input type="checkbox" data-peer-key="region_type" checked />
+                <span><b>本地同类型均值</b><em id="bmHintRegion">本行所属大区同类型银行均值</em></span></label>
+              <label class="bm-toggle"><input type="checkbox" data-peer-key="national_other" />
+                <span><b>全国跨类型均值</b><em>城商 + 农商 + 股份 + 大行 全行业均值（参考）</em></span></label>
+              <label class="bm-toggle"><input type="checkbox" data-peer-key="custom" />
+                <span><b>自选对标银行</b><em>从下方勾选 1–8 家具体银行</em></span></label>
+            </div>
+            <div class="bm-peer-custom" id="bmPeerCustom" hidden>
+              <input type="search" id="bmPeerSearch" placeholder="搜索要加入对标的银行" />
+              <div class="bm-peer-chips" id="bmPeerChips"></div>
+              <div class="bm-peer-pool" id="bmPeerPool"></div>
+            </div>
+          </section>
+          <section class="bm-pane">
+            <div class="bm-pane-h"><span class="bm-pane-kicker">第三步 A</span><h3>截面时点（年末）</h3></div>
+            <div class="bm-year-tabs" id="bmSnapshotTabs">
+              <button data-snap="2025" class="is-active">2025</button>
+              <button data-snap="2024">2024</button>
+              <button data-snap="2023">2023</button>
+              <button data-snap="2022">2022</button>
+              <button data-snap="2021">2021</button>
+              <button data-snap="2020">2020</button>
+            </div>
+            <p class="bm-pane-hint">柱图横截面。<b>时点指标</b>显示为「<i>年末</i>」（余额/占比/资本充足率/不良率…）；<b>时期指标</b>显示为「<i>全年</i>」（ROA/ROE/NIM/YoY…）。</p>
+          </section>
+          <section class="bm-pane">
+            <div class="bm-pane-h"><span class="bm-pane-kicker">第三步 B</span><h3>趋势区间（起讫年）</h3></div>
+            <div class="bm-trend-range">
+              <label>起：<select id="bmTrendStart"></select></label>
+              <label>讫：<select id="bmTrendEnd"></select></label>
+            </div>
+            <p class="bm-pane-hint">趋势线 + 区间口径 YoY/CAGR 的算法依据。</p>
+          </section>
+          <section class="bm-pane bm-pane-summary" id="bmSummaryPane">
+            <div class="bm-pane-h"><span class="bm-pane-kicker">当前样本</span><h3 id="bmSummaryTitle">请先选择目标银行</h3></div>
+            <div class="bm-summary-grid" id="bmSummaryGrid"></div>
+          </section>
+        </aside>
+        <!-- 右侧：主图表区 -->
+        <section class="bm-main" aria-label="对标图表">
+          <nav class="bm-audience-switcher" id="bmAudienceSwitcher" aria-label="受众视图切换"></nav>
+          <nav class="bm-domain-tabs" id="bmDomainTabs" aria-label="对标域"></nav>
+          <div class="bm-empty" id="bmEmpty">
+            <div class="bm-empty-art"></div>
+            <h2>从左侧选一家目标银行开始</h2>
+            <p>系统自动配置同类型与本地大区对标均值；右上方域 tab 切换不同维度。</p>
+          </div>
+          <div class="bm-domain-content" id="bmDomainContent" hidden></div>
+          <footer class="bm-footer">
+            <span>数据来源：bank_scope_2025_v1 / benchmark_dataset.json</span>
+            <span id="bmDataInfo">待加载</span>
+          </footer>
+        </section>
+      </section>
     </section>
     <aside class="tool-drawer" id="toolDrawer" aria-label="辅助工具箱" aria-hidden="true">
       <div class="tool-drawer-head">
@@ -1436,6 +1615,7 @@
   </div>
   <script src="data.js"></script>
   <script src="data_tushare.js?v=20260602-phase1" onerror="console.warn('[bootstrap] data_tushare.js not loaded, Tushare metrics will be unavailable')"></script>
+  <script src="data_bank_scope_ready.js?v=20260608-bank-scope-ready-v1" onerror="console.warn('[bootstrap] data_bank_scope_ready.js not loaded, bank scope ready metrics will be unavailable')"></script>
   <script src="js/01-state.js?v=20260607-async-ready"></script>
   <script src="js/02-config.js"></script>
   <script src="js/03-data-format.js"></script>
@@ -1469,9 +1649,13 @@
   <script src="js/32-pb-pricing-model.js?v=20260601-pb-pricing"></script>
   <script src="js/33-llm-commentary.js?v=20260607-async-ready"></script>
   <script src="js/38-evidence-pack-builder.js?v=20260606-rewrite-orchestrator"></script>
+  <script src="js/40-cross-signal-engine.js?v=20260607-sprint14a"></script>
+  <script src="js/44-page-header-question.js?v=20260607-huashu-h2h3"></script>
+  <script src="js/45-evidence-proof-column.js?v=20260607-huashu-h3"></script>
   <script src="js/36-layered-fact-model.js?v=20260606-rewrite-orchestrator"></script>
   <script src="js/34-decision-workbench.js?v=20260601-decision-workbench"></script>
   <script src="js/35-report-model.js?v=20260606-rewrite-orchestrator"></script>
+  <script src="js/46-report-evidence-quality.js?v=20260607-huashu-h4"></script>
   <script src="js/37-deepseek-rewrite-orchestrator.js?v=20260606-rewrite-orchestrator"></script>
   <script src="js/35.5-tushare-metrics.js?v=20260602-phase1"></script>
   <script src="js/36-insight-triangle.js?v=20260602-prd8-c01"></script>
@@ -1479,6 +1663,15 @@
   <script src="js/38-tushare-phase2-analyses.js?v=20260602-phase2"></script>
   <script src="js/42-portal-router.js?v=20260605-portal-v14"></script>
   <script src="js/43-page-rail.js?v=20260605-portal-v14"></script>
+  <script src="js/47-topics-disclosure.js?v=20260608-topics-decongestion"></script>
+  <script src="js/48-launch-disclosure.js?v=20260608-launch-decongestion"></script>
+  <script src="js/49-bank-typology-bridge.js?v=20260608-bank-scope-ready-v1"></script>
+  <script src="js/50-bank-scope-data-bridge.js?v=20260608-bank-scope-ready-v1"></script>
+  <script src="js/52-chapter-hero.js?v=20260608-chapter-hero"></script>
+  <!-- 对标数据：内联为全局变量，file:// 模式下也可用；同名 JSON 仍存在供 fetch fallback -->
+  <script src="data_benchmark.js?v=20260615-benchmark-v2" onerror="console.warn('[bootstrap] data_benchmark.js 未加载，将回退到 fetch JSON')"></script>
+  <script src="js/55-benchmark-page.js?v=20260615-benchmark-v2"></script>
+  <script src="js/56-benchmark-state-bridge.js?v=20260616-bridge"></script>
   <script src="js/10-bootstrap.js?v=20260607-async-ready"></script>
 </body>
 </html>
