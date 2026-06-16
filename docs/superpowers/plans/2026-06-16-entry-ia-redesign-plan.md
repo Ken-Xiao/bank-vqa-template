@@ -153,3 +153,60 @@ node --check js/10-bootstrap.js
 ```
 
 实际结果：通过。
+
+### Task 4：角色入口意图持久化
+
+**文件：**
+
+- 修改：`index.html`
+- 修改：`js/42-portal-router.js`
+- 修改：`tests/entry_ia_redesign_contract.test.js`
+
+- [x] **Step 1：先扩展失败测试**
+
+在 `tests/entry_ia_redesign_contract.test.js` 中补充以下契约：
+
+- 四个角色入口必须有 `data-entry-audience`
+- router 必须定义 `applyEntryIntent`
+- router 必须写入 `benchmarkiq.entryRole`
+- router 必须写入 `benchmarkiq.audience`
+- router 必须在 `body` 上设置 `data-entry-role`
+
+命令：
+
+```bash
+node tests/entry_ia_redesign_contract.test.js
+```
+
+实际结果：失败在缺少 `data-entry-audience="board"`，说明测试命中预期缺口。
+
+- [x] **Step 2：实现角色意图字段**
+
+在四个角色入口按钮上增加：
+
+- `data-entry-audience="board"`
+- `data-entry-audience="cfo"`
+- `data-entry-audience="cro"`
+- `data-entry-audience="expert"`
+
+- [x] **Step 3：实现 router 持久化**
+
+在 `js/42-portal-router.js` 中新增 `applyEntryIntent(btn)`，并在 `data-page-link` 点击处理里先调用该函数，再调用 `setPortalPage(target)`。
+
+持久化规则：
+
+- `data-entry-role` 写入 `benchmarkiq.entryRole`
+- `data-entry-audience` 写入 `benchmarkiq.audience`
+- `data-entry-role` 同步到 `document.body[data-entry-role]`
+
+- [x] **Step 4：重新运行验证**
+
+命令：
+
+```bash
+node tests/entry_ia_redesign_contract.test.js
+node --check js/42-portal-router.js
+node tests/portal_ia_v10_router_canonical.test.js
+```
+
+实际结果：通过。

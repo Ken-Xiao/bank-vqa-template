@@ -171,10 +171,27 @@ function bindPortalRouter() {
       var target = btn.getAttribute("data-page-link");
       if (target) {
         e.preventDefault();
+        applyEntryIntent(btn);
         setPortalPage(target);
       }
     });
   }
+}
+
+function applyEntryIntent(btn) {
+  if (!btn || !btn.getAttribute) return;
+  var role = btn.getAttribute("data-entry-role");
+  var audience = btn.getAttribute("data-entry-audience");
+  if (!role && !audience) return;
+  if (typeof document !== "undefined" && document.body && role) {
+    document.body.setAttribute("data-entry-role", role);
+  }
+  try {
+    if (typeof localStorage !== "undefined") {
+      if (role) localStorage.setItem("benchmarkiq.entryRole", role);
+      if (audience) localStorage.setItem("benchmarkiq.audience", audience);
+    }
+  } catch (e) { /* silent */ }
 }
 
 function initPortalRouter() {
@@ -224,4 +241,5 @@ if (typeof window !== "undefined") {
   window.getPortalPage = getPortalPage;
   window.initPortalRouter = initPortalRouter;
   window.syncAppModeFromPortalPage = syncAppModeFromPortalPage;
+  window.applyEntryIntent = applyEntryIntent;
 }

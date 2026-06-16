@@ -35,6 +35,8 @@ Launch 页新增 `entry-decision-panel`，放在现有 setup workbench 之前。
 
 所有入口卡片都使用现有 `data-page-link` 属性触发路由，不新增第二套路由状态。入口卡片只负责跳转，不修改目标银行、对标组、年份或报告状态。现有 setup 控件仍保留在入口面板下方，供需要先配置样本边界的用户使用。
 
+角色入口额外携带 `data-entry-audience`。点击角色入口时，router 会把角色写入 `benchmarkiq.entryRole`；如果目标页或后续模块需要按角色切换默认视图，可从该值读取。进入 benchmark 的角色入口同时写入 `benchmarkiq.audience`，让数据对标页直接进入对应受众视图，避免用户再次选择 CFO / CRO / Board。
+
 ## 视觉方向
 
 入口面板应像一个安静、专业、可扫描的银行经营工作台，而不是营销首页：
@@ -49,6 +51,7 @@ Launch 页新增 `entry-decision-panel`，放在现有 setup workbench 之前。
 
 - Launch 页首屏包含两个主工作流入口和四个角色入口。
 - 每个入口卡片都通过 `data-page-link` 指向现有页面。
+- 角色入口通过 `data-entry-audience` 持久化角色意图。
 - Page Rail 的页面名称和摘要体现“数据入口 / 报告入口 / 角色入口”的心智模型。
 - 原有 setup 控件仍可在入口面板下方使用。
 - 契约测试覆盖入口卡片、路由标签和 CSS hooks。

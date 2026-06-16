@@ -19,6 +19,10 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   'data-entry-role="cfo"',
   'data-entry-role="cro"',
   'data-entry-role="expert"',
+  'data-entry-audience="board"',
+  'data-entry-audience="cfo"',
+  'data-entry-audience="cro"',
+  'data-entry-audience="expert"',
 ].forEach((needle) => {
   assert(html.includes(needle), `missing launch entry marker: ${needle}`);
 });
@@ -51,6 +55,15 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   'benchmark: "数据入口"',
 ].forEach((needle) => {
   assert(router.includes(needle), `router labels must include ${needle}`);
+});
+
+[
+  "function applyEntryIntent",
+  'localStorage.setItem("benchmarkiq.entryRole"',
+  'localStorage.setItem("benchmarkiq.audience"',
+  'document.body.setAttribute("data-entry-role"',
+].forEach((needle) => {
+  assert(router.includes(needle), `router must persist entry intent via ${needle}`);
 });
 
 console.log("entry-ia-redesign-contract-ok");
