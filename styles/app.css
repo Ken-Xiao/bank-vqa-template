@@ -13096,9 +13096,9 @@
 
     .entry-decision-panel {
       display: grid;
-      gap: 14px;
+      gap: 16px;
       margin: 0 0 14px;
-      padding: 18px;
+      padding: 18px 20px;
       border: 1px solid var(--color-line, #dce4ec);
       border-radius: 6px;
       background: #fff;
@@ -13108,12 +13108,10 @@
     .entry-decision-head {
       display: grid;
       gap: 5px;
-      max-width: 860px;
+      max-width: 760px;
     }
 
-    .entry-decision-head span,
-    .entry-route-card span,
-    .entry-role-card span {
+    .entry-decision-head span {
       color: var(--color-accent, #0099d8);
       font-size: 11px;
       font-weight: 900;
@@ -13124,7 +13122,7 @@
     .entry-decision-head h2 {
       margin: 0;
       color: var(--color-navy, #061d3c);
-      font-size: clamp(22px, 2.3vw, 30px);
+      font-size: clamp(22px, 2.1vw, 28px);
       font-weight: 900;
       line-height: 1.18;
       letter-spacing: 0;
@@ -13137,82 +13135,96 @@
       line-height: 1.65;
     }
 
-    .entry-workflow-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .entry-role-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .entry-route-card,
-    .entry-role-card {
-      display: grid;
-      gap: 7px;
-      align-content: start;
-      min-height: 126px;
-      padding: 14px;
-      border: 1px solid var(--color-line, #dce4ec);
+    .entry-primary-action {
+      justify-self: start;
+      min-height: 42px;
+      padding: 0 18px;
+      border: 1px solid var(--color-accent, #0099d8);
       border-radius: 6px;
-      background: #f9fbfd;
-      color: inherit;
-      text-align: left;
+      background: var(--color-accent, #0099d8);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
       cursor: pointer;
-      transition:
-        transform 140ms var(--ease-out-strong),
-        border-color 160ms ease,
-        background-color 160ms ease;
+      transition: filter 160ms ease, transform 140ms var(--ease-out-strong);
     }
 
-    .entry-route-card {
-      min-height: 142px;
-      border-top: 3px solid var(--color-accent, #0099d8);
-      background: #f6fafc;
-    }
-
-    .entry-route-card.is-report {
-      border-top-color: var(--color-navy, #061d3c);
-    }
-
-    .entry-route-card:hover,
-    .entry-role-card:hover {
+    .entry-primary-action:hover {
+      filter: brightness(.96);
       transform: translateY(-1px);
-      border-color: #b8d9ea;
-      background: #fff;
     }
 
-    .entry-route-card:active,
-    .entry-role-card:active {
+    .entry-primary-action:active {
       transform: scale(.985);
     }
 
-    .entry-route-card b,
-    .entry-role-card b {
-      color: var(--color-navy, #061d3c);
-      font-size: 16px;
-      font-weight: 900;
-      line-height: 1.25;
+    .entry-flow-steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
 
-    .entry-route-card em,
-    .entry-role-card em {
+    .entry-flow-steps li {
+      display: grid;
+      gap: 3px;
+      min-height: 54px;
+      padding: 10px 12px;
+      border: 1px solid var(--color-line, #dce4ec);
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+
+    .entry-flow-steps b {
+      color: var(--color-navy, #061d3c);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.3;
+    }
+
+    .entry-flow-steps span {
       color: var(--color-muted, #5d6670);
       font-size: 12px;
-      font-style: normal;
-      line-height: 1.5;
+      line-height: 1.35;
     }
 
-    @media (max-width: 1080px) {
-      .entry-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .entry-role-segment {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--color-line, #dce4ec);
+      border-radius: 8px;
+      background: #f8fafc;
+      justify-self: start;
+    }
+
+    .entry-role-pill {
+      min-height: 30px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--color-muted, #5d6670);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .entry-role-pill:hover,
+    .entry-role-pill:focus {
+      background: #fff;
+      color: var(--color-navy, #061d3c);
     }
 
     @media (max-width: 720px) {
-      .entry-workflow-grid,
-      .entry-role-grid { grid-template-columns: 1fr; }
+      .entry-flow-steps { grid-template-columns: 1fr; }
+      .entry-primary-action,
+      .entry-role-segment { justify-self: stretch; }
+      .entry-role-segment { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     .launch-disclosure-toggle {

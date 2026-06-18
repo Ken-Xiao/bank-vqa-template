@@ -59,6 +59,8 @@ assert(router.includes("skipPortal: true"), "router must sync app mode without r
   "function initPageRail",
   "function resolvePortalSubAnchor",
   "PORTAL_SUB_ANCHORS",
+  "数据驱动任务流",
+  "先对标、再选证据、最后生成报告",
   "data-page-link",
   "data-sub-anchor",
   "data-sub-page",

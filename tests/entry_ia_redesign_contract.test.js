@@ -11,13 +11,13 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
 
 [
   'id="entryDecisionPanel"',
-  'class="entry-workflow-grid"',
+  'class="entry-primary-action"',
   'data-entry-route="benchmark-first"',
-  'data-entry-route="report-after-benchmark"',
-  "先做数据对标",
-  "再进入报告分析",
-  "选择数据并进入报告",
-  'class="entry-role-grid"',
+  'class="entry-flow-steps"',
+  "1 数据对标",
+  "2 入报告选择",
+  "3 报告分析",
+  'class="entry-role-segment"',
   'data-entry-role="board"',
   'data-entry-role="cfo"',
   'data-entry-role="cro"',
@@ -30,6 +30,9 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   assert(html.includes(needle), `missing data-first entry marker: ${needle}`);
 });
 
+assert(!html.includes('data-entry-route="report-after-benchmark"'), "launch must not show a parallel report entrance card");
+assert(!html.includes('class="entry-workflow-grid"'), "launch must not render two equal workflow cards");
+
 [
   'data-entry-role="board" data-entry-audience="board" data-page-link="benchmark"',
   'data-entry-role="cfo" data-entry-audience="cfo" data-page-link="benchmark"',
@@ -41,10 +44,10 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
 
 [
   ".entry-decision-panel",
-  ".entry-workflow-grid",
-  ".entry-route-card",
-  ".entry-role-grid",
-  ".entry-role-card",
+  ".entry-primary-action",
+  ".entry-flow-steps",
+  ".entry-role-segment",
+  ".entry-role-pill",
 ].forEach((needle) => {
   assert(css.includes(needle), `missing entry CSS hook: ${needle}`);
 });

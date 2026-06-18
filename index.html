@@ -91,41 +91,21 @@
           <header class="entry-decision-head">
             <span>数据先行工作台</span>
             <h2>先完成数据对标，再生成报告分析</h2>
-            <p>第一步进入数据对标选择银行、对标组、指标域和故事线；第二步选择要带入报告的数据，系统自动匹配分析角度和报告章节。</p>
+            <p>选择银行、对标组和关键指标后，系统会把可入报告的数据自动匹配到分析角度和章节。</p>
           </header>
-          <div class="entry-workflow-grid" aria-label="主工作流入口">
-            <button type="button" class="entry-route-card is-data" data-entry-route="benchmark-first" data-page-link="benchmark">
-              <span>先做数据对标</span>
-              <b>从指标、同业和因果链开始</b>
-              <em>选择目标银行、对标组、9 个数据域和可入报告的故事线。</em>
-            </button>
-            <button type="button" class="entry-route-card is-report" data-entry-route="report-after-benchmark" data-page-link="benchmark">
-              <span>再进入报告分析</span>
-              <b>先选择入报告数据</b>
-              <em>选择数据并进入报告，系统会自动匹配报告角度。</em>
-            </button>
-          </div>
-          <div class="entry-role-grid" aria-label="按角色进入">
-            <button type="button" class="entry-role-card" data-entry-role="board" data-entry-audience="board" data-page-link="benchmark">
-              <span>董事会 / 行长室</span>
-              <b>先看经营总答案的数据证据</b>
-              <em>ROE、规模、资本回报、核心结论和经营优先级。</em>
-            </button>
-            <button type="button" class="entry-role-card" data-entry-role="cfo" data-entry-audience="cfo" data-page-link="benchmark">
-              <span>CFO / 财务</span>
-              <b>先看财务指标和拆解证据</b>
-              <em>NIM、存款成本、资产负债结构和收入拆解。</em>
-            </button>
-            <button type="button" class="entry-role-card" data-entry-role="cro" data-entry-audience="cro" data-page-link="benchmark">
-              <span>CRO / 风控</span>
-              <b>先看风险指标和机制链</b>
-              <em>资产质量、对公零售、IFRS9 和拨备链。</em>
-            </button>
-            <button type="button" class="entry-role-card" data-entry-role="expert" data-entry-audience="expert" data-page-link="benchmark">
-              <span>研究 / 专家</span>
-              <b>先看全指标和可复核证据</b>
-              <em>字段覆盖、三源对照、血缘和口径复核。</em>
-            </button>
+          <button type="button" class="entry-primary-action" data-entry-route="benchmark-first" data-page-link="benchmark">
+            开始数据对标
+          </button>
+          <ol class="entry-flow-steps" aria-label="数据到报告任务流">
+            <li><b>1 数据对标</b><span>选银行、对标组和核心指标</span></li>
+            <li><b>2 入报告选择</b><span>勾选指标、故事线和因果链</span></li>
+            <li><b>3 报告分析</b><span>自动匹配角度、章节和证据</span></li>
+          </ol>
+          <div class="entry-role-segment" aria-label="选择默认分析视角">
+            <button type="button" class="entry-role-pill" data-entry-role="board" data-entry-audience="board" data-page-link="benchmark">董事会</button>
+            <button type="button" class="entry-role-pill" data-entry-role="cfo" data-entry-audience="cfo" data-page-link="benchmark">CFO</button>
+            <button type="button" class="entry-role-pill" data-entry-role="cro" data-entry-audience="cro" data-page-link="benchmark">CRO</button>
+            <button type="button" class="entry-role-pill" data-entry-role="expert" data-entry-audience="expert" data-page-link="benchmark">专家</button>
           </div>
         </section>
         <div class="launch-disclosure-toggle" id="launchDisclosureToggle" data-portal-page="launch" role="region" aria-label="背景介绍切换">
