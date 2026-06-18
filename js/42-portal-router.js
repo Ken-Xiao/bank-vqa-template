@@ -91,12 +91,26 @@ function portalWorkspaceTab(page) {
   return map[page] || "overview";
 }
 
+function shouldSyncBenchmarkBeforePortalPage(target) {
+  if (target === "launch" || target === "benchmark") return false;
+  var current = getPortalPage();
+  if (current === "benchmark") return true;
+  if (typeof document !== "undefined" && document.body) {
+    return document.body.getAttribute("data-app-page") === "benchmark";
+  }
+  return false;
+}
+
 function setPortalPage(page, options) {
   options = options || {};
   var target = normalizePortalPage(page);
   if (!portalPageEnabled(target) && !options.force) {
     // 未确认时跳到 launch
     target = "launch";
+  }
+  var syncBenchmark = shouldSyncBenchmarkBeforePortalPage(target);
+  if (syncBenchmark && typeof window !== "undefined" && typeof window.syncBenchmarkToState === "function") {
+    window.syncBenchmarkToState({ renderDownstream: false });
   }
   if (typeof state !== "undefined") {
     state.activePortalPage = target;
@@ -134,6 +148,9 @@ function setPortalPage(page, options) {
   }
   if (typeof syncStep2PathNavForPortalPage === "function") {
     syncStep2PathNavForPortalPage(target);
+  }
+  if (syncBenchmark && typeof window !== "undefined" && typeof window.syncBenchmarkToState === "function") {
+    window.syncBenchmarkToState({ renderDownstream: true, forceRefresh: true });
   }
   // 滚动到顶部（避免 page 切换后还在旧位置）
   if (!options.skipScroll && typeof window !== "undefined") {
@@ -243,4 +260,5 @@ if (typeof window !== "undefined") {
   window.initPortalRouter = initPortalRouter;
   window.syncAppModeFromPortalPage = syncAppModeFromPortalPage;
   window.applyEntryIntent = applyEntryIntent;
+  window.shouldSyncBenchmarkBeforePortalPage = shouldSyncBenchmarkBeforePortalPage;
 }

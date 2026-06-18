@@ -6,7 +6,7 @@
  *
  * 同步规则（用户拍板：全状态双向同步）：
  *   - target            ↔ selectedBankId
- *   - peers             ↔ customPeers + activePeers.custom
+ *   - peers             ↔ active peer groups（全国同类/本地同类/全行业/自选）
  *   - year              ↔ snapshotYear
  *   - 其他（scenario / confirmed / appMode）不同步
  *
@@ -37,6 +37,44 @@
     var d = bmData(); if (!d || !id) return null;
     var hit = d.banks.filter(function(b){ return b.id === id; })[0];
     return hit ? hit.name : null;
+  }
+  function getBenchmarkBank(id) {
+    var d = bmData(); if (!d || !id) return null;
+    return d.banks.filter(function(b){ return b.id === id; })[0] || null;
+  }
+  function deriveBenchmarkPeerNames(b) {
+    var d = bmData();
+    var target = b && getBenchmarkBank(b.selectedBankId);
+    if (!d || !target || !b.activePeers) return [];
+    var ids = [];
+    function add(list) {
+      (list || []).forEach(function(id){
+        if (id && id !== target.id && ids.indexOf(id) < 0) ids.push(id);
+      });
+    }
+    if (b.activePeers.national_type) {
+      add(d.banks.filter(function(x){ return x.type === target.type && x.id !== target.id; }).map(function(x){ return x.id; }));
+    }
+    if (b.activePeers.region_type && target.region && target.region !== "全国") {
+      add(d.banks.filter(function(x){ return x.type === target.type && x.region === target.region && x.id !== target.id; }).map(function(x){ return x.id; }));
+    }
+    if (b.activePeers.national_other) {
+      add(d.banks.filter(function(x){ return x.id !== target.id; }).map(function(x){ return x.id; }));
+    }
+    if (b.activePeers.custom && Array.isArray(b.customPeers)) {
+      add(b.customPeers);
+    }
+    return ids.map(bankIdToName).filter(Boolean);
+  }
+  function refreshDownstreamAnalysisFromBenchmark() {
+    try { if (typeof syncHiddenSelects === "function") syncHiddenSelects(); } catch (e) { /* silent */ }
+    try { if (typeof updateSelectionSummary === "function") updateSelectionSummary(); } catch (e2) { /* silent */ }
+    try { if (typeof renderAll === "function") renderAll(); } catch (e3) { /* silent */ }
+    try { if (typeof renderGlobalBar === "function") renderGlobalBar(); } catch (e4) { /* silent */ }
+    try { if (typeof renderPageRail === "function") renderPageRail(); } catch (e5) { /* silent */ }
+    try { if (typeof renderAllPageHeaders === "function") renderAllPageHeaders(); } catch (e6) { /* silent */ }
+    try { if (typeof renderBenchmarkEvidencePackSummary === "function") renderBenchmarkEvidencePackSummary(); } catch (e7) { /* silent */ }
+    try { if (typeof renderBenchmarkReportAppendix === "function") renderBenchmarkReportAppendix(); } catch (e8) { /* silent */ }
   }
 
   // launch state → 数据对标 _bm
@@ -92,7 +130,7 @@
   // 数据对标 _bm → launch state
   function syncBenchmarkToState(options) {
     options = options || {};
-    var b = bm(); if (!b || _syncing || !hasState()) return;
+    var b = bm(); if (!b || _syncing || !hasState()) return false;
     _syncing = true;
     try {
       var changed = false;
@@ -100,24 +138,24 @@
         var nm = bankIdToName(b.selectedBankId);
         if (nm && nm !== state.target) { state.target = nm; changed = true; }
       }
-      if (Array.isArray(b.customPeers) && b.activePeers && b.activePeers.custom) {
-        var names = b.customPeers.map(bankIdToName).filter(Boolean);
-        if (names.length && !arraysEqual(names, state.peers || [])) {
-          state.peers = names;
-          changed = true;
-        }
+      var peerNames = deriveBenchmarkPeerNames(b);
+      if (peerNames.length && !arraysEqual(peerNames, state.peers || [])) {
+        state.peers = peerNames;
+        changed = true;
       }
       if (b.snapshotYear && b.snapshotYear !== state.year) {
         state.year = b.snapshotYear;
         changed = true;
       }
-      // 不主动触发其他 page 重渲染，避免 cascade。
-      // 仅持久化 state（兼容 09-projects 的 autosave 机制）
       if (changed) {
         try {
           if (typeof saveProjectState === "function") saveProjectState();
         } catch (e) { /* silent */ }
       }
+      if (options.renderDownstream && (changed || options.forceRefresh)) {
+        refreshDownstreamAnalysisFromBenchmark();
+      }
+      return changed;
     } finally {
       _syncing = false;
     }
@@ -519,6 +557,8 @@
   // 暴露
   window.syncStateToBenchmark = syncStateToBenchmark;
   window.syncBenchmarkToState = syncBenchmarkToState;
+  window.refreshDownstreamAnalysisFromBenchmark = refreshDownstreamAnalysisFromBenchmark;
+  window.deriveBenchmarkPeerNames = deriveBenchmarkPeerNames;
   window.applyBenchmarkUrlParams = applyBenchmarkUrlParams;
   window.jumpToBenchmark = jumpToBenchmark;
   window.bankNameToId = bankNameToId;
