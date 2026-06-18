@@ -33,16 +33,26 @@ assert(
 );
 
 [
-  'var PORTAL_PAGES = ["launch", "answer", "evidence", "topics", "report", "benchmark", "data"]',
+  'var PORTAL_PAGES = ["benchmark", "answer", "evidence", "topics", "report", "data", "launch"]',
   "function setPortalPage",
   "function getPortalPage",
   "function initPortalRouter",
   'document.body.setAttribute("data-app-page", target)',
-  'document.body.dataset.appState !== "setup"',
   'localStorage.setItem("benchmarkiq.activePortalPage", target)',
-  '"#page/" + target'
-].forEach((needle) => assert(router.includes(needle), `router missing canonical behavior: ${needle}`));
+  '"#page/" + target',
+  'initialPage = "benchmark"',
+].forEach((needle) => assert(router.includes(needle), `router missing data-first behavior: ${needle}`));
 assert(router.includes("skipPortal: true"), "router must sync app mode without recursively overriding the active page");
+
+[
+  'benchmark: "数据对标"',
+  'answer: "结论摘要"',
+  'evidence: "证据地图"',
+  'topics: "专题归因"',
+  'report: "报告工作室"',
+  'data: "数据复核"',
+  'launch: "入口说明"',
+].forEach((needle) => assert(router.includes(needle), `router label missing: ${needle}`));
 
 [
   "function renderPageRail",

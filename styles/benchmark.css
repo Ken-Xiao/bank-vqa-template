@@ -1918,6 +1918,117 @@ body[data-app-page="benchmark"] .global-benchmark-direct {
   color: #fff;
 }
 
+/* ---------- 入报告数据选择 ---------- */
+.bm-report-selector {
+  grid-column: 1 / -1;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+  margin: 0 0 14px;
+}
+.bm-report-selector-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.bm-report-selector-head h2 {
+  margin: 4px 0 4px;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+.bm-report-selector-head p {
+  margin: 0;
+  color: var(--ink-quiet);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.bm-primary-action {
+  border: 1px solid var(--accent, #009CDE);
+  border-radius: 6px;
+  background: var(--accent, #009CDE);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bm-primary-action:hover {
+  filter: brightness(.96);
+}
+.bm-report-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+.bm-report-selector-grid label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 36px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.bm-report-selector-grid input {
+  flex: 0 0 auto;
+}
+.bm-evidence-pack-summary {
+  margin: 12px 0 16px;
+}
+.bm-evidence-pack-card {
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 14px;
+}
+.bm-evidence-pack-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.bm-evidence-pack-card header span {
+  color: var(--ink-quiet);
+  font-size: 12px;
+  font-weight: 700;
+}
+.bm-evidence-pack-card header b {
+  color: var(--ink);
+  font-size: 13px;
+}
+.bm-evidence-pack-card p {
+  margin: 0;
+  color: var(--ink-quiet);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.bm-report-angle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+.bm-report-angle-chip {
+  border: 1px solid #b7c7db;
+  border-radius: 999px;
+  background: #fff;
+  color: #24415f;
+  padding: 4px 9px;
+  font-size: 12px;
+}
+.bm-evidence-pack-sections {
+  color: var(--ink-quiet);
+  font-size: 13px;
+}
+
 /* ---------- 10 · Print ---------- */
 @media print {
   .bm-side, .global-benchmark-direct, .bm-domain-tabs, .bm-mode-toggle { display: none !important; }

@@ -1,5 +1,5 @@
 /* Entry IA redesign contract
- * Verifies that launch starts with data/report workflow choices and role routes.
+ * Verifies that launch uses data-first workflow choices and role presets.
  */
 
 const fs = require("fs");
@@ -12,8 +12,11 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
 [
   'id="entryDecisionPanel"',
   'class="entry-workflow-grid"',
-  'data-entry-route="data"',
-  'data-entry-route="report"',
+  'data-entry-route="benchmark-first"',
+  'data-entry-route="report-after-benchmark"',
+  "先做数据对标",
+  "再进入报告分析",
+  "选择数据并进入报告",
   'class="entry-role-grid"',
   'data-entry-role="board"',
   'data-entry-role="cfo"',
@@ -24,17 +27,16 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   'data-entry-audience="cro"',
   'data-entry-audience="expert"',
 ].forEach((needle) => {
-  assert(html.includes(needle), `missing launch entry marker: ${needle}`);
+  assert(html.includes(needle), `missing data-first entry marker: ${needle}`);
 });
 
 [
-  'data-page-link="benchmark"',
-  'data-page-link="report"',
-  'data-page-link="answer"',
-  'data-page-link="topics"',
-  'data-page-link="data"',
+  'data-entry-role="board" data-entry-audience="board" data-page-link="benchmark"',
+  'data-entry-role="cfo" data-entry-audience="cfo" data-page-link="benchmark"',
+  'data-entry-role="cro" data-entry-audience="cro" data-page-link="benchmark"',
+  'data-entry-role="expert" data-entry-audience="expert" data-page-link="benchmark"',
 ].forEach((needle) => {
-  assert(html.includes(needle), `entry cards must use router link ${needle}`);
+  assert(html.includes(needle), `role entry must route through benchmark: ${needle}`);
 });
 
 [
@@ -48,11 +50,9 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
 });
 
 [
-  'launch: "入口工作台"',
-  'answer: "董事会入口"',
-  'topics: "专题与风控"',
-  'report: "报告入口"',
-  'benchmark: "数据入口"',
+  'benchmark: "数据对标"',
+  'report: "报告工作室"',
+  'launch: "入口说明"',
 ].forEach((needle) => {
   assert(router.includes(needle), `router labels must include ${needle}`);
 });
@@ -66,4 +66,4 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   assert(router.includes(needle), `router must persist entry intent via ${needle}`);
 });
 
-console.log("entry-ia-redesign-contract-ok");
+console.log("entry-ia-data-first-contract-ok");

@@ -89,41 +89,41 @@
       <div class="control-surface step-shell step1-content" id="step1Content" data-step-shell="setup" data-portal-page="launch" aria-label="设定口径">
         <section class="entry-decision-panel" id="entryDecisionPanel" aria-label="选择工作入口">
           <header class="entry-decision-head">
-            <span>入口工作台</span>
-            <h2>先选择工作方式，再进入对应分析页面</h2>
-            <p>数据入口负责选银行、看指标和追因果；报告入口负责组织结论、沉淀附录和导出汇报。角色入口会把页面默认带到最常用的分析深度。</p>
+            <span>数据先行工作台</span>
+            <h2>先完成数据对标，再生成报告分析</h2>
+            <p>第一步进入数据对标选择银行、对标组、指标域和故事线；第二步选择要带入报告的数据，系统自动匹配分析角度和报告章节。</p>
           </header>
           <div class="entry-workflow-grid" aria-label="主工作流入口">
-            <button type="button" class="entry-route-card is-data" data-entry-route="data" data-page-link="benchmark">
-              <span>数据入口</span>
-              <b>从指标和对标开始</b>
-              <em>选择目标银行、对标组、9 个数据域和因果链分解。</em>
+            <button type="button" class="entry-route-card is-data" data-entry-route="benchmark-first" data-page-link="benchmark">
+              <span>先做数据对标</span>
+              <b>从指标、同业和因果链开始</b>
+              <em>选择目标银行、对标组、9 个数据域和可入报告的故事线。</em>
             </button>
-            <button type="button" class="entry-route-card is-report" data-entry-route="report" data-page-link="report">
-              <span>报告入口</span>
-              <b>从汇报和交付开始</b>
-              <em>审阅正式报告、收集数据附录、调整章节并导出。</em>
+            <button type="button" class="entry-route-card is-report" data-entry-route="report-after-benchmark" data-page-link="benchmark">
+              <span>再进入报告分析</span>
+              <b>先选择入报告数据</b>
+              <em>选择数据并进入报告，系统会自动匹配报告角度。</em>
             </button>
           </div>
           <div class="entry-role-grid" aria-label="按角色进入">
-            <button type="button" class="entry-role-card" data-entry-role="board" data-entry-audience="board" data-page-link="answer">
+            <button type="button" class="entry-role-card" data-entry-role="board" data-entry-audience="board" data-page-link="benchmark">
               <span>董事会 / 行长室</span>
-              <b>先看总答案</b>
-              <em>30 秒判断、董事会议题、行动优先级。</em>
+              <b>先看经营总答案的数据证据</b>
+              <em>ROE、规模、资本回报、核心结论和经营优先级。</em>
             </button>
             <button type="button" class="entry-role-card" data-entry-role="cfo" data-entry-audience="cfo" data-page-link="benchmark">
               <span>CFO / 财务</span>
-              <b>先看指标矩阵</b>
-              <em>口径、分位、趋势、分解和附录证据。</em>
+              <b>先看财务指标和拆解证据</b>
+              <em>NIM、存款成本、资产负债结构和收入拆解。</em>
             </button>
-            <button type="button" class="entry-role-card" data-entry-role="cro" data-entry-audience="cro" data-page-link="topics">
+            <button type="button" class="entry-role-card" data-entry-role="cro" data-entry-audience="cro" data-page-link="benchmark">
               <span>CRO / 风控</span>
-              <b>先看风险机制</b>
+              <b>先看风险指标和机制链</b>
               <em>资产质量、对公零售、IFRS9 和拨备链。</em>
             </button>
-            <button type="button" class="entry-role-card" data-entry-role="expert" data-entry-audience="expert" data-page-link="data">
+            <button type="button" class="entry-role-card" data-entry-role="expert" data-entry-audience="expert" data-page-link="benchmark">
               <span>研究 / 专家</span>
-              <b>先看数据底稿</b>
+              <b>先看全指标和可复核证据</b>
               <em>字段覆盖、三源对照、血缘和口径复核。</em>
             </button>
           </div>
@@ -1506,6 +1506,7 @@
           <h2 class="bm-appendix-title">来自数据对标的关键证据</h2>
           <p class="bm-appendix-sub">读者在数据对标中点击「加入报告附录」收集的故事线。每条按当前 state 实时重绘，所以截面时点/对标组的变更会同步反映。</p>
         </header>
+        <div class="bm-evidence-pack-summary" id="benchmarkEvidencePackSummary"></div>
         <div class="bm-appendix-body" id="benchmarkReportAppendixBody"></div>
         <footer class="bm-appendix-foot" id="benchmarkReportAppendixFoot"></footer>
       </section>
@@ -1514,6 +1515,30 @@
       <section class="bm-shell" id="benchmarkPageShell"
                data-portal-page="benchmark"
                aria-label="纯数据对标页">
+        <section class="bm-report-selector" id="bmReportEvidenceSelector" data-report-evidence-selector>
+          <header class="bm-report-selector-head">
+            <div>
+              <span class="bm-pane-kicker">入报告数据</span>
+              <h2>选择数据并进入报告</h2>
+              <p>勾选要带入报告的指标、故事线和因果链，系统会自动匹配报告分析角度和章节位置。</p>
+            </div>
+            <button type="button" class="bm-primary-action" id="bmOpenReportEvidenceSelector">生成报告证据包</button>
+          </header>
+          <div class="bm-report-selector-grid">
+            <label><input type="checkbox" data-report-metric="ROE" checked> ROE</label>
+            <label><input type="checkbox" data-report-metric="NIM" checked> NIM</label>
+            <label><input type="checkbox" data-report-metric="成本收入比"> 成本收入比</label>
+            <label><input type="checkbox" data-report-metric="定期化率" checked> 定期化率</label>
+            <label><input type="checkbox" data-report-metric="存款成本率" checked> 存款成本率</label>
+            <label><input type="checkbox" data-report-metric="LDR"> LDR</label>
+            <label><input type="checkbox" data-report-metric="对公不良率"> 对公不良率</label>
+            <label><input type="checkbox" data-report-metric="零售不良率"> 零售不良率</label>
+            <label><input type="checkbox" data-report-metric="拨备覆盖率"> 拨备覆盖率</label>
+            <label><input type="checkbox" data-report-metric="LCR"> LCR</label>
+            <label><input type="checkbox" data-report-metric="NSFR"> NSFR</label>
+            <label><input type="checkbox" data-report-chain="profitability-liability"> ROE 低 -> NIM 低 -> 定期化率高</label>
+          </div>
+        </section>
         <!-- 左侧：选择面板 -->
         <aside class="bm-side" aria-label="对标设定">
           <section class="bm-pane">
