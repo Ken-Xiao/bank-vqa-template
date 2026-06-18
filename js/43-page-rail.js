@@ -1,7 +1,7 @@
 /* Bank VQA module: 43-page-rail.js
- * Portal IA v11：左侧数据驱动任务流导航
+ * Portal IA v11：左侧参数与数据任务流导航
  *
- * 渲染数据对标、证据、专题、报告和复核入口（含子按钮），高亮当前 page。
+ * 渲染参数选择、数据对标、证据、专题、报告和复核入口（含子按钮），高亮当前 page。
  *
  * DOM 结构：
  *   <nav class="page-rail" id="pageRail">
@@ -19,9 +19,10 @@
 
 var PORTAL_SUB_ANCHORS = {
   launch: {
-    target: "#quickLaunchPanel",
+    target: ".target-field",
     peer: ".peer-field",
-    scenario: ".launch-scenario",
+    year: ".year-field",
+    identity: ".identity-field",
   },
   answer: {
     verdict: "#clientCommandCenter",
@@ -77,8 +78,8 @@ function renderPageRail() {
   var subMap = (typeof PORTAL_PAGE_SUB !== "undefined") ? PORTAL_PAGE_SUB : {};
 
   var titleHtml = '<div class="rail-title">'
-    + '<strong>数据驱动任务流</strong>'
-    + '<span>先对标、再选证据、最后生成报告。</span>'
+    + '<strong>参数选择</strong>'
+    + '<span>目标银行、对标银行、分析年份、身份。</span>'
     + '</div>';
 
   var html = titleHtml + pages.map(function (page, idx) {

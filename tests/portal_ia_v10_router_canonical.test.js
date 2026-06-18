@@ -33,25 +33,25 @@ assert(
 );
 
 [
-  'var PORTAL_PAGES = ["benchmark", "answer", "evidence", "topics", "report", "data", "launch"]',
+  'var PORTAL_PAGES = ["launch", "benchmark", "answer", "evidence", "topics", "report", "data"]',
   "function setPortalPage",
   "function getPortalPage",
   "function initPortalRouter",
   'document.body.setAttribute("data-app-page", target)',
   'localStorage.setItem("benchmarkiq.activePortalPage", target)',
   '"#page/" + target',
-  'initialPage = "benchmark"',
+  'initialPage = "launch"',
 ].forEach((needle) => assert(router.includes(needle), `router missing data-first behavior: ${needle}`));
 assert(router.includes("skipPortal: true"), "router must sync app mode without recursively overriding the active page");
 
 [
+  'launch: "参数选择"',
   'benchmark: "数据对标"',
   'answer: "结论摘要"',
   'evidence: "证据地图"',
   'topics: "专题归因"',
   'report: "报告工作室"',
   'data: "数据复核"',
-  'launch: "入口说明"',
 ].forEach((needle) => assert(router.includes(needle), `router label missing: ${needle}`));
 
 [
@@ -59,8 +59,10 @@ assert(router.includes("skipPortal: true"), "router must sync app mode without r
   "function initPageRail",
   "function resolvePortalSubAnchor",
   "PORTAL_SUB_ANCHORS",
-  "数据驱动任务流",
-  "先对标、再选证据、最后生成报告",
+  "参数选择",
+  "目标银行、对标银行、分析年份、身份",
+  'year: ".year-field"',
+  'identity: ".identity-field"',
   "data-page-link",
   "data-sub-anchor",
   "data-sub-page",

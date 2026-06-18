@@ -8895,13 +8895,12 @@
       display: none !important;
     }
 
-    /* setup-three-column: full-bleed 3-column layout for the bank selection page.
-       Row 1 = selection-intro (spans 3), Row 2 = quick-launch-panel (spans 3),
-       Row 3 = [ target | peer | config ], Row 4 = sticky actions (spans 3).
+    /* setup-parameter-grid: full-width four-option layout for the first page.
+       Row = [ target | peer | year | identity ], sticky action below.
        Overrides --step1-max (720px) from earlier rule. Anti-occlusion: min-width:0 on every grid item. */
     body[data-app-state="setup"] #step1Content {
       display: grid;
-      grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr) minmax(0, 0.92fr);
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(150px, .42fr) minmax(180px, .5fr);
       grid-auto-rows: min-content;
       gap: 16px;
       width: calc(100% - 32px);
@@ -8958,7 +8957,7 @@
       min-width: 0;
     }
 
-    /* Main row: target → peer → config */
+    /* Main row: target → peer → year → identity */
     body[data-app-state="setup"] .filters {
       grid-column: 1;
       align-self: start;
@@ -8972,6 +8971,11 @@
     body[data-app-state="setup"] .year-field,
     body[data-app-state="setup"] .setup-advanced {
       grid-column: 3;
+      align-self: start;
+      min-width: 0;
+    }
+    body[data-app-state="setup"] .identity-field {
+      grid-column: 4;
       align-self: start;
       min-width: 0;
     }
@@ -9049,15 +9053,13 @@
       overflow-y: auto;
     }
 
-    /* Responsive fallback: collapse 3 cols → 2 cols at <=1100px, → 1 col at <=760px */
+    /* Responsive fallback: collapse 4 cols → 2 cols at <=1100px, → 1 col at <=760px */
     @media (max-width: 1100px) {
       body[data-app-state="setup"] #step1Content {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       }
       body[data-app-state="setup"] .year-field,
-      body[data-app-state="setup"] .setup-advanced {
-        grid-column: 1 / -1;
-      }
+      body[data-app-state="setup"] .identity-field { grid-column: auto; }
     }
 
     @media (max-width: 760px) {
@@ -9069,6 +9071,7 @@
       body[data-app-state="setup"] .filters,
       body[data-app-state="setup"] .peer-field,
       body[data-app-state="setup"] .year-field,
+      body[data-app-state="setup"] .identity-field,
       body[data-app-state="setup"] .setup-advanced {
         grid-column: 1;
       }
@@ -13091,6 +13094,15 @@
        ========================================================================== */
     body[data-app-page="launch"]:not([data-launch-disclosure-state="expanded"])
       [data-launch-disclosure="background"] {
+      display: none !important;
+    }
+
+    body[data-app-page="launch"] .launch-disclosure-toggle,
+    body[data-app-page="launch"] .quick-launch-panel,
+    body[data-app-page="launch"] .setup-advanced,
+    body[data-app-page="launch"] .control-surface > .actions .analysis-content,
+    body[data-app-page="launch"] .control-surface > .actions .post-confirm-action,
+    body[data-app-page="launch"] .control-surface > .actions .project-status {
       display: none !important;
     }
 

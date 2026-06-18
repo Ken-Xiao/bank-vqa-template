@@ -87,22 +87,6 @@
       <div class="chapter-hero-host" data-chapter-hero-host="data"     data-portal-page="data"></div>
       <div class="page-header-host"  data-page-header="data"            data-portal-page="data"></div>
       <div class="control-surface step-shell step1-content" id="step1Content" data-step-shell="setup" data-portal-page="launch" aria-label="设定口径">
-        <section class="entry-decision-panel" id="entryDecisionPanel" aria-label="选择工作入口">
-          <header class="entry-decision-head">
-            <span>开始</span>
-            <h2>选数据，出报告</h2>
-            <p>先选银行、对标组和关键指标，再把证据带入报告。</p>
-          </header>
-          <button type="button" class="entry-primary-action" data-entry-route="benchmark-first" data-page-link="benchmark">
-            开始
-          </button>
-          <div class="entry-role-segment" aria-label="选择默认分析视角">
-            <button type="button" class="entry-role-pill" data-entry-role="board" data-entry-audience="board" data-page-link="benchmark">董事会</button>
-            <button type="button" class="entry-role-pill" data-entry-role="cfo" data-entry-audience="cfo" data-page-link="benchmark">财务</button>
-            <button type="button" class="entry-role-pill" data-entry-role="cro" data-entry-audience="cro" data-page-link="benchmark">风控</button>
-            <button type="button" class="entry-role-pill" data-entry-role="expert" data-entry-audience="expert" data-page-link="benchmark">研究</button>
-          </div>
-        </section>
         <div class="launch-disclosure-toggle" id="launchDisclosureToggle" data-portal-page="launch" role="region" aria-label="背景介绍切换">
           <div class="launch-disclosure-summary">
             <span>设定口径</span>
@@ -203,6 +187,14 @@
               <option value="2020">2020 截面</option>
             </select>
           </div>
+          <div class="field-label selector-field identity-field">身份
+            <div class="entry-role-segment" aria-label="选择默认分析视角">
+              <button type="button" class="entry-role-pill" data-entry-role="board" data-entry-audience="board" data-page-link="benchmark">董事会</button>
+              <button type="button" class="entry-role-pill" data-entry-role="cfo" data-entry-audience="cfo" data-page-link="benchmark">财务</button>
+              <button type="button" class="entry-role-pill" data-entry-role="cro" data-entry-audience="cro" data-page-link="benchmark">风控</button>
+              <button type="button" class="entry-role-pill" data-entry-role="expert" data-entry-audience="expert" data-page-link="benchmark">研究</button>
+            </div>
+          </div>
           <div class="setup-advanced is-collapsed" id="setupAdvancedOptions">
           <div class="field-label selector-field type-field">分类型银行数据
             <select id="bankTypes" multiple hidden>
@@ -242,7 +234,7 @@
           </div>
         </div>
         <div class="actions">
-          <button class="btn" id="confirmSelection" type="button">形成分析结果</button>
+          <button class="btn" id="confirmSelection" type="button">生成数据</button>
           <button class="btn secondary post-confirm-action" id="restartAnalysis" type="button">重新开始分析</button>
           <button class="btn secondary analysis-content" id="refreshAnalysis" type="button">刷新诊断</button>
           <button class="btn secondary analysis-content" id="saveProject" type="button">保存当前项目</button>

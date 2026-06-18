@@ -1,44 +1,45 @@
 /* Bank VQA module: 42-portal-router.js
  * Portal IA v11：数据先行一等页面的路由 + 状态机
  *
- * page：benchmark / answer / evidence / topics / report / data / launch
+ * page：launch / benchmark / answer / evidence / topics / report / data
  *
  * 设计：
  *   1. 单一真值源是 state.activePortalPage（已在 01-state.js 预留）
  *   2. URL hash 同步：/index.html#page/answer
  *   3. body[data-app-page] 控制各页面 section 显隐（CSS 见 app.css）
- *   4. 与现有 setAppMode 协同：benchmark 是默认首站，confirmed 之后开放其他分析页
+ *   4. 与现有 setAppMode 协同：launch 是参数选择页，confirmed 之后开放其他分析页
  *   5. 钩到 renderAll：每次重渲染 Page Rail 都能更新当前激活状态
- *   6. 错误降级：任何无效 page 都 fall back 到 benchmark
+ *   6. 错误降级：任何无效 page 都 fall back 到 launch
  */
 
-var PORTAL_PAGES = ["benchmark", "answer", "evidence", "topics", "report", "data", "launch"];
+var PORTAL_PAGES = ["launch", "benchmark", "answer", "evidence", "topics", "report", "data"];
 
 var PORTAL_PAGE_LABELS = {
+  launch: "参数选择",
   benchmark: "数据对标",
   answer: "结论摘要",
   evidence: "证据地图",
   topics: "专题归因",
   report: "报告工作室",
   data: "数据复核",
-  launch: "入口说明",
 };
 
 var PORTAL_PAGE_SUMMARY = {
+  launch: "目标银行、对标银行、分析年份、身份",
   benchmark: "选银行、定对标组、选入报告数据",
   answer: "30秒总判断、董事会议题、行动优先级",
   evidence: "异动归因、同业位置、市净率信号",
   topics: "风险机制、专题链路、行动节奏",
   report: "报告预览、证据包分析、章节编辑与导出",
   data: "字段口径、三源对照、血缘卡",
-  launch: "数据先行入口说明与角色预设",
 };
 
 // 子按钮（页内锚点）配置——和 mockup 对齐
 var PORTAL_PAGE_SUB = {
   launch:      [{ key: "target",     label: "目标银行" },
-                { key: "peer",       label: "对标组" },
-                { key: "scenario",   label: "汇报场景" }],
+                { key: "peer",       label: "对标银行" },
+                { key: "year",       label: "分析年份" },
+                { key: "identity",   label: "身份" }],
   answer:      [{ key: "verdict",    label: "总判断" },
                 { key: "kpi",        label: "核心指标" },
                 { key: "questions",  label: "董事会议题" }],
@@ -60,12 +61,12 @@ var PORTAL_PAGE_SUB = {
 };
 
 function normalizePortalPage(p) {
-  if (typeof p !== "string") return "benchmark";
+  if (typeof p !== "string") return "launch";
   var key = p.trim();
   if (PORTAL_PAGES.indexOf(key) >= 0) return key;
   // 兼容 hyphen / lowercase 别名
   if (key === "topic-detail" || key === "topicdetail" || key === "topicDetail") return "topics";
-  return "benchmark";
+  return "launch";
 }
 
 function portalPageEnabled(page) {
@@ -94,8 +95,8 @@ function setPortalPage(page, options) {
   options = options || {};
   var target = normalizePortalPage(page);
   if (!portalPageEnabled(target) && !options.force) {
-    // 未确认时跳到 benchmark
-    target = "benchmark";
+    // 未确认时跳到 launch
+    target = "launch";
   }
   if (typeof state !== "undefined") {
     state.activePortalPage = target;
@@ -149,7 +150,7 @@ function getPortalPage() {
   if (typeof state !== "undefined" && state.activePortalPage) {
     return normalizePortalPage(state.activePortalPage);
   }
-  return "benchmark";
+  return "launch";
 }
 
 function bindPortalRouter() {
@@ -195,7 +196,7 @@ function applyEntryIntent(btn) {
 }
 
 function initPortalRouter() {
-  // 优先级：URL hash > localStorage > benchmark
+  // 优先级：URL hash > localStorage > launch
   var initialPage = null;
   if (typeof window !== "undefined" && window.location.hash) {
     var match = window.location.hash.match(/^#page\/([a-zA-Z-]+)/);
@@ -209,7 +210,7 @@ function initPortalRouter() {
     } catch (e) { /* silent */ }
   }
   if (!initialPage) {
-    initialPage = "benchmark";
+    initialPage = "launch";
   }
   setPortalPage(initialPage, { skipScroll: true });
   bindPortalRouter();

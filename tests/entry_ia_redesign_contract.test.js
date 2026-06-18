@@ -10,11 +10,15 @@ const css = fs.readFileSync("styles/app.css", "utf8");
 const router = fs.readFileSync("js/42-portal-router.js", "utf8");
 
 [
-  'id="entryDecisionPanel"',
-  'class="entry-primary-action"',
-  'data-entry-route="benchmark-first"',
-  "选数据，出报告",
-  ">开始<",
+  'class="field-label selector-field target-field"',
+  'class="field-label selector-field peer-field"',
+  'class="field-label selector-field year-field"',
+  'class="field-label selector-field identity-field"',
+  "目标银行",
+  "对标银行",
+  "分析年份",
+  "身份",
+  ">生成数据<",
   'class="entry-role-segment"',
   'data-entry-role="board"',
   'data-entry-role="cfo"',
@@ -25,9 +29,10 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   'data-entry-audience="cro"',
   'data-entry-audience="expert"',
 ].forEach((needle) => {
-  assert(html.includes(needle), `missing data-first entry marker: ${needle}`);
+  assert(html.includes(needle), `missing launch parameter marker: ${needle}`);
 });
 
+assert(!html.includes('id="entryDecisionPanel"'), "launch should not render a separate marketing-style entry panel");
 assert(!html.includes('data-entry-route="report-after-benchmark"'), "launch must not show a parallel report entrance card");
 assert(!html.includes('class="entry-workflow-grid"'), "launch must not render two equal workflow cards");
 assert(!html.includes('class="entry-flow-steps"'), "launch should keep only the essential start action and role choices");
@@ -40,7 +45,7 @@ assert(!html.includes(">CRO<"), "launch visible role labels should not use Engli
   'data-entry-role="cro" data-entry-audience="cro" data-page-link="benchmark"',
   'data-entry-role="expert" data-entry-audience="expert" data-page-link="benchmark"',
 ].forEach((needle) => {
-  assert(html.includes(needle), `role entry must route through benchmark: ${needle}`);
+  assert(html.includes(needle), `identity choice must persist role and route through benchmark: ${needle}`);
 });
 
 [
@@ -53,9 +58,8 @@ assert(!html.includes(">CRO<"), "launch visible role labels should not use Engli
 });
 
 [
+  'launch: "参数选择"',
   'benchmark: "数据对标"',
-  'report: "报告工作室"',
-  'launch: "入口说明"',
 ].forEach((needle) => {
   assert(router.includes(needle), `router labels must include ${needle}`);
 });
