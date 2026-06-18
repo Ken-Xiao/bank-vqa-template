@@ -14,9 +14,11 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   'class="entry-primary-action"',
   'data-entry-route="benchmark-first"',
   'class="entry-flow-steps"',
-  "1 数据对标",
-  "2 入报告选择",
-  "3 报告分析",
+  "选数据，出报告",
+  ">开始<",
+  "1 选数据",
+  "2 选证据",
+  "3 出报告",
   'class="entry-role-segment"',
   'data-entry-role="board"',
   'data-entry-role="cfo"',
@@ -32,6 +34,8 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
 
 assert(!html.includes('data-entry-route="report-after-benchmark"'), "launch must not show a parallel report entrance card");
 assert(!html.includes('class="entry-workflow-grid"'), "launch must not render two equal workflow cards");
+assert(!html.includes(">CFO<"), "launch visible role labels should not use English abbreviations");
+assert(!html.includes(">CRO<"), "launch visible role labels should not use English abbreviations");
 
 [
   'data-entry-role="board" data-entry-audience="board" data-page-link="benchmark"',
