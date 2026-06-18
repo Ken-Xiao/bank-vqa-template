@@ -13,12 +13,8 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
   'id="entryDecisionPanel"',
   'class="entry-primary-action"',
   'data-entry-route="benchmark-first"',
-  'class="entry-flow-steps"',
   "选数据，出报告",
   ">开始<",
-  "1 选数据",
-  "2 选证据",
-  "3 出报告",
   'class="entry-role-segment"',
   'data-entry-role="board"',
   'data-entry-role="cfo"',
@@ -34,6 +30,7 @@ const router = fs.readFileSync("js/42-portal-router.js", "utf8");
 
 assert(!html.includes('data-entry-route="report-after-benchmark"'), "launch must not show a parallel report entrance card");
 assert(!html.includes('class="entry-workflow-grid"'), "launch must not render two equal workflow cards");
+assert(!html.includes('class="entry-flow-steps"'), "launch should keep only the essential start action and role choices");
 assert(!html.includes(">CFO<"), "launch visible role labels should not use English abbreviations");
 assert(!html.includes(">CRO<"), "launch visible role labels should not use English abbreviations");
 
@@ -49,7 +46,6 @@ assert(!html.includes(">CRO<"), "launch visible role labels should not use Engli
 [
   ".entry-decision-panel",
   ".entry-primary-action",
-  ".entry-flow-steps",
   ".entry-role-segment",
   ".entry-role-pill",
 ].forEach((needle) => {

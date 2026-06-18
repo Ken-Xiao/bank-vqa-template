@@ -389,6 +389,29 @@
       + '</section>';
   }
 
+  function goToReportWithEvidencePack(button) {
+    if (button) {
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      button.textContent = "正在进入报告...";
+    }
+    var navigate = function(){
+      if (typeof setPortalPage === "function") setPortalPage("report", { force: true });
+      if (typeof setWorkspaceTab === "function") setWorkspaceTab("report");
+      renderBenchmarkEvidencePackSummary();
+      if (button) {
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        button.textContent = "生成报告证据包";
+      }
+    };
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(navigate);
+    } else {
+      setTimeout(navigate, 0);
+    }
+  }
+
   // === 报告页：数据附录章节渲染 ===
   // 读取 state.reportDataAppendices，按当前 _bm 数据重画每条故事线的引用
   function renderBenchmarkReportAppendix() {
@@ -454,7 +477,7 @@
       e.preventDefault();
       saveBenchmarkEvidencePack(buildBenchmarkEvidencePack());
       renderBenchmarkEvidencePackSummary();
-      if (typeof setPortalPage === "function") setPortalPage("report");
+      goToReportWithEvidencePack(buildPackBtn);
       return;
     }
     var rm = e.target.closest("[data-remove-appendix]");
@@ -505,6 +528,7 @@
   window.saveBenchmarkEvidencePack = saveBenchmarkEvidencePack;
   window.getBenchmarkEvidencePack = getBenchmarkEvidencePack;
   window.renderBenchmarkEvidencePackSummary = renderBenchmarkEvidencePackSummary;
+  window.goToReportWithEvidencePack = goToReportWithEvidencePack;
 
   // 钩子 1：MutationObserver 监听 body[data-app-page]，切到 benchmark 时
   //   ① 先同步 state → _bm

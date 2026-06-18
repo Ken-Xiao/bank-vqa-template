@@ -23,7 +23,10 @@ const css = fs.readFileSync("styles/benchmark.css", "utf8");
   "function renderBenchmarkEvidencePackSummary",
   'localStorage.setItem("benchmarkiq.evidencePack"',
   'localStorage.getItem("benchmarkiq.evidencePack"',
-  'setPortalPage("report"',
+  "function goToReportWithEvidencePack",
+  'setPortalPage("report", { force: true',
+  'setWorkspaceTab("report"',
+  "requestAnimationFrame",
 ].forEach((needle) => {
   assert(bridge.includes(needle), `missing evidence pack bridge behavior: ${needle}`);
 });
