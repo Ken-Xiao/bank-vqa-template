@@ -15,6 +15,15 @@ assert(
   "router must sync benchmark state before switching pages and refresh downstream content after switching"
 );
 assert(
+  router.includes("state.confirmed = true") &&
+    router.includes('document.body.classList.add("analysis-ready")'),
+  "router must treat leaving benchmark for downstream pages as confirming the benchmark data boundary"
+);
+assert(
+  router.includes("ensureConfirmedEvidencePackBeforeLeavingBenchmark"),
+  "router must ensure confirmed evidence pack before downstream pages"
+);
+assert(
   bridge.includes("deriveBenchmarkPeerNames") &&
     bridge.includes("activePeers.national_type") &&
     bridge.includes("activePeers.region_type") &&

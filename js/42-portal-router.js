@@ -1,18 +1,18 @@
 /* Bank VQA module: 42-portal-router.js
  * Portal IA v11：数据先行一等页面的路由 + 状态机
  *
- * page：launch / benchmark / answer / evidence / topics / report / data
+ * page：benchmark / answer / evidence / topics / report / data
  *
  * 设计：
  *   1. 单一真值源是 state.activePortalPage（已在 01-state.js 预留）
  *   2. URL hash 同步：/index.html#page/answer
  *   3. body[data-app-page] 控制各页面 section 显隐（CSS 见 app.css）
- *   4. 与现有 setAppMode 协同：launch 是参数选择页，confirmed 之后开放其他分析页
+ *   4. 与现有 setAppMode 协同：benchmark 是默认入口页，confirmed 之后开放其他分析页
  *   5. 钩到 renderAll：每次重渲染 Page Rail 都能更新当前激活状态
- *   6. 错误降级：任何无效 page 都 fall back 到 launch
+ *   6. 错误降级：任何无效 page 都 fall back 到 benchmark
  */
 
-var PORTAL_PAGES = ["launch", "benchmark", "answer", "evidence", "topics", "report", "data"];
+var PORTAL_PAGES = ["benchmark", "answer", "evidence", "topics", "report", "data"];
 
 var PORTAL_PAGE_LABELS = {
   launch: "参数选择",
@@ -61,18 +61,19 @@ var PORTAL_PAGE_SUB = {
 };
 
 function normalizePortalPage(p) {
-  if (typeof p !== "string") return "launch";
+  if (typeof p !== "string") return "benchmark";
   var key = p.trim();
   if (PORTAL_PAGES.indexOf(key) >= 0) return key;
   // 兼容 hyphen / lowercase 别名
   if (key === "topic-detail" || key === "topicdetail" || key === "topicDetail") return "topics";
-  return "launch";
+  return "benchmark";
 }
 
 function portalPageEnabled(page) {
   // launch / benchmark 总是可达（benchmark 是纯数据对标，不依赖 confirmed）
   if (page === "launch") return true;
   if (page === "benchmark") return true;
+  if (typeof document !== "undefined" && document.body && document.body.getAttribute("data-app-page") === "benchmark") return true;
   if (typeof state !== "undefined" && state.confirmed) return true;
   if (typeof document !== "undefined" && document.body && document.body.dataset.appState !== "setup") return true;
   return false;
@@ -101,16 +102,36 @@ function shouldSyncBenchmarkBeforePortalPage(target) {
   return false;
 }
 
+function ensureConfirmedEvidencePackBeforeLeavingBenchmark() {
+  if (typeof window === "undefined") return;
+  var pack = typeof window.readEvidencePack === "function" ? window.readEvidencePack() : null;
+  if (!pack || pack.status === "stale") {
+    pack = typeof window.buildRecommendedEvidencePack === "function" ? window.buildRecommendedEvidencePack() : pack;
+  }
+  if (pack && pack.status !== "confirmed" && typeof window.confirmEvidencePack === "function") {
+    window.confirmEvidencePack(pack, pack.selectedIssues);
+  }
+}
+
 function setPortalPage(page, options) {
   options = options || {};
   var target = normalizePortalPage(page);
   if (!portalPageEnabled(target) && !options.force) {
-    // 未确认时跳到 launch
-    target = "launch";
+    // 未确认时留在数据对标页
+    target = "benchmark";
   }
   var syncBenchmark = shouldSyncBenchmarkBeforePortalPage(target);
+  if (syncBenchmark) {
+    ensureConfirmedEvidencePackBeforeLeavingBenchmark();
+  }
   if (syncBenchmark && typeof window !== "undefined" && typeof window.syncBenchmarkToState === "function") {
     window.syncBenchmarkToState({ renderDownstream: false });
+  }
+  if (syncBenchmark && typeof state !== "undefined") {
+    state.confirmed = true;
+    if (typeof document !== "undefined" && document.body) {
+      document.body.classList.add("analysis-ready");
+    }
   }
   if (typeof state !== "undefined") {
     state.activePortalPage = target;
@@ -167,7 +188,7 @@ function getPortalPage() {
   if (typeof state !== "undefined" && state.activePortalPage) {
     return normalizePortalPage(state.activePortalPage);
   }
-  return "launch";
+  return "benchmark";
 }
 
 function bindPortalRouter() {
@@ -213,22 +234,8 @@ function applyEntryIntent(btn) {
 }
 
 function initPortalRouter() {
-  // 优先级：URL hash > localStorage > launch
-  var initialPage = null;
-  if (typeof window !== "undefined" && window.location.hash) {
-    var match = window.location.hash.match(/^#page\/([a-zA-Z-]+)/);
-    if (match) initialPage = match[1];
-  }
-  if (!initialPage) {
-    try {
-      if (typeof localStorage !== "undefined") {
-        initialPage = localStorage.getItem("benchmarkiq.activePortalPage");
-      }
-    } catch (e) { /* silent */ }
-  }
-  if (!initialPage) {
-    initialPage = "launch";
-  }
+  // 冷启动强制回到数据对标，避免旧 hash/localStorage 把首页带回结论摘要并触发重渲染卡顿。
+  var initialPage = "benchmark";
   setPortalPage(initialPage, { skipScroll: true });
   bindPortalRouter();
 }
@@ -236,8 +243,11 @@ function initPortalRouter() {
 // 与 setAppMode 协同：保持向后兼容
 function syncAppModeFromPortalPage(page) {
   if (typeof setAppMode !== "function") return;
-  // benchmark 是无门槛直达页，不触发 setAppMode（避开 analysis 引擎的卡顿）
-  if (page === "benchmark") return;
+  // benchmark 是无门槛直达页，只同步 app mode，不触发 analysis 引擎。
+  if (page === "benchmark") {
+    setAppMode("benchmark", { skipRouting: true, skipPortal: true });
+    return;
+  }
   var modeMap = {
     launch: "setup",
     answer: "analysis",
@@ -261,4 +271,5 @@ if (typeof window !== "undefined") {
   window.syncAppModeFromPortalPage = syncAppModeFromPortalPage;
   window.applyEntryIntent = applyEntryIntent;
   window.shouldSyncBenchmarkBeforePortalPage = shouldSyncBenchmarkBeforePortalPage;
+  window.ensureConfirmedEvidencePackBeforeLeavingBenchmark = ensureConfirmedEvidencePackBeforeLeavingBenchmark;
 }

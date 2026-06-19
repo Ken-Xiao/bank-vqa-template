@@ -658,6 +658,142 @@
       border-top-color: var(--risk);
     }
 
+    .step2-empty-state,
+    .step2-pack-answer,
+    .step2-pack-map,
+    .step2-pack-topics {
+      border: 1px solid #dbe5ee;
+      border-radius: var(--card-radius);
+      background: #fff;
+      padding: 16px;
+    }
+
+    .step2-empty-state {
+      display: grid;
+      gap: 8px;
+      background: #fbfaf6;
+    }
+
+    .step2-empty-state b,
+    .step2-pack-answer h3,
+    .step2-pack-topic-card h3 {
+      margin: 0;
+      color: var(--navy);
+      font-size: var(--font-section);
+      line-height: 1.25;
+    }
+
+    .step2-empty-state p,
+    .step2-pack-issue-card p,
+    .step2-pack-topic-card p {
+      margin: 0;
+      color: #405468;
+      font-size: var(--font-body);
+      line-height: 1.55;
+    }
+
+    .step2-empty-state button {
+      justify-self: start;
+      border: 1px solid var(--blue);
+      border-radius: 6px;
+      background: var(--blue);
+      color: #fff;
+      font-size: var(--font-caption);
+      font-weight: 900;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .step2-pack-meta {
+      margin: 0 0 10px;
+      color: #62768a;
+      font-size: var(--font-caption);
+      font-weight: 900;
+    }
+
+    .step2-pack-issue-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .step2-pack-issue-card,
+    .step2-pack-topic-card {
+      display: grid;
+      gap: 8px;
+      border: 1px solid #dbe5ee;
+      border-radius: var(--card-radius);
+      background: #fbfdff;
+      padding: 14px;
+    }
+
+    .step2-pack-issue-card span {
+      justify-self: start;
+      border-radius: 999px;
+      background: #eaf5fb;
+      color: var(--blue);
+      font-size: var(--font-caption);
+      font-weight: 900;
+      padding: 4px 8px;
+    }
+
+    .step2-pack-issue-card b {
+      color: var(--navy);
+      font-size: var(--font-body);
+    }
+
+    .step2-pack-issue-card em,
+    .step2-pack-issue-card small,
+    .step2-pack-topic-card small,
+    .step2-pack-topic-card b {
+      color: #53677b;
+      font-size: var(--font-caption);
+      font-style: normal;
+      line-height: 1.5;
+    }
+
+    .step2-pack-map {
+      overflow-x: auto;
+    }
+
+    .step2-pack-map table {
+      width: 100%;
+      min-width: 640px;
+      border-collapse: collapse;
+      font-size: var(--font-body);
+    }
+
+    .step2-pack-map th,
+    .step2-pack-map td {
+      border-bottom: 1px solid #e7edf3;
+      padding: 9px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .step2-pack-map th {
+      color: var(--navy);
+      font-size: var(--font-caption);
+      font-weight: 900;
+      background: #f6f9fc;
+    }
+
+    .step2-pack-topics {
+      display: grid;
+      gap: 10px;
+    }
+
+    .step2-pack-topic-card ol {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding-left: 18px;
+      color: #405468;
+      font-size: var(--font-body);
+      line-height: 1.5;
+    }
+
     .step2-board-questions {
       display: grid;
       grid-template-columns: minmax(260px, .78fr) minmax(0, 1.22fr);

@@ -133,7 +133,7 @@ function renderRecommendedPeerPreview() {
     <span>推荐对标组</span>
     <b>${displayBankName(state.target)}｜${scenarioLabel}｜${typeof peerTemplateLabel === "function" ? peerTemplateLabel(template) : template}</b>
     <em>${displayBankList(peers, "选择目标银行后自动推荐")}</em>
-    <em>${target?.type || "银行样本"}｜${target?.region || "区域未标注"}｜确认后直接进入 30 秒诊断。</em>`;
+    <em>${target?.type || "银行样本"}｜${target?.region || "区域未标注"}｜选择目标银行后自动进入数据对标页。</em>`;
 }
 
 function toggleAdvancedSetup() {
@@ -252,6 +252,7 @@ function renderChoicePanels() {
       syncHiddenSelects();
       updateSelectionSummary();
       if (state.confirmed) renderAll();
+      scheduleAutoConfirm("target-change");
     }));
   }
   if (peerBox) {
@@ -330,6 +331,7 @@ function populateSelectors() {
     renderChoicePanels();
     updateSelectionSummary();
     if (state.confirmed) renderAll();
+    scheduleAutoConfirm("target-change");
   });
   peers.addEventListener("change", () => {
     state.peers = [...peers.selectedOptions].map((o) => o.value).filter((v) => v !== state.target).slice(0, 8);
@@ -387,56 +389,77 @@ function populateSelectors() {
     peerTemplate.value = state.peerTemplate;
     peerTemplate.addEventListener("change", () => applyPeerTemplate(peerTemplate.value));
   }
+
+  // 参数页仅作为旧链接兼容：同步选择后进入数据对标页，不提前生成报告分析。
+  function doConfirmSelection(reason = "confirm-selection") {
+    ensureTargetInFilter();
+    const checkedTarget = document.querySelector('input[name="targetBankChoice"]:checked');
+    const checkedPeers = [...document.querySelectorAll('input[name="peerBankChoice"]:checked')].map((input) => input.value);
+    const checkedTypes = [...document.querySelectorAll('input[name="typeChoice"]:checked')].map((input) => input.value);
+    state.target = checkedTarget?.value || target.value;
+    state.peers = checkedPeers.filter((v) => v !== state.target).slice(0, analysisRules?.inputs?.peerBanks?.recommendedMax || 8);
+    state.year = year ? Number(year.value) : state.year;
+    state.types = checkedTypes.length ? checkedTypes : (types ? [...types.selectedOptions].map((o) => o.value) : state.types);
+    state.reportVersion = reportVersion ? reportVersion.value : state.reportVersion;
+    state.peerTemplate = peerTemplate ? peerTemplate.value : state.peerTemplate;
+    if (checkedPeers.length) {
+      state.peerTemplate = "manual";
+    } else if (state.peerTemplate === "manual") {
+      refreshDefaultPeersForTarget();
+    } else {
+      state.peers = peerTemplateBanks(state.peerTemplate);
+    }
+    clearGeneratedNarrativeCaches("confirm-selection");
+    state.confirmed = true;
+    document.body.classList.add("analysis-ready");
+    renderChoicePanels();
+    syncHiddenSelects();
+    updateSelectionSummary();
+    if (typeof recordAnalysisSession === "function") {
+      recordAnalysisSession("进入数据对标", {
+        target: state.target,
+        peers: state.peers,
+        year: state.year,
+        version: state.reportVersion
+      }, `${displayBankName(state.target)}进入 ${state.year} 年数据对标，对标组 ${displayBankList(state.peers)}。`);
+    }
+    if (typeof window.syncStateToBenchmark === "function") window.syncStateToBenchmark({ render: true });
+    if (typeof setAppMode === "function") setAppMode("benchmark", { skipPortal: true });
+    else if (typeof setWorkspaceTab === "function") setWorkspaceTab("overview");
+    if (typeof setPortalPage === "function") setPortalPage("benchmark", { force: true });
+    else document.getElementById("benchmarkPageShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // 自动确认：选择目标银行后，延迟进入数据对标页，减少重复点击
+  let autoConfirmTimer = null;
+  function scheduleAutoConfirm(reason) {
+    if (autoConfirmTimer) clearTimeout(autoConfirmTimer);
+    // 仅当未确认过，或当前仍在 launch/setup 页时才自动触发，避免在分析页手动切换银行时跳走
+    const onLaunchPage = typeof getPortalPage === "function" ? getPortalPage() === "launch" : state.appMode === "setup";
+    if (state.confirmed && !onLaunchPage) return;
+    autoConfirmTimer = setTimeout(() => {
+      if (!state.target) return;
+      doConfirmSelection(reason);
+      if (confirm) {
+        confirm.disabled = false;
+        confirm.removeAttribute("aria-busy");
+        confirm.textContent = "进入数据对标";
+      }
+    }, 400);
+  }
+
   if (confirm) {
+    confirm.textContent = "进入数据对标";
     confirm.addEventListener("click", () => {
       confirm.disabled = true;
       confirm.setAttribute("aria-busy", "true");
-      confirm.textContent = "正在生成...";
+      confirm.textContent = "正在进入...";
       const deferGenerate = typeof requestAnimationFrame === "function" ? requestAnimationFrame : (fn) => setTimeout(fn, 0);
       deferGenerate(() => {
-        ensureTargetInFilter();
-        const checkedTarget = document.querySelector('input[name="targetBankChoice"]:checked');
-        const checkedPeers = [...document.querySelectorAll('input[name="peerBankChoice"]:checked')].map((input) => input.value);
-        const checkedTypes = [...document.querySelectorAll('input[name="typeChoice"]:checked')].map((input) => input.value);
-        state.target = checkedTarget?.value || target.value;
-        state.peers = checkedPeers.filter((v) => v !== state.target).slice(0, analysisRules?.inputs?.peerBanks?.recommendedMax || 8);
-        state.year = year ? Number(year.value) : state.year;
-        state.types = checkedTypes.length ? checkedTypes : (types ? [...types.selectedOptions].map((o) => o.value) : state.types);
-        state.reportVersion = reportVersion ? reportVersion.value : state.reportVersion;
-        state.peerTemplate = peerTemplate ? peerTemplate.value : state.peerTemplate;
-        if (checkedPeers.length) {
-          state.peerTemplate = "manual";
-        } else if (state.peerTemplate === "manual") {
-          refreshDefaultPeersForTarget();
-        } else {
-          state.peers = peerTemplateBanks(state.peerTemplate);
-        }
-        clearGeneratedNarrativeCaches("confirm-selection");
-        state.confirmed = true;
-        document.body.classList.add("analysis-ready");
-        renderChoicePanels();
-        syncHiddenSelects();
-        updateSelectionSummary();
-        renderAll();
-        if (typeof runPostConfirmModelGeneration === "function") {
-          void runPostConfirmModelGeneration({ reason: "confirm-selection" });
-        }
-        if (typeof recordAnalysisSession === "function") {
-          recordAnalysisSession("确认分析口径", {
-            target: state.target,
-            peers: state.peers,
-            year: state.year,
-            version: state.reportVersion
-          }, `${displayBankName(state.target)}已确认 ${state.year} 年分析边界，对标组 ${displayBankList(state.peers)}。`);
-        }
-        applyReportVersion(state.reportVersion);
-        if (typeof setAppMode === "function") setAppMode("analysis", { skipPortal: true });
-        else if (typeof setWorkspaceTab === "function") setWorkspaceTab("overview");
-        if (typeof setPortalPage === "function") setPortalPage("benchmark", { force: true });
-        else document.getElementById("benchmarkPageShell")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        doConfirmSelection("confirm-selection");
         confirm.disabled = false;
         confirm.removeAttribute("aria-busy");
-        confirm.textContent = "生成数据";
+        confirm.textContent = "进入数据对标";
       });
     });
   }
@@ -444,8 +467,8 @@ function populateSelectors() {
     restart.addEventListener("click", () => {
       state.confirmed = false;
       document.body.classList.remove("analysis-ready");
-      if (typeof setAppMode === "function") setAppMode("setup");
-      if (typeof setPortalPage === "function") setPortalPage("launch");
+      if (typeof setAppMode === "function") setAppMode("benchmark");
+      if (typeof setPortalPage === "function") setPortalPage("benchmark");
       renderChoicePanels();
       syncHiddenSelects();
       updateSelectionSummary();

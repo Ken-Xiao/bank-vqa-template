@@ -11,7 +11,7 @@ const css = fs.readFileSync("styles/app.css", "utf8");
 
 [
   'id="pageRail"',
-  'data-app-page="launch"',
+  'data-app-page="benchmark"',
   'data-portal-page="launch"',
   'data-portal-page="answer"',
   'data-portal-page="evidence"',
@@ -33,19 +33,18 @@ assert(
 );
 
 [
-  'var PORTAL_PAGES = ["launch", "benchmark", "answer", "evidence", "topics", "report", "data"]',
+  'var PORTAL_PAGES = ["benchmark", "answer", "evidence", "topics", "report", "data"]',
   "function setPortalPage",
   "function getPortalPage",
   "function initPortalRouter",
   'document.body.setAttribute("data-app-page", target)',
   'localStorage.setItem("benchmarkiq.activePortalPage", target)',
   '"#page/" + target',
-  'initialPage = "launch"',
+  'initialPage = "benchmark"',
 ].forEach((needle) => assert(router.includes(needle), `router missing data-first behavior: ${needle}`));
 assert(router.includes("skipPortal: true"), "router must sync app mode without recursively overriding the active page");
 
 [
-  'launch: "参数选择"',
   'benchmark: "数据对标"',
   'answer: "结论摘要"',
   'evidence: "证据地图"',
@@ -59,8 +58,8 @@ assert(router.includes("skipPortal: true"), "router must sync app mode without r
   "function initPageRail",
   "function resolvePortalSubAnchor",
   "PORTAL_SUB_ANCHORS",
-  "参数选择",
-  "目标银行、对标银行、分析年份、身份",
+  "数据对标",
+  "先选目标银行和对标组，再进入诊断与报告。",
   'year: ".year-field"',
   'identity: ".identity-field"',
   "data-page-link",
@@ -90,7 +89,7 @@ assert(router.includes("skipPortal: true"), "router must sync app mode without r
 ].forEach((needle) => assert(bootstrap.includes(needle), `bootstrap must initialize ${needle}`));
 
 [
-  "getPortalPage() === \"launch\"",
+  "getPortalPage() === \"benchmark\"",
   'setPortalPage("answer"',
   'setPortalPage("report"'
 ].forEach((needle) => assert(workspace.includes(needle), `workspace app mode sync must route to canonical page: ${needle}`));

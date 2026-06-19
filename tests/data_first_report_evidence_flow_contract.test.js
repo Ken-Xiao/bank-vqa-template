@@ -6,10 +6,10 @@ const bridge = fs.readFileSync("js/56-benchmark-state-bridge.js", "utf8");
 const css = fs.readFileSync("styles/benchmark.css", "utf8");
 
 [
-  'id="bmReportEvidenceSelector"',
-  "data-report-evidence-selector",
-  'id="bmOpenReportEvidenceSelector"',
-  "选择数据并进入报告",
+  'id="bmEvidencePackTray"',
+  'id="bmConfirmEvidencePack"',
+  'id="bmRestartAnalysis"',
+  "先确定对标样本，再进入报告分析",
   'id="benchmarkEvidencePackSummary"',
 ].forEach((needle) => {
   assert(html.includes(needle), `missing report evidence UI marker: ${needle}`);

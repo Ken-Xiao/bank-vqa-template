@@ -23,6 +23,7 @@ const html = fs.readFileSync("index.html", "utf8");
 });
 
 assert(!css.includes("body[data-app-state=\"setup\"] .workspace {\n      max-width: 920px;"), "Setup workspace should not stay as a narrow center column");
-assert(html.includes("<body data-app-state=\"setup\">"), "Initial body state should be setup to avoid first-load layout jump");
+// v10 IA 引入了 data-app-page="launch"，断言只校验 data-app-state="setup" 前缀
+assert(html.includes("<body data-app-state=\"setup\""), "Initial body state should start with data-app-state=\"setup\" to avoid first-load layout jump");
 
 console.log("sprint10a-setup-layout-contract-ok");

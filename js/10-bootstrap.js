@@ -141,6 +141,12 @@ async function initApp() {
   // Portal IA v10：初始化 Page Rail + Router
   if (typeof initPageRail === "function") initPageRail();
   if (typeof initPortalRouter === "function") initPortalRouter();
+  // Sprint 16 PR-X1：Topics 减载 progressive disclosure
+  if (typeof initTopicsDisclosure === "function") initTopicsDisclosure();
+  // Sprint 16 PR-X3：Launch 减载 background disclosure
+  if (typeof initLaunchDisclosure === "function") initLaunchDisclosure();
+  // PR-S2: Editorial × McKinsey 章节 hero（6 章一问一答）
+  if (typeof initChapterHero === "function") initChapterHero();
 
   if (!analysisRules && typeof fallbackAnalysisRules === "function") {
     analysisRules = fallbackAnalysisRules();

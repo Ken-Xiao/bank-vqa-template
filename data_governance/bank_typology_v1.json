@@ -1,0 +1,929 @@
+{
+  "version": "20260608-typology-v1",
+  "totalBanks": 57,
+  "typeDistribution": {
+    "universal": 11,
+    "corporate": 9,
+    "transaction": 2,
+    "retail": 35
+  },
+  "overridesApplied": 2,
+  "classifications": [
+    {
+      "bank_id": "ABC",
+      "bank": "农业银行",
+      "bank_type_regulator": "大型商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "high",
+      "decisionPath": "rule_large_default_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6653772101548135,
+        "corporate_deposit_ratio": 0.33462278984518645,
+        "fee_income_ratio": 0.12144529343477098,
+        "assets_yi": 487846.74
+      }
+    },
+    {
+      "bank_id": "BCM",
+      "bank": "交通银行",
+      "bank_type_regulator": "大型商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "high",
+      "decisionPath": "rule_large_default_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.4440824642435459,
+        "corporate_deposit_ratio": 0.5559175357564541,
+        "fee_income_ratio": 0.1440481984072192,
+        "assets_yi": 155483.88
+      }
+    },
+    {
+      "bank_id": "BOC",
+      "bank": "中国银行",
+      "bank_type_regulator": "大型商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "high",
+      "decisionPath": "rule_large_default_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5057690731886991,
+        "corporate_deposit_ratio": 0.4942309268113009,
+        "fee_income_ratio": 0.12492138961887257,
+        "assets_yi": 383580.76
+      }
+    },
+    {
+      "bank_id": "CCB",
+      "bank": "建设银行",
+      "bank_type_regulator": "大型商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "high",
+      "decisionPath": "rule_large_default_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.600195032369014,
+        "corporate_deposit_ratio": 0.39980496763098605,
+        "fee_income_ratio": 0.14494073311968086,
+        "assets_yi": 456318.18
+      }
+    },
+    {
+      "bank_id": "CEB",
+      "bank": "光大银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "medium",
+      "decisionPath": "rule_fallback_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.38049728475325795,
+        "corporate_deposit_ratio": 0.619502715246742,
+        "fee_income_ratio": 0.1603344126798141,
+        "assets_yi": 71653.19
+      }
+    },
+    {
+      "bank_id": "CIB",
+      "bank": "兴业银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.334435191647945,
+        "corporate_deposit_ratio": 0.665564808352055,
+        "fee_income_ratio": 0.12170197564174277,
+        "assets_yi": 110942.56
+      }
+    },
+    {
+      "bank_id": "CITIC",
+      "bank": "中信银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.30079543820014504,
+        "corporate_deposit_ratio": 0.699204561799855,
+        "fee_income_ratio": 0.1542393222732086,
+        "assets_yi": 101310.28
+      }
+    },
+    {
+      "bank_id": "CMB",
+      "bank": "招商银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "transaction",
+      "confidence": "medium",
+      "decisionPath": "rule_fee_dominant_transaction",
+      "dimensions": {
+        "retail_deposit_ratio": 0.45708159611554544,
+        "corporate_deposit_ratio": 0.5429184038844546,
+        "fee_income_ratio": 0.22296552623158694,
+        "assets_yi": 130705.23
+      }
+    },
+    {
+      "bank_id": "CMBC",
+      "bank": "民生银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "transaction",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.32515200822529566,
+        "corporate_deposit_ratio": 0.6748479917747043,
+        "fee_income_ratio": 0.12823994680292583,
+        "assets_yi": 78325.67
+      },
+      "businessType_auto": "corporate",
+      "override_note": "PRD 把民生交易银行列为 transaction 代表（结算流量、中收质量、流动性深度、客户黏性）。自动算法因对公存款占比高被分 corporate，按 PRD 覆盖。"
+    },
+    {
+      "bank_id": "CN001",
+      "bank": "上海农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5615205744882062,
+        "corporate_deposit_ratio": 0.43847942551179375,
+        "fee_income_ratio": 0.07734635398658293,
+        "assets_yi": 15876.66263
+      }
+    },
+    {
+      "bank_id": "CN002",
+      "bank": "上海银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "华东",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "medium",
+      "decisionPath": "rule_fallback_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.36582313080564743,
+        "corporate_deposit_ratio": 0.6341768691943526,
+        "fee_income_ratio": 0.06769426624438818,
+        "assets_yi": 33087.51732
+      }
+    },
+    {
+      "bank_id": "CN003",
+      "bank": "东莞农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6148762112071872,
+        "corporate_deposit_ratio": 0.38512378879281284,
+        "fee_income_ratio": 0.03398769406083044,
+        "assets_yi": 7960.157009999999
+      }
+    },
+    {
+      "bank_id": "CN005",
+      "bank": "中原银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6274300872115907,
+        "corporate_deposit_ratio": 0.37256991278840934,
+        "fee_income_ratio": 0.05472984416623644,
+        "assets_yi": 14138.24984
+      }
+    },
+    {
+      "bank_id": "CN007",
+      "bank": "九江银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6321648293148286,
+        "corporate_deposit_ratio": 0.36783517068517135,
+        "fee_income_ratio": 0.05469776477645353,
+        "assets_yi": 5234.34559
+      }
+    },
+    {
+      "bank_id": "CN010",
+      "bank": "兰州银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.7552224297229111,
+        "corporate_deposit_ratio": 0.2447775702770889,
+        "fee_income_ratio": 0.030736416553013183,
+        "assets_yi": 5300.1533841334
+      }
+    },
+    {
+      "bank_id": "CN013",
+      "bank": "北京银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.3311310358324163,
+        "corporate_deposit_ratio": 0.6688689641675837,
+        "fee_income_ratio": 0.056220236345464164,
+        "assets_yi": 49382.73
+      }
+    },
+    {
+      "bank_id": "CN015",
+      "bank": "南京银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "medium",
+      "decisionPath": "rule_fallback_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.3726944394207568,
+        "corporate_deposit_ratio": 0.6273055605792432,
+        "fee_income_ratio": 0.07709998697200147,
+        "assets_yi": 30218.19887
+      }
+    },
+    {
+      "bank_id": "CN016",
+      "bank": "厦门银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "medium",
+      "decisionPath": "rule_fallback_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.42713267254669707,
+        "corporate_deposit_ratio": 0.5728673274533029,
+        "fee_income_ratio": 0.06971192776563766,
+        "assets_yi": 4530.98733
+      }
+    },
+    {
+      "bank_id": "CN017",
+      "bank": "哈尔滨银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.7211947081263423,
+        "corporate_deposit_ratio": 0.27880529187365766,
+        "fee_income_ratio": 0.03028489972669453,
+        "assets_yi": 10193.400370000001
+      }
+    },
+    {
+      "bank_id": "CN018",
+      "bank": "天津银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "medium",
+      "decisionPath": "rule_fallback_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.4367603653998064,
+        "corporate_deposit_ratio": 0.5632396346001936,
+        "fee_income_ratio": 0.06987441625390022,
+        "assets_yi": 9824.02715
+      }
+    },
+    {
+      "bank_id": "CN019",
+      "bank": "威海银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5264841179638421,
+        "corporate_deposit_ratio": 0.4735158820361579,
+        "fee_income_ratio": 0.07500198297622496,
+        "assets_yi": 5045.2049604179
+      }
+    },
+    {
+      "bank_id": "CN020",
+      "bank": "宁波银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.25826817938957125,
+        "corporate_deposit_ratio": 0.7417318206104287,
+        "fee_income_ratio": 0.08455029248704303,
+        "assets_yi": 36286.71
+      }
+    },
+    {
+      "bank_id": "CN021",
+      "bank": "宜宾市银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2024,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5061643077274978,
+        "corporate_deposit_ratio": 0.49383569227250224,
+        "fee_income_ratio": 0.02985789272127298,
+        "assets_yi": 1092.05393
+      }
+    },
+    {
+      "bank_id": "CN024",
+      "bank": "广州农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6653823201388205,
+        "corporate_deposit_ratio": 0.3346176798611795,
+        "fee_income_ratio": 0.044457691138851625,
+        "assets_yi": 13800.08471
+      }
+    },
+    {
+      "bank_id": "CN026",
+      "bank": "徽商银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5741451094613914,
+        "corporate_deposit_ratio": 0.4258548905386086,
+        "fee_income_ratio": 0.07260184147241551,
+        "assets_yi": 23260.84841
+      }
+    },
+    {
+      "bank_id": "CN027",
+      "bank": "成都银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5561762858712095,
+        "corporate_deposit_ratio": 0.4438237141287905,
+        "fee_income_ratio": 0.02117400077321908,
+        "assets_yi": 13984.726880000002
+      }
+    },
+    {
+      "bank_id": "CN029",
+      "bank": "无锡农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6964369135056961,
+        "corporate_deposit_ratio": 0.30356308649430386,
+        "fee_income_ratio": 0.027244672107591794,
+        "assets_yi": 2806.26911
+      }
+    },
+    {
+      "bank_id": "CN030",
+      "bank": "晋商银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.560858592434755,
+        "corporate_deposit_ratio": 0.439141407565245,
+        "fee_income_ratio": 0.1137807906134512,
+        "assets_yi": 3930.00401
+      }
+    },
+    {
+      "bank_id": "CN031",
+      "bank": "杭州银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.26201615657539745,
+        "corporate_deposit_ratio": 0.7379838434246025,
+        "fee_income_ratio": 0.10843290240467628,
+        "assets_yi": 23628.05622
+      }
+    },
+    {
+      "bank_id": "CN033",
+      "bank": "常熟农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.7852100758522708,
+        "corporate_deposit_ratio": 0.21478992414772924,
+        "fee_income_ratio": 0.031002987771103482,
+        "assets_yi": 4030.79107
+      }
+    },
+    {
+      "bank_id": "CN034",
+      "bank": "张家港农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6947540069292552,
+        "corporate_deposit_ratio": 0.30524599307074485,
+        "fee_income_ratio": 0.02089742103632625,
+        "assets_yi": 2272.3719267818
+      }
+    },
+    {
+      "bank_id": "CN035",
+      "bank": "江阴农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6459011326193221,
+        "corporate_deposit_ratio": 0.35409886738067786,
+        "fee_income_ratio": 0.019277815287604746,
+        "assets_yi": 2193.00373
+      }
+    },
+    {
+      "bank_id": "CN036",
+      "bank": "紫金农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.644002173486262,
+        "corporate_deposit_ratio": 0.355997826513738,
+        "fee_income_ratio": 0.06811006509983512,
+        "assets_yi": 2903.43059
+      }
+    },
+    {
+      "bank_id": "CN037",
+      "bank": "苏州农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6786976017333062,
+        "corporate_deposit_ratio": 0.3213023982666938,
+        "fee_income_ratio": 0.02076912613804447,
+        "assets_yi": 2309.0725
+      }
+    },
+    {
+      "bank_id": "CN038",
+      "bank": "江苏银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "medium",
+      "decisionPath": "rule_fallback_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.4164689065799926,
+        "corporate_deposit_ratio": 0.5835310934200074,
+        "fee_income_ratio": 0.06430361375194735,
+        "assets_yi": 49313.16046
+      }
+    },
+    {
+      "bank_id": "CN039",
+      "bank": "江西银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6350506983308668,
+        "corporate_deposit_ratio": 0.3649493016691332,
+        "fee_income_ratio": 0.05104596671204155,
+        "assets_yi": 5892.18678
+      }
+    },
+    {
+      "bank_id": "CN040",
+      "bank": "泸州银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5853777004473831,
+        "corporate_deposit_ratio": 0.41462229955261687,
+        "fee_income_ratio": 0.01773581559552434,
+        "assets_yi": 2024.61917
+      }
+    },
+    {
+      "bank_id": "CN042",
+      "bank": "瑞丰农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.750547032103748,
+        "corporate_deposit_ratio": 0.24945296789625204,
+        "fee_income_ratio": 0.027102785504830498,
+        "assets_yi": 2414.94927
+      }
+    },
+    {
+      "bank_id": "CN044",
+      "bank": "渤海银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.2527210799862141,
+        "corporate_deposit_ratio": 0.7472789200137859,
+        "fee_income_ratio": 0.08833905217908845,
+        "assets_yi": 19344.09532
+      }
+    },
+    {
+      "bank_id": "CN045",
+      "bank": "甘肃银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2024,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.7325706973684641,
+        "corporate_deposit_ratio": 0.26742930263153586,
+        "fee_income_ratio": 0.067201515361714,
+        "assets_yi": 4147.0757
+      }
+    },
+    {
+      "bank_id": "CN046",
+      "bank": "苏州银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5571048163986623,
+        "corporate_deposit_ratio": 0.4428951836013377,
+        "fee_income_ratio": 0.08624925761384254,
+        "assets_yi": 7894.213240009999
+      }
+    },
+    {
+      "bank_id": "CN047",
+      "bank": "西安银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5855514691782827,
+        "corporate_deposit_ratio": 0.4144485308217173,
+        "fee_income_ratio": 0.035240639698965195,
+        "assets_yi": 5381.6644799999995
+      }
+    },
+    {
+      "bank_id": "CN048",
+      "bank": "贵州银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5644312530920574,
+        "corporate_deposit_ratio": 0.43556874690794256,
+        "fee_income_ratio": 0.08440607940586713,
+        "assets_yi": 6103.80835
+      }
+    },
+    {
+      "bank_id": "CN049",
+      "bank": "贵阳银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5437926154604272,
+        "corporate_deposit_ratio": 0.45620738453957277,
+        "fee_income_ratio": 0.0206779035149128,
+        "assets_yi": 7434.61942
+      }
+    },
+    {
+      "bank_id": "CN051",
+      "bank": "郑州银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.6057587168549995,
+        "corporate_deposit_ratio": 0.3942412831450005,
+        "fee_income_ratio": 0.0314515470571687,
+        "assets_yi": 7436.742990000001
+      }
+    },
+    {
+      "bank_id": "CN052",
+      "bank": "重庆农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.859515047443225,
+        "corporate_deposit_ratio": 0.14048495255677496,
+        "fee_income_ratio": 0.04518387884402048,
+        "assets_yi": 16657.44135
+      }
+    },
+    {
+      "bank_id": "CN053",
+      "bank": "重庆银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5871553986061263,
+        "corporate_deposit_ratio": 0.4128446013938737,
+        "fee_income_ratio": 0.03954959077526675,
+        "assets_yi": 10337.256809999999
+      }
+    },
+    {
+      "bank_id": "CN054",
+      "bank": "长沙银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5934085915881451,
+        "corporate_deposit_ratio": 0.4065914084118549,
+        "fee_income_ratio": 0.053962522796653305,
+        "assets_yi": 12681.49035
+      }
+    },
+    {
+      "bank_id": "CN055",
+      "bank": "青岛农商银行",
+      "bank_type_regulator": "农村商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.7504399932626417,
+        "corporate_deposit_ratio": 0.24956000673735834,
+        "fee_income_ratio": 0.08125759192588086,
+        "assets_yi": 5027.8349
+      }
+    },
+    {
+      "bank_id": "CN056",
+      "bank": "青岛银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5017035037224526,
+        "corporate_deposit_ratio": 0.49829649627754735,
+        "fee_income_ratio": 0.0996052365581909,
+        "assets_yi": 8149.600840000001
+      }
+    },
+    {
+      "bank_id": "CN057",
+      "bank": "齐鲁银行",
+      "bank_type_regulator": "城市商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "medium",
+      "decisionPath": "rule_retail_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5180927329071977,
+        "corporate_deposit_ratio": 0.4819072670928023,
+        "fee_income_ratio": 0.09120282015511949,
+        "assets_yi": 8043.80922
+      }
+    },
+    {
+      "bank_id": "CZB",
+      "bank": "浙商银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "high",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.1974624430596371,
+        "corporate_deposit_ratio": 0.8025375569403629,
+        "fee_income_ratio": 0.060018555843491056,
+        "assets_yi": 34810.92
+      }
+    },
+    {
+      "bank_id": "HXB",
+      "bank": "华夏银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.2840145146526868,
+        "corporate_deposit_ratio": 0.7159854853473132,
+        "fee_income_ratio": 0.060665404617359704,
+        "assets_yi": 47376.19
+      }
+    },
+    {
+      "bank_id": "ICBC",
+      "bank": "工商银行",
+      "bank_type_regulator": "大型商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "universal",
+      "confidence": "high",
+      "decisionPath": "rule_large_default_universal",
+      "dimensions": {
+        "retail_deposit_ratio": 0.5527151367635346,
+        "corporate_deposit_ratio": 0.44728486323646544,
+        "fee_income_ratio": 0.13261956171639208,
+        "assets_yi": 534777.73
+      }
+    },
+    {
+      "bank_id": "PAB",
+      "bank": "平安银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_fee_dominant_transaction",
+      "dimensions": {
+        "retail_deposit_ratio": 0.35936032466635315,
+        "corporate_deposit_ratio": 0.6406396753336469,
+        "fee_income_ratio": 0.18178360037126642,
+        "assets_yi": 59257.77
+      },
+      "businessType_auto": "transaction",
+      "override_note": "PRD docs/prd-bank-typology-framework.md 明确指定平安零售为零售型代表（私行 AUM、零售存款成本、财富管理、信用卡循环 4 维突出）。自动算法因 PAB 中收占比高被分入 transaction，需人工覆盖。"
+    },
+    {
+      "bank_id": "PSBC",
+      "bank": "邮储银行",
+      "bank_type_regulator": "大型商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "retail",
+      "confidence": "high",
+      "decisionPath": "rule_psbc_retail_exception",
+      "dimensions": {
+        "retail_deposit_ratio": 0.8883364970467238,
+        "corporate_deposit_ratio": 0.1116635029532762,
+        "fee_income_ratio": 0.08254902622228219,
+        "assets_yi": 186820.67
+      }
+    },
+    {
+      "bank_id": "SPDB",
+      "bank": "浦发银行",
+      "bank_type_regulator": "股份制商业银行",
+      "region": "全国",
+      "data_year": 2025,
+      "businessType": "corporate",
+      "confidence": "medium",
+      "decisionPath": "rule_corporate_deposit_dominant",
+      "dimensions": {
+        "retail_deposit_ratio": 0.31130555895666734,
+        "corporate_deposit_ratio": 0.6886944410433327,
+        "fee_income_ratio": 0.13063047527074567,
+        "assets_yi": 100817.46
+      }
+    }
+  ]
+}

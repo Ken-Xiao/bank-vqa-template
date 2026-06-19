@@ -61,4 +61,23 @@ const stale = context.window.markEvidencePackStale("target-change");
 assert.equal(stale.status, "stale", "stale helper marks current pack stale");
 assert.equal(stale.staleReason, "target-change", "stale helper records reason");
 
+const html = fs.readFileSync("index.html", "utf8");
+assert(html.includes('src="js/57-evidence-pack-model.js'), "evidence pack model is loaded by the page");
+assert(html.includes('id="bmRestartAnalysis"'), "benchmark page exposes restart entry");
+assert(html.includes('id="bmRestartDrawer"'), "benchmark page exposes restart drawer");
+assert(html.includes('id="bmEvidencePackTray"'), "benchmark page exposes evidence pack tray");
+assert(html.includes('id="bmConfirmEvidencePack"'), "benchmark page exposes evidence pack confirmation");
+
+const benchmark = fs.readFileSync("js/55-benchmark-page.js", "utf8");
+assert(benchmark.includes("renderEvidencePackTray"), "benchmark page renders evidence pack tray");
+assert(benchmark.includes("buildRecommendedEvidencePack"), "benchmark page can build recommended evidence pack");
+assert(benchmark.includes("confirmEvidencePack"), "benchmark page can confirm evidence pack");
+assert(benchmark.includes("markEvidencePackStale"), "benchmark page marks pack stale after data changes");
+
+const css = fs.readFileSync("styles/benchmark.css", "utf8");
+assert(css.includes(".bm-restart-bar"), "restart bar styles exist");
+assert(css.includes(".bm-restart-drawer"), "restart drawer styles exist");
+assert(css.includes(".bm-evidence-pack-tray"), "evidence pack tray styles exist");
+assert(css.includes(".bm-issue-card"), "issue card styles exist");
+
 console.log("evidence-pack-model-contract-ok");

@@ -10,9 +10,63 @@
   <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-v7" />
   <link rel="stylesheet" href="styles/benchmark.css?v=20260615-benchmark-v1" />
   <link rel="stylesheet" href="styles/print.css?v=20260531-prd-v6" media="print" />
-
+  <style>
+    /* Benchmark-first additions: correlation matrix, angle cards, fact pack, tooltip, modal */
+    .bm-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .bm-section { background: #ffffff; border: 1px solid #e6eaef; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 2px rgba(15,26,36,0.04); }
+    .bm-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; gap: 16px; flex-wrap: wrap; }
+    .bm-section-head h2 { font-size: 17px; font-weight: 700; color: #1A3A5C; margin: 0; }
+    .bm-section-head p { margin: 4px 0 0; font-size: 13px; color: #5a6b7a; }
+    .bm-section-actions { display: flex; gap: 8px; }
+    .bm-matrix-wrap { overflow-x: auto; }
+    .bm-matrix { display: grid; gap: 3px; min-width: 560px; }
+    .bm-matrix-cell { aspect-ratio: 1; border-radius: 4px; display: grid; place-items: center; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; position: relative; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
+    .bm-matrix-cell:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(15,26,36,0.12); z-index: 2; }
+    .bm-matrix-cell.label { background: transparent; color: #5a6b7a; font-size: 11px; font-weight: 500; cursor: default; }
+    .bm-matrix-cell.label:hover { transform: none; box-shadow: none; }
+    .bm-matrix-cell.diag { background: #e6eaef; color: #7f95aa; }
+    .bm-matrix-sig { position: absolute; top: 3px; right: 4px; font-size: 9px; color: rgba(255,255,255,0.9); }
+    .bm-matrix-legend { display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 12px; color: #5a6b7a; }
+    .bm-legend-gradient { width: 160px; height: 10px; border-radius: 100px; background: linear-gradient(90deg, #d9e6f1, #1a3a5c, #8b3a1a); }
+    .bm-angle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+    .angle-card { border: 1px solid #e6eaef; border-radius: 8px; padding: 16px; background: #ffffff; transition: border-color 0.15s, box-shadow 0.15s; }
+    .angle-card:hover { border-color: #4a6c8c; box-shadow: 0 2px 8px rgba(26,58,92,0.06); }
+    .angle-card .angle-tag { font-size: 10px; font-weight: 700; color: #1A3A5C; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .angle-card h4 { font-size: 14px; font-weight: 600; margin: 0 0 8px; color: #0f1a24; }
+    .angle-card p { font-size: 12px; color: #5a6b7a; margin: 0 0 12px; line-height: 1.55; }
+    .angle-card .angle-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .angle-card .strength { font-size: 11px; padding: 3px 8px; border-radius: 100px; font-weight: 600; }
+    .strength.strong { background: rgba(46,125,98,0.1); color: #2E7D62; }
+    .strength.medium { background: rgba(184,92,56,0.1); color: #B85C38; }
+    .fact-pack-bar { position: fixed; bottom: 0; right: 0; width: calc(100% - 320px); background: #ffffff; border-top: 1px solid #e6eaef; box-shadow: 0 -4px 20px rgba(15,26,36,0.06); z-index: 90; transition: transform 0.25s ease; }
+    .fact-pack-bar.collapsed { transform: translateY(calc(100% - 48px)); }
+    .fact-pack-toggle { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; cursor: pointer; font-weight: 600; font-size: 13px; color: #1A3A5C; }
+    .fact-pack-body { max-height: 320px; overflow-y: auto; padding: 0 24px 20px; }
+    .fact-list { display: flex; flex-direction: column; gap: 8px; }
+    .fact-item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e6eaef; border-radius: 8px; font-size: 13px; }
+    .fact-item .fact-title { color: #0f1a24; font-weight: 500; }
+    .fact-item .fact-value { font-variant-numeric: tabular-nums; color: #1A3A5C; font-weight: 600; }
+    .fact-item .fact-gap { font-size: 12px; }
+    .fact-item button { border: none; background: transparent; color: #7f95aa; cursor: pointer; font-size: 12px; }
+    .fact-item button:hover { color: #B85C38; }
+    .fact-empty { text-align: center; padding: 24px; color: #5a6b7a; font-size: 13px; }
+    .tooltip { position: fixed; background: #1A3A5C; color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 12px; max-width: 260px; z-index: 200; pointer-events: none; opacity: 0; transition: opacity 0.1s; line-height: 1.5; }
+    .tooltip.visible { opacity: 1; }
+    .tooltip b { color: #fff; display: block; margin-bottom: 4px; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15,26,36,0.45); z-index: 300; display: grid; place-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
+    .modal-panel { background: #ffffff; border-radius: 12px; width: min(720px, 92vw); max-height: 86vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(15,26,36,0.18); }
+    .modal-head { padding: 20px 24px; border-bottom: 1px solid #e6eaef; display: flex; align-items: center; justify-content: space-between; }
+    .modal-head h3 { margin: 0; font-size: 16px; color: #1A3A5C; }
+    .modal-body { padding: 20px 24px; overflow-y: auto; font-size: 13px; }
+    .modal-body pre { background: #fafafa; padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 12px; line-height: 1.5; border: 1px solid #e6eaef; }
+    .modal-foot { padding: 16px 24px; border-top: 1px solid #e6eaef; display: flex; justify-content: flex-end; gap: 10px; }
+    .close-x { border: none; background: transparent; font-size: 20px; color: #5a6b7a; cursor: pointer; }
+    .note { font-size: 12px; color: #7f95aa; margin-top: 8px; }
+    @media (max-width: 960px) { .fact-pack-bar { width: 100%; } .bm-kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+  </style>
 </head>
-<body data-app-state="setup" data-app-page="launch">
+<body data-app-state="setup" data-app-page="benchmark">
   <header class="global-bar" id="globalBar" aria-label="经营对标全局导航">
     <button class="global-brand" id="globalBrandHome" type="button" data-app-mode-target="setup" aria-label="返回设定口径">经营对标</button>
     <div class="global-context" role="status" aria-live="polite">
@@ -32,9 +86,9 @@
       </span>
     </div>
     <nav class="global-steps" aria-label="三步工作流">
-      <button type="button" data-app-mode-target="setup"><span>1</span>设定口径</button>
-      <button type="button" data-app-mode-target="analysis"><span>2</span>看结论</button>
-      <button type="button" data-app-mode-target="report"><span>3</span>出报告</button>
+      <button type="button" data-app-mode-target="benchmark" class="is-active"><span>1</span>数据对标</button>
+      <button type="button" data-app-mode-target="analysis"><span>2</span>价值诊断</button>
+      <button type="button" data-app-mode-target="report"><span>3</span>报告编排</button>
     </nav>
     <div class="global-actions">
       <button class="global-benchmark-direct" id="globalBenchmarkDirect" type="button" data-page-link="benchmark" aria-label="直接进入数据对标，无需先完成口径设定">数据对标</button>
@@ -234,7 +288,7 @@
           </div>
         </div>
         <div class="actions">
-          <button class="btn" id="confirmSelection" type="button">生成数据</button>
+          <button class="btn" id="confirmSelection" type="button">进入数据对标</button>
           <button class="btn secondary post-confirm-action" id="restartAnalysis" type="button">重新开始分析</button>
           <button class="btn secondary analysis-content" id="refreshAnalysis" type="button">刷新诊断</button>
           <button class="btn secondary analysis-content" id="saveProject" type="button">保存当前项目</button>
@@ -668,8 +722,8 @@
       </div>
 
       <div class="selection-hint">
-        <h2>请先选择分析口径</h2>
-        <p>选择目标银行、对标银行、分析年份和参与行业对比的银行类型后，点击“形成分析结果”。后续指标、图表和解释性文字将基于所选样本同步更新。</p>
+        <h2>请选择分析口径</h2>
+        <p>选择目标银行与分析年份后，系统将自动生成对标数据并进入数据对标页；在对标页确认或调整对标组后，点击「下一步 · 进入诊断」继续。</p>
       </div>
 
       <div class="methodology analysis-content client-internal" data-workspace-tab="governance" data-portal-page="data" data-portal-hidden-default="true">
@@ -1482,28 +1536,25 @@
       <section class="bm-shell" id="benchmarkPageShell"
                data-portal-page="benchmark"
                aria-label="纯数据对标页">
-        <section class="bm-report-selector" id="bmReportEvidenceSelector" data-report-evidence-selector>
-          <header class="bm-report-selector-head">
+        <section class="bm-restart-bar" aria-label="数据包状态">
+          <div>
+            <span class="bm-pane-kicker">数据对标</span>
+            <h2>先确定对标样本，再进入报告分析</h2>
+          </div>
+          <button type="button" class="bm-secondary-action" id="bmRestartAnalysis">重新选择</button>
+        </section>
+        <section class="bm-restart-drawer" id="bmRestartDrawer" hidden aria-label="重新选择数据对标">
+          <header>
             <div>
-              <span class="bm-pane-kicker">入报告数据</span>
-              <h2>选择数据并进入报告</h2>
-              <p>勾选要带入报告的指标、故事线和因果链，系统会自动匹配报告分析角度和章节位置。</p>
+              <span class="bm-pane-kicker">重新开始</span>
+              <h3>回到初始选择</h3>
+              <p>清空当前证据包后，可重新选择目标银行、对标银行、年份和身份。</p>
             </div>
-            <button type="button" class="bm-primary-action" id="bmOpenReportEvidenceSelector">生成报告证据包</button>
+            <button type="button" class="bm-icon-text-btn" id="bmRestartClose">收起</button>
           </header>
-          <div class="bm-report-selector-grid">
-            <label><input type="checkbox" data-report-metric="ROE" checked> ROE</label>
-            <label><input type="checkbox" data-report-metric="NIM" checked> NIM</label>
-            <label><input type="checkbox" data-report-metric="成本收入比"> 成本收入比</label>
-            <label><input type="checkbox" data-report-metric="定期化率" checked> 定期化率</label>
-            <label><input type="checkbox" data-report-metric="存款成本率" checked> 存款成本率</label>
-            <label><input type="checkbox" data-report-metric="LDR"> LDR</label>
-            <label><input type="checkbox" data-report-metric="对公不良率"> 对公不良率</label>
-            <label><input type="checkbox" data-report-metric="零售不良率"> 零售不良率</label>
-            <label><input type="checkbox" data-report-metric="拨备覆盖率"> 拨备覆盖率</label>
-            <label><input type="checkbox" data-report-metric="LCR"> LCR</label>
-            <label><input type="checkbox" data-report-metric="NSFR"> NSFR</label>
-            <label><input type="checkbox" data-report-chain="profitability-liability"> ROE 低 -> NIM 低 -> 定期化率高</label>
+          <div class="bm-restart-actions">
+            <button type="button" class="bm-primary-action" id="bmRestartClearPack">清空并重新选择</button>
+            <button type="button" class="bm-secondary-action" id="bmRestartKeepDraft">继续当前数据包</button>
           </div>
         </section>
         <!-- 左侧：选择面板 -->
@@ -1559,6 +1610,19 @@
         </aside>
         <!-- 右侧：主图表区 -->
         <section class="bm-main" aria-label="对标图表">
+          <section class="bm-evidence-pack-tray" id="bmEvidencePackTray" aria-label="报告证据包">
+            <button type="button" class="bm-primary-action" id="bmConfirmEvidencePack" hidden>确认数据包并用于报告</button>
+          </section>
+          <div class="bm-next-bar" id="bmNextBar">
+            <div class="bm-next-status">
+              <span>当前：<b id="bmNextTargetName">未选择目标银行</b></span>
+              <span class="bm-next-divider">·</span>
+              <span>对标 <b id="bmNextPeerCount">0</b> 家</span>
+              <span class="bm-next-divider">·</span>
+              <span><b id="bmNextYear">2025</b> 截面</span>
+            </div>
+            <button type="button" class="bm-next-btn" id="bmGoToDiagnosis" disabled>下一步 · 进入诊断</button>
+          </div>
           <nav class="bm-audience-switcher" id="bmAudienceSwitcher" aria-label="受众视图切换"></nav>
           <nav class="bm-domain-tabs" id="bmDomainTabs" aria-label="对标域"></nav>
           <div class="bm-empty" id="bmEmpty">
@@ -1567,30 +1631,93 @@
             <p>系统自动配置同类型与本地大区对标均值；右上方域 tab 切换不同维度。</p>
           </div>
           <div class="bm-domain-content" id="bmDomainContent" hidden></div>
+
+          <!-- Core KPI Strip -->
+          <div class="bm-kpi-strip" id="bmKpiStrip" hidden></div>
+
+          <!-- Correlation Matrix -->
+          <section class="bm-section" id="bmCorrelationSection" hidden>
+            <div class="bm-section-head">
+              <div>
+                <h2>核心指标相关性矩阵</h2>
+                <p>Pearson 相关系数 · 颜色越深代表相关性越强；* p&lt;0.10, ** p&lt;0.05, *** p&lt;0.01</p>
+              </div>
+              <div class="bm-section-actions">
+                <button type="button" class="btn secondary" id="bmRegenerateMatrix">刷新矩阵</button>
+              </div>
+            </div>
+            <div class="bm-matrix-wrap">
+              <div class="bm-matrix" id="bmCorrelationMatrix"></div>
+            </div>
+            <div class="bm-matrix-legend">
+              <span>负相关</span>
+              <div class="bm-legend-gradient"></div>
+              <span>正相关</span>
+              <span style="margin-left: 12px;">对角线 = 同一指标</span>
+            </div>
+          </section>
+
+          <!-- Angle Recommendations -->
+          <section class="bm-section" id="bmAnglesSection" hidden>
+            <div class="bm-section-head">
+              <div>
+                <h2>系统推荐的重点分析角度</h2>
+                <p>基于相关关系、位置偏离与趋势变化生成的候选专题。</p>
+              </div>
+            </div>
+            <div class="bm-angle-grid" id="bmAngleGrid"></div>
+          </section>
+
           <footer class="bm-footer">
             <span>数据来源：bank_scope_2025_v1 / benchmark_dataset.json</span>
             <span id="bmDataInfo">待加载</span>
           </footer>
+          </section>
+          </section>
         </section>
       </section>
     </section>
-    <aside class="tool-drawer" id="toolDrawer" aria-label="辅助工具箱" aria-hidden="true">
-      <div class="tool-drawer-head">
-        <div>
-          <span>工具箱</span>
-          <b>数据、复核、项目和智能辅助</b>
-        </div>
-        <button type="button" id="closeToolDrawer" aria-label="关闭工具箱">关闭</button>
-      </div>
-      <div class="tool-drawer-tabs" role="tablist" aria-label="工具箱分类">
-        <button type="button" data-drawer-tab-target="data">数据</button>
-        <button type="button" data-drawer-tab-target="review">复核</button>
-        <button type="button" data-drawer-tab-target="project">项目</button>
-        <button type="button" data-drawer-tab-target="ai">智能</button>
-      </div>
-      <div class="tool-drawer-panel" id="toolDrawerPanel">选择一个工具分类后显示对应入口。</div>
-    </aside>
   </main>
+
+  <!-- Fact Pack Bar -->
+  <div class="fact-pack-bar collapsed" id="bmFactPackBar" data-portal-page="benchmark">
+    <div class="fact-pack-toggle" id="bmFactPackToggle">
+      <span>事实清单 · <b id="bmFactCount">0</b> 条待传入报告分析系统</span>
+      <span id="bmFactToggleIcon">▲</span>
+    </div>
+    <div class="fact-pack-body">
+      <div class="fact-list" id="bmFactList">
+        <div class="fact-empty">点击上方「加入事实清单」收集证据。</div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 14px; justify-content: flex-end;">
+        <button type="button" class="btn secondary" id="bmClearFacts">清空</button>
+        <button type="button" class="btn" id="bmExportFactPack">生成并发送事实清单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-backdrop" id="bmExportModal" data-portal-page="benchmark">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <h3>事实清单 JSON · 传给报告分析系统</h3>
+        <button type="button" class="close-x" id="bmCloseModal">×</button>
+      </div>
+      <div class="modal-body">
+        <p>以下为自动生成的 fact_pack.json 预览，可复制或下载后传入报告分析系统。</p>
+        <pre id="bmExportPayload"></pre>
+        <p class="note">接口约定：POST /api/report-analysis/fact-pack，Content-Type: application/json。异步模式返回 ticket，轮询 /api/report-analysis/status/{ticket}。</p>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn secondary" id="bmCopyPayload">复制 JSON</button>
+        <button type="button" class="btn secondary" id="bmDownloadPayload">下载 fact_pack.json</button>
+        <button type="button" class="btn" id="bmCloseModal2">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tooltip" id="bmTooltip"></div>
+
   <div class="metric-modal" id="metricModal" hidden>
     <div class="metric-modal-backdrop" id="metricModalBackdrop"></div>
     <div class="metric-modal-panel" role="dialog" aria-modal="true" aria-labelledby="metricModalTitle">
@@ -1662,8 +1789,10 @@
   <script src="js/52-chapter-hero.js?v=20260608-chapter-hero"></script>
   <!-- 对标数据：内联为全局变量，file:// 模式下也可用；同名 JSON 仍存在供 fetch fallback -->
   <script src="data_benchmark.js?v=20260615-benchmark-v2" onerror="console.warn('[bootstrap] data_benchmark.js 未加载，将回退到 fetch JSON')"></script>
+  <script src="js/57-evidence-pack-model.js?v=20260619-evidence-pack"></script>
   <script src="js/55-benchmark-page.js?v=20260615-benchmark-v2"></script>
   <script src="js/56-benchmark-state-bridge.js?v=20260616-bridge"></script>
+  <script src="js/60-benchmark-first-logic.js?v=20260619-benchmark-first"></script>
   <script src="js/10-bootstrap.js?v=20260607-async-ready"></script>
 </body>
 </html>

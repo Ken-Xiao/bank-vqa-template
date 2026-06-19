@@ -221,9 +221,72 @@
     return saveEvidencePack(next);
   }
 
+  function selectedIssueObjects(pack) {
+    if (!pack || pack.status !== "confirmed") return [];
+    var selected = pack.selectedIssues || [];
+    return (pack.recommendedIssues || [])
+      .filter(function (issue) { return selected.indexOf(issue.issueId) >= 0; })
+      .sort(function (a, b) { return (a.priority || 99) - (b.priority || 99); });
+  }
+
+  function evidencePackAnswerModel(pack) {
+    var issues = selectedIssueObjects(pack);
+    return {
+      empty: !issues.length,
+      version: pack && pack.version,
+      targetBank: pack && pack.targetBank,
+      year: pack && pack.year,
+      peerGroup: pack && pack.peerGroup,
+      summary: issues.length
+        ? "本轮最需要管理层优先处理的是" + issues.slice(0, 3).map(function (issue) { return issue.primaryMetric; }).join("、") + "对应的问题。"
+        : "请先在数据对标页确认证据包。",
+      issues: issues.slice(0, 3),
+    };
+  }
+
+  function evidencePackMapModel(pack) {
+    var rows = [];
+    selectedIssueObjects(pack).forEach(function (issue) {
+      (issue.evidence || []).forEach(function (ev) {
+        rows.push(Object.assign({}, ev, {
+          issueId: issue.issueId,
+          issueTitle: issue.title,
+          supports: issue.conclusion,
+        }));
+      });
+    });
+    return {
+      empty: !rows.length,
+      version: pack && pack.version,
+      rows: rows,
+    };
+  }
+
+  function evidencePackTopicModel(pack) {
+    var topics = selectedIssueObjects(pack).map(function (issue) {
+      return {
+        issueId: issue.issueId,
+        title: issue.title,
+        primaryMetric: issue.primaryMetric,
+        conclusion: issue.conclusion,
+        causalChain: issue.causalChain || [],
+        action: issue.action || "",
+        evidenceIds: (issue.evidence || []).map(function (ev) { return ev.evidenceId; }),
+      };
+    });
+    return {
+      empty: !topics.length,
+      version: pack && pack.version,
+      topics: topics,
+    };
+  }
+
   window.buildRecommendedEvidencePack = buildRecommendedEvidencePack;
   window.confirmEvidencePack = confirmEvidencePack;
   window.readEvidencePack = readEvidencePack;
   window.saveEvidencePack = saveEvidencePack;
   window.markEvidencePackStale = markEvidencePackStale;
+  window.evidencePackAnswerModel = evidencePackAnswerModel;
+  window.evidencePackMapModel = evidencePackMapModel;
+  window.evidencePackTopicModel = evidencePackTopicModel;
 })();

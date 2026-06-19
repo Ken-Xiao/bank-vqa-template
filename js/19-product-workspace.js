@@ -212,21 +212,53 @@ if (typeof window !== "undefined") {
   window.syncStep2PathNavForPortalPage = syncStep2PathNavForPortalPage;
 }
 
+// Sprint 17 线 B：4 个 context pill 内容映射
+const SCENARIO_LABEL = {
+  board: "董事会判断",
+  market: "资本市场沟通",
+  action: "管理层行动",
+};
+
 function renderGlobalBar() {
   const bank = document.getElementById("globalBankContext");
+  const peer = document.getElementById("globalPeerContext");
+  const scenario = document.getElementById("globalScenarioContext");
   const signal = document.getElementById("globalVqaSignal");
   const row = typeof targetRecord === "function" ? targetRecord() : null;
   const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+
+  // Pill 1: 银行 + 年份
   if (bank) {
     bank.textContent = state?.confirmed && row
       ? `${displayBankName(row.bank)} · ${state.year || ""}`
       : "待选择银行";
   }
+
+  // Pill 2: 对标组（含 typology 推荐标记）
+  if (peer) {
+    const peers = (state && Array.isArray(state.peers)) ? state.peers : [];
+    if (!peers.length) {
+      peer.textContent = "待设置";
+    } else if (peers.length <= 3) {
+      peer.textContent = peers.join(" / ");
+    } else {
+      peer.textContent = `${peers.slice(0, 2).join(" / ")} +${peers.length - 2}`;
+    }
+  }
+
+  // Pill 3: 汇报场景
+  if (scenario) {
+    const key = (state && state.scenario) || "board";
+    scenario.textContent = SCENARIO_LABEL[key] || key;
+  }
+
+  // Pill 4: VQA 信号/状态（保留 globalVqaSignal id 不动）
   if (signal) {
     signal.textContent = state?.confirmed && diagnosis
       ? `价值质量 ${diagnosis.score} · ${diagnosis.signal || "待判断"}`
       : "确认口径后生成诊断";
   }
+
   document.querySelectorAll("[data-app-mode-target]").forEach((button) => {
     const isActive = button.dataset.appModeTarget === state.appMode;
     button.classList.toggle("is-active", isActive);
@@ -240,7 +272,7 @@ function bindGlobalBar() {
     button.dataset.appModeBound = "1";
     button.addEventListener("click", () => {
       const mode = button.dataset.appModeTarget;
-      if (!state.confirmed && mode !== "setup") return;
+      if (!state.confirmed && mode !== "setup" && mode !== "benchmark") return;
       setAppMode(mode);
     });
   });
@@ -351,14 +383,14 @@ function closeToolDrawer() {
 function appModeForWorkspaceTab(tab = activeWorkspaceTab) {
   if (tab === "report") return "report";
   if (state?.confirmed) return "analysis";
-  return "setup";
+  return "benchmark";
 }
 
 function setAppMode(mode = state?.appMode || "setup", options = {}) {
-  const allowed = ["setup", "analysis", "report"];
-  const nextMode = allowed.includes(mode) ? mode : "setup";
+  const allowed = ["setup", "benchmark", "analysis", "report"];
+  const nextMode = allowed.includes(mode) ? mode : "benchmark";
   state.appMode = nextMode;
-  document.body.dataset.appState = nextMode;
+  document.body.dataset.appState = nextMode === "benchmark" ? "setup" : nextMode;
   try {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("benchmarkiq.appMode", nextMode);
@@ -368,7 +400,7 @@ function setAppMode(mode = state?.appMode || "setup", options = {}) {
     const isActive = button.dataset.appModeTarget === nextMode;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-current", isActive ? "step" : "false");
-    if (!state.confirmed && button.dataset.appModeTarget !== "setup") {
+    if (!state.confirmed && button.dataset.appModeTarget !== "setup" && button.dataset.appModeTarget !== "benchmark") {
       button.setAttribute("aria-disabled", "true");
     } else {
       button.removeAttribute("aria-disabled");
@@ -379,10 +411,10 @@ function setAppMode(mode = state?.appMode || "setup", options = {}) {
     if (nextMode === "analysis" && activeWorkspaceTab === "report") setWorkspaceTab("overview");
   }
   if (!options.skipPortal && typeof setPortalPage === "function" && typeof getPortalPage === "function") {
-    if (nextMode === "setup" && getPortalPage() !== "launch") {
-      setPortalPage("launch", { skipScroll: true });
+    if ((nextMode === "setup" || nextMode === "benchmark") && getPortalPage() !== "benchmark") {
+      setPortalPage("benchmark", { skipScroll: true });
     }
-    if (nextMode === "analysis" && getPortalPage() === "launch") {
+    if (nextMode === "analysis" && getPortalPage() === "benchmark") {
       setPortalPage("answer", { skipScroll: true });
     }
     if (nextMode === "report" && getPortalPage() !== "report") {
@@ -608,6 +640,65 @@ function renderStep2Kpis(model) {
       <span>${step2Esc(item.label)}</span>
       <b>${step2Esc(item.value)}</b>
     </div>`).join("");
+}
+
+function evidencePackEmptyHtml() {
+  return `<div class="step2-empty-state">
+    <b>请先在数据对标页确认证据包</b>
+    <p>后续页面将基于已确认的问题、证据和因果链生成。</p>
+    <button type="button" data-page-link="benchmark">返回数据对标</button>
+  </div>`;
+}
+
+function renderEvidencePackAnswer(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  return `<div class="step2-pack-answer">
+    <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")} · ${step2Esc(model.targetBank?.name || "")} · ${step2Esc(model.year || "")}</p>
+    <h3>${step2Esc(model.summary)}</h3>
+    <div class="step2-pack-issue-grid">
+      ${model.issues.map((issue) => {
+        const ev = issue.evidence?.[0] || {};
+        return `<article class="step2-pack-issue-card">
+          <span>${step2Esc(issue.confidence || "中")}置信</span>
+          <b>${step2Esc(issue.title)}</b>
+          <p>${step2Esc(issue.conclusion)}</p>
+          <em>证据 ${step2Esc(ev.evidenceId || "--")}：${step2Esc(issue.primaryMetric)} ${step2Esc(ev.gap || "--")} · ${step2Esc(ev.strength || "--")}证据</em>
+          <small>${step2Esc(issue.action || "")}</small>
+        </article>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
+function renderEvidencePackMap(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  return `<div class="step2-pack-map">
+    <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")}</p>
+    <table>
+      <thead><tr><th>证据</th><th>指标</th><th>差距</th><th>强度</th><th>支持结论</th></tr></thead>
+      <tbody>${model.rows.map((row) => `<tr>
+        <td>${step2Esc(row.evidenceId)}</td>
+        <td>${step2Esc(row.metric)}</td>
+        <td>${step2Esc(row.gap)}</td>
+        <td>${step2Esc(row.strength)}</td>
+        <td>${step2Esc(row.supports)}</td>
+      </tr>`).join("")}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderEvidencePackTopics(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  return `<div class="step2-pack-topics">
+    <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")}</p>
+    ${model.topics.map((topic) => `<article class="step2-pack-topic-card">
+      <h3>${step2Esc(topic.title)}</h3>
+      <p>${step2Esc(topic.conclusion)}</p>
+      <ol>${topic.causalChain.map((node) => `<li>${step2Esc(node)}</li>`).join("")}</ol>
+      <small>证据：${step2Esc(topic.evidenceIds.join("、"))}</small>
+      <b>${step2Esc(topic.action)}</b>
+    </article>`).join("")}
+  </div>`;
 }
 
 function renderStep2DecisionBrief(model) {
@@ -859,6 +950,7 @@ function renderStep2Diagnosis() {
   const topics = document.getElementById("step2TopicGrid");
   const actions = document.getElementById("step2ActionPathGrid");
   const storyline = step2StorylinePack(row, peers);
+  const evidencePack = typeof readEvidencePack === "function" ? readEvidencePack() : null;
   if (title) title.textContent = model.title;
   if (lead) lead.textContent = model.lead;
   [
@@ -874,6 +966,20 @@ function renderStep2Diagnosis() {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   });
+  if (evidencePack && evidencePack.status === "confirmed" && typeof evidencePackAnswerModel === "function") {
+    if (decision) decision.innerHTML = renderEvidencePackAnswer(evidencePackAnswerModel(evidencePack));
+    if (kpis) kpis.innerHTML = renderStep2Kpis(model);
+    if (questions) questions.innerHTML = renderStep2Questions(step2BoardQuestions(row, peers));
+    if (peer) peer.innerHTML = renderStep2PeerPosition(row);
+    if (changes) changes.innerHTML = renderEvidencePackMap(evidencePackMapModel(evidencePack));
+    if (typeof updateEvidenceMapCommentaryPanel === "function") updateEvidenceMapCommentaryPanel();
+    if (pb) pb.innerHTML = renderStep2PbAnswer(row, peers);
+    if (topics) topics.innerHTML = renderEvidencePackTopics(evidencePackTopicModel(evidencePack));
+    if (actions) actions.innerHTML = renderStep2ActionPath(row, peers);
+    renderMetricContextRail();
+    bindAnalysisRoadmap();
+    return;
+  }
   if (decision) decision.innerHTML = `${typeof whatIfSimulationBadge === "function" ? whatIfSimulationBadge(row) : ""}${renderStep2DecisionBrief(model)}`;
   if (kpis) kpis.innerHTML = renderStep2Kpis(model);
   if (questions) questions.innerHTML = renderStep2Questions(step2BoardQuestions(row, peers));
@@ -1492,10 +1598,10 @@ function initProductWorkspace() {
       restoredMode = localStorage.getItem("benchmarkiq.appMode");
     }
   } catch (err) { /* silent */ }
-  const allowedRestored = ["setup", "analysis", "report"].includes(restoredMode);
+  const allowedRestored = ["setup", "benchmark", "analysis", "report"].includes(restoredMode);
   const bootMode = state.confirmed
-    ? (allowedRestored && restoredMode !== "setup" ? restoredMode : "analysis")
-    : "setup";
+    ? (allowedRestored && restoredMode !== "setup" && restoredMode !== "benchmark" ? restoredMode : "analysis")
+    : "benchmark";
   setAppMode(bootMode, { skipRouting: true });
   state.activeWorkspaceTab = "overview";
   setWorkspaceTab(state.activeWorkspaceTab);

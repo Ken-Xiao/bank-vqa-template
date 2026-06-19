@@ -266,6 +266,144 @@
         hintReg.textContent = b.region + '大区 · ' + b.type_short + '行 ' + regionCount + ' 家均值';
       }
     }
+
+    // 同步下一步状态
+    renderNextBar();
+  }
+
+  // 下一步进入诊断的顶栏状态
+  function renderNextBar() {
+    var bar = document.getElementById("bmNextBar");
+    var targetName = document.getElementById("bmNextTargetName");
+    var peerCount = document.getElementById("bmNextPeerCount");
+    var yearEl = document.getElementById("bmNextYear");
+    var btn = document.getElementById("bmGoToDiagnosis");
+    if (!bar || !btn) return;
+    var b = getBank(_bm.selectedBankId);
+    var peers = [];
+    if (b) {
+      ['national_type','region_type','national_other','custom'].forEach(function(k){
+        if (_bm.activePeers[k]) peers = peers.concat(getPeerGroupIds(k, b));
+      });
+      peers = peers.filter(function(v,i,a){return a.indexOf(v) === i;});
+    }
+    if (targetName) targetName.textContent = b ? b.name : '未选择目标银行';
+    if (peerCount) peerCount.textContent = String(peers.length);
+    if (yearEl) yearEl.textContent = String(_bm.snapshotYear);
+    btn.disabled = !_bm.selectedBankId;
+  }
+
+  function renderEvidencePackTray() {
+    var host = document.getElementById("bmEvidencePackTray");
+    if (!host) return;
+    if (!_bm.selectedBankId) {
+      host.innerHTML = '<div class="bm-pack-empty">请先在左侧选择目标银行。完成对标样本后，这里会自动生成可带入报告的证据包。</div>';
+      return;
+    }
+    if (typeof window.buildRecommendedEvidencePack !== "function") {
+      host.innerHTML = '<div class="bm-pack-empty">证据包模型尚未加载，请刷新页面后重试。</div>';
+      return;
+    }
+    var pack = typeof window.readEvidencePack === "function" ? window.readEvidencePack() : null;
+    var b = getBank(_bm.selectedBankId);
+    var shouldRebuild = !pack || pack.status === "stale" || !pack.targetBank || (b && pack.targetBank.name !== b.name) || String(pack.year) !== String(_bm.snapshotYear);
+    if (shouldRebuild) {
+      pack = window.buildRecommendedEvidencePack();
+    }
+    var selected = Array.isArray(pack.selectedIssues) && pack.selectedIssues.length
+      ? pack.selectedIssues.slice()
+      : ((pack.recommendedIssues || []).slice(0, 3).map(function(issue){ return issue.issueId; }));
+    var statusText = pack.status === "confirmed" ? "已确认" : "待确认";
+    var statusClass = pack.status === "stale" ? " is-stale" : "";
+    var issuesHtml = (pack.recommendedIssues || []).map(function(issue){
+      var checked = selected.indexOf(issue.issueId) >= 0 ? " checked" : "";
+      var ev = issue.evidence && issue.evidence[0];
+      var chain = (issue.causalChain || []).slice(0, 3).join(" → ");
+      return '<label class="bm-issue-card">'
+        + '<input type="checkbox" data-toggle-evidence-issue="'+escapeXml(issue.issueId)+'"'+checked+' />'
+        + '<span>'
+        + '<strong>'+escapeXml(issue.title)+'：'+escapeXml(issue.conclusion)+'</strong>'
+        + '<p>'+escapeXml(chain)+'</p>'
+        + '<span class="bm-issue-evidence">'
+        + (ev ? '<span>'+escapeXml(ev.metric)+'：目标 '+escapeXml(ev.targetValue)+' / 对标 '+escapeXml(ev.peerValue)+'</span><span>差距 '+escapeXml(ev.gap)+' · '+escapeXml(ev.strength)+'证据</span>' : '')
+        + '</span>'
+        + '</span>'
+        + '</label>';
+    }).join("");
+    host.innerHTML = ''
+      + '<header class="bm-pack-head">'
+      + '<div><span class="bm-pane-kicker">报告证据包</span><h3>选择要带入报告的问题链</h3><p>系统基于当前目标行、对标组和年份推荐问题，后续结论摘要、证据地图和专题归因将优先引用这里确认的证据。</p></div>'
+      + '<span class="bm-pack-status'+statusClass+'">'+statusText+'</span>'
+      + '</header>'
+      + '<div class="bm-pack-meta">'
+      + '<span>目标：'+escapeXml(pack.targetBank && pack.targetBank.name || "未选择")+'</span>'
+      + '<span>年份：'+escapeXml(pack.year || _bm.snapshotYear)+'</span>'
+      + '<span>推荐问题：'+String((pack.recommendedIssues || []).length)+' 个</span>'
+      + '</div>'
+      + '<div class="bm-issue-list">'+(issuesHtml || '<div class="bm-pack-empty">当前样本暂未形成足够证据。</div>')+'</div>'
+      + '<div class="bm-pack-actions"><button type="button" class="bm-primary-action" id="bmConfirmEvidencePack">确认数据包并用于报告</button></div>';
+  }
+
+  function markPackStaleForBenchmarkChange(reason) {
+    if (typeof window.markEvidencePackStale === "function") {
+      window.markEvidencePackStale(reason || "benchmark-change");
+    }
+  }
+
+  function bindEvidencePackUi(shell) {
+    if (!shell || shell.dataset.evidencePackBound === "1") return;
+    shell.dataset.evidencePackBound = "1";
+    shell.addEventListener("click", function(e){
+      var restartBtn = e.target.closest("#bmRestartAnalysis");
+      if (restartBtn) {
+        var drawer = document.getElementById("bmRestartDrawer");
+        if (drawer) drawer.hidden = false;
+        return;
+      }
+      var closeBtn = e.target.closest("#bmRestartClose, #bmRestartKeepDraft");
+      if (closeBtn) {
+        var closeDrawer = document.getElementById("bmRestartDrawer");
+        if (closeDrawer) closeDrawer.hidden = true;
+        return;
+      }
+      var clearBtn = e.target.closest("#bmRestartClearPack");
+      if (clearBtn) {
+        if (typeof window.saveEvidencePack === "function") window.saveEvidencePack(null);
+        _bm.selectedBankId = null;
+        _bm.customPeers = [];
+        _bm.activePeers = { national_type: true, region_type: true, national_other: false, custom: false };
+        var drawer2 = document.getElementById("bmRestartDrawer");
+        if (drawer2) drawer2.hidden = true;
+        if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
+        renderAll();
+        return;
+      }
+      var issueToggle = e.target.closest("[data-toggle-evidence-issue]");
+      if (issueToggle) {
+        var pack = typeof window.readEvidencePack === "function" ? window.readEvidencePack() : null;
+        if (!pack) return;
+        var id = issueToggle.dataset.toggleEvidenceIssue;
+        var selected = Array.isArray(pack.selectedIssues) ? pack.selectedIssues.slice() : [];
+        var idx = selected.indexOf(id);
+        if (issueToggle.checked && idx < 0) selected.push(id);
+        if (!issueToggle.checked && idx >= 0) selected.splice(idx, 1);
+        pack.selectedIssues = selected;
+        pack.status = "draft";
+        if (typeof window.saveEvidencePack === "function") window.saveEvidencePack(pack);
+        renderEvidencePackTray();
+        return;
+      }
+      var confirmBtn = e.target.closest("#bmConfirmEvidencePack");
+      if (confirmBtn) {
+        var current = typeof window.readEvidencePack === "function" ? window.readEvidencePack() : null;
+        var selectedIds = current && Array.isArray(current.selectedIssues) ? current.selectedIssues : [];
+        if (typeof window.confirmEvidencePack === "function") {
+          window.confirmEvidencePack(current, selectedIds);
+        }
+        renderEvidencePackTray();
+        return;
+      }
+    });
   }
 
   // ---------- 7. 右侧：域 tab ----------
@@ -3306,12 +3444,15 @@
     renderAudienceSwitcher();
     renderDomainTabs();
     renderDomainContent();
+    renderNextBar();
+    renderEvidencePackTray();
   }
 
   // ---------- 13. 事件绑定 ----------
   function bind() {
     var shell = document.getElementById("benchmarkPageShell");
     if (!shell) return;
+    bindEvidencePackUi(shell);
 
     // 银行类型 tab
     shell.addEventListener("click", function(e){
@@ -3321,6 +3462,7 @@
       var bankItem = e.target.closest("#bmBankList .bm-bank-item");
       if (bankItem) {
         _bm.selectedBankId = bankItem.dataset.bankId;
+        markPackStaleForBenchmarkChange("target-change");
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
         renderAll(); return;
       }
@@ -3328,6 +3470,7 @@
       var healthRow = e.target.closest("[data-jump-bank-id]");
       if (healthRow) {
         _bm.selectedBankId = healthRow.dataset.jumpBankId;
+        markPackStaleForBenchmarkChange("target-change");
         var firstRealDomain = Object.keys(_bm.data.domains)[0];
         _bm.activeDomain = firstRealDomain;
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
@@ -3343,9 +3486,10 @@
       var snapBtn = e.target.closest("#bmSnapshotTabs button");
       if (snapBtn) {
         _bm.snapshotYear = parseInt(snapBtn.dataset.snap, 10);
+        markPackStaleForBenchmarkChange("year-change");
         Array.prototype.forEach.call(snapBtn.parentNode.querySelectorAll("button"), function(b){b.classList.toggle("is-active", b === snapBtn);});
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
-        renderSummary(); renderDomainContent(); return;
+        renderSummary(); renderDomainContent(); renderEvidencePackTray(); return;
       }
       // 受众切换
       var audBtn = e.target.closest("[data-audience]");
@@ -3375,8 +3519,9 @@
         var idx = _bm.customPeers.indexOf(id);
         if (idx >= 0) _bm.customPeers.splice(idx, 1);
         else if (_bm.customPeers.length < 8) _bm.customPeers.push(id);
+        markPackStaleForBenchmarkChange("peer-change");
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
-        renderPeerPool(); renderSummary(); renderDomainContent(); return;
+        renderPeerPool(); renderSummary(); renderDomainContent(); renderEvidencePackTray(); return;
       }
       // 加入报告附录按钮
       var addBtn = e.target.closest("[data-add-appendix-story]");
@@ -3414,8 +3559,24 @@
       if (chip) {
         var rid = chip.dataset.peerRemove;
         _bm.customPeers = _bm.customPeers.filter(function(x){return x !== rid;});
+        markPackStaleForBenchmarkChange("peer-change");
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
-        renderPeerPool(); renderSummary(); renderDomainContent(); return;
+        renderPeerPool(); renderSummary(); renderDomainContent(); renderEvidencePackTray(); return;
+      }
+      // 下一步：进入诊断
+      var nextBtn = e.target.closest("#bmGoToDiagnosis");
+      if (nextBtn && !nextBtn.disabled) {
+        e.preventDefault();
+        if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState({ renderDownstream: false });
+        if (typeof window.readEvidencePack === "function") {
+          var pack = window.readEvidencePack();
+          if (!pack || pack.status !== "confirmed") {
+            pack = typeof window.buildRecommendedEvidencePack === "function" ? window.buildRecommendedEvidencePack() : pack;
+            if (pack && typeof window.confirmEvidencePack === "function") window.confirmEvidencePack(pack, pack.selectedIssues);
+          }
+        }
+        if (typeof setPortalPage === "function") setPortalPage("answer", { force: true });
+        return;
       }
     });
 
@@ -3432,9 +3593,10 @@
         var inp = e.target.closest('input[type="checkbox"][data-peer-key]');
         if (!inp) return;
         _bm.activePeers[inp.dataset.peerKey] = inp.checked;
+        markPackStaleForBenchmarkChange("peer-change");
         var custom = document.getElementById("bmPeerCustom");
         if (custom) custom.hidden = !_bm.activePeers.custom;
-        renderSummary(); renderDomainContent();
+        renderSummary(); renderDomainContent(); renderNextBar(); renderEvidencePackTray();
       });
     }
     // 趋势区间下拉

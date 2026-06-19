@@ -1,7 +1,7 @@
 /* Bank VQA module: 43-page-rail.js
- * Portal IA v11：左侧参数与数据任务流导航
+ * Portal IA v11：左侧数据任务流导航
  *
- * 渲染参数选择、数据对标、证据、专题、报告和复核入口（含子按钮），高亮当前 page。
+ * 渲染数据对标、证据、专题、报告和复核入口（含子按钮），高亮当前 page。
  *
  * DOM 结构：
  *   <nav class="page-rail" id="pageRail">
@@ -69,22 +69,22 @@ function resolvePortalSubAnchor(page, anchorKey) {
 function renderPageRail() {
   var host = typeof document !== "undefined" ? document.getElementById("pageRail") : null;
   if (!host) return;
-  var current = typeof getPortalPage === "function" ? getPortalPage() : "launch";
+  var current = typeof getPortalPage === "function" ? getPortalPage() : "benchmark";
   var confirmed = typeof state !== "undefined" && state.confirmed
     || typeof document !== "undefined" && document.body && document.body.dataset.appState !== "setup";
-  var pages = (typeof PORTAL_PAGES !== "undefined") ? PORTAL_PAGES : ["launch"];
+  var pages = (typeof PORTAL_PAGES !== "undefined") ? PORTAL_PAGES : ["benchmark"];
   var labels = (typeof PORTAL_PAGE_LABELS !== "undefined") ? PORTAL_PAGE_LABELS : {};
   var summaries = (typeof PORTAL_PAGE_SUMMARY !== "undefined") ? PORTAL_PAGE_SUMMARY : {};
   var subMap = (typeof PORTAL_PAGE_SUB !== "undefined") ? PORTAL_PAGE_SUB : {};
 
   var titleHtml = '<div class="rail-title">'
-    + '<strong>参数选择</strong>'
-    + '<span>目标银行、对标银行、分析年份、身份。</span>'
+    + '<strong>数据对标</strong>'
+    + '<span>先选目标银行和对标组，再进入诊断与报告。</span>'
     + '</div>';
 
   var html = titleHtml + pages.map(function (page, idx) {
     var isActive = page === current;
-    var enabled = page === "benchmark" || page === "launch" || confirmed;
+    var enabled = page === "benchmark" || confirmed;
     var num = String(idx + 1).padStart(2, "0");
     var label = labels[page] || page;
     var summary = summaries[page] || "";
@@ -125,7 +125,7 @@ function bindPageRail() {
     var anchorKey = btn.getAttribute("data-sub-anchor");
     if (!anchorKey) return;
     var page = btn.getAttribute("data-sub-page")
-      || (typeof getPortalPage === "function" ? getPortalPage() : "launch");
+      || (typeof getPortalPage === "function" ? getPortalPage() : "benchmark");
     var current = typeof getPortalPage === "function" ? getPortalPage() : page;
     if (typeof setPortalPage === "function" && page && page !== current) {
       setPortalPage(page, { skipScroll: true });
