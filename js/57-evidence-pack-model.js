@@ -281,7 +281,154 @@
     };
   }
 
+  function readinessForIssue(issue) {
+    var evidence = issue && Array.isArray(issue.evidence) ? issue.evidence : [];
+    var strongCount = evidence.filter(function (ev) { return ev.strength === "强"; }).length;
+    var mediumCount = evidence.filter(function (ev) { return ev.strength === "中"; }).length;
+    var chainDepth = Array.isArray(issue && issue.causalChain) ? issue.causalChain.length : 0;
+    if (strongCount >= 1 && evidence.length >= 2 && chainDepth >= 3) return "ready";
+    if (strongCount + mediumCount >= 1 && evidence.length >= 1 && chainDepth >= 2) return "review";
+    return "appendix";
+  }
+
+  function severityForIssue(issue) {
+    var readiness = readinessForIssue(issue);
+    if (issue && issue.confidence === "高" && readiness === "ready") return "high";
+    if ((issue && issue.confidence === "中") || readiness === "review") return "medium";
+    return "low";
+  }
+
+  function metricGapForIssue(issue) {
+    var ev = issue && issue.evidence && issue.evidence[0];
+    return ev && ev.gap ? ev.gap : "差距待补";
+  }
+
+  function judgmentFromIssue(issue, index) {
+    var evidence = Array.isArray(issue && issue.evidence) ? issue.evidence : [];
+    return {
+      id: issue.issueId || ("judgment_" + (index + 1)),
+      title: issue.title || "管理层判断",
+      conclusion: issue.conclusion || "该判断需要补充证据后进入报告。",
+      severity: severityForIssue(issue),
+      primaryMetric: issue.primaryMetric || (evidence[0] && evidence[0].metric) || "核心指标",
+      metricGap: metricGapForIssue(issue),
+      causeChain: (issue.causalChain || []).slice(0, 4),
+      evidenceRefs: evidence.map(function (ev) { return ev.evidenceId; }).filter(Boolean),
+      recommendedAction: issue.action || "补充指标口径后再形成管理动作。",
+      reportReadiness: readinessForIssue(issue),
+      visualAsset: issue.visualAsset || null,
+      domainKey: issue.domainKey || "",
+      sourceIssueId: issue.issueId || "",
+      priority: index + 1,
+    };
+  }
+
+  function evidenceRowsForJudgment(judgment, issue) {
+    return (issue.evidence || []).map(function (ev) {
+      return {
+        judgmentId: judgment.id,
+        evidenceId: ev.evidenceId || "",
+        evidenceType: "metric-gap",
+        metricKey: ev.metric || judgment.primaryMetric,
+        chartType: (issue.chartTypes && issue.chartTypes[0]) || "diagnostic-card",
+        dataQuality: ev.strength || "待复核",
+        reportReadiness: judgment.reportReadiness,
+        gap: ev.gap || "",
+        targetValue: ev.targetValue || "",
+        peerValue: ev.peerValue || "",
+        direction: ev.direction || "",
+        supports: judgment.conclusion,
+      };
+    });
+  }
+
+  function topicChainFromJudgment(judgment) {
+    return {
+      id: "topic_" + judgment.id,
+      sourceJudgmentId: judgment.id,
+      title: judgment.title,
+      priority: judgment.priority,
+      nodes: judgment.causeChain.slice(0, 4),
+      action: judgment.recommendedAction,
+      evidenceRefs: judgment.evidenceRefs.slice(0, 4),
+      reportReadiness: judgment.reportReadiness,
+      visualAsset: judgment.visualAsset || null,
+      pages: [
+        { pageRole: "problem", title: judgment.title, mainPoint: judgment.conclusion },
+        { pageRole: "direct-cause", title: "直接原因", mainPoint: judgment.causeChain[1] || judgment.conclusion },
+        { pageRole: "deep-cause", title: "深层原因", mainPoint: judgment.causeChain[2] || judgment.causeChain[1] || judgment.conclusion },
+        { pageRole: "management-action", title: "管理动作", mainPoint: judgment.recommendedAction },
+      ].filter(function (page) { return !!page.mainPoint; }),
+    };
+  }
+
+  function candidatePagesFromJudgment(judgment) {
+    var pages = [{
+      id: "candidate_" + judgment.id + "_judgment",
+      sourceType: "judgment",
+      sourceId: judgment.id,
+      title: judgment.title,
+      pageRole: "executive-judgment",
+      status: judgment.reportReadiness,
+      selected: judgment.reportReadiness === "ready",
+    }];
+    if (judgment.causeChain.length >= 3) {
+      pages.push({
+        id: "candidate_" + judgment.id + "_action",
+        sourceType: "topic-chain",
+        sourceId: "topic_" + judgment.id,
+        title: judgment.title + "：原因链与管理动作",
+        pageRole: "management-action",
+        status: judgment.reportReadiness,
+        selected: judgment.reportReadiness === "ready",
+      });
+    }
+    return pages;
+  }
+
+  function buildManagementDiagnosisPack(pack) {
+    pack = pack || readEvidencePack();
+    var issues = selectedIssueObjects(pack).slice(0, 3);
+    var judgments = issues.map(judgmentFromIssue);
+    var evidenceMap = [];
+    judgments.forEach(function (judgment) {
+      var issue = issues.filter(function (item) { return item.issueId === judgment.sourceIssueId; })[0] || {};
+      evidenceMap = evidenceMap.concat(evidenceRowsForJudgment(judgment, issue));
+    });
+    var topicChains = judgments
+      .filter(function (judgment) { return judgment.causeChain.length >= 2 && judgment.reportReadiness !== "appendix"; })
+      .slice(0, 3)
+      .map(topicChainFromJudgment);
+    var candidatePages = [];
+    judgments.forEach(function (judgment) {
+      candidatePages = candidatePages.concat(candidatePagesFromJudgment(judgment));
+    });
+    var role = "管理层诊断";
+    if (typeof state !== "undefined" && state && state.role) role = state.role;
+    return {
+      version: (pack && pack.version) || packVersion(),
+      sourcePackStatus: (pack && pack.status) || "empty",
+      context: {
+        targetBank: (pack && pack.targetBank) || {},
+        peerBanks: (pack && pack.peerGroup && pack.peerGroup.banks) || [],
+        year: (pack && pack.year) || "",
+        role: role,
+      },
+      executiveAnswer: {
+        headline: ((pack && pack.targetBank && pack.targetBank.name) || "目标银行") + "本轮管理层诊断聚焦" + (judgments.map(function (j) { return j.primaryMetric; }).join("、") || "核心指标"),
+        totalVerdict: judgments.length ? "本轮优先围绕" + judgments.map(function (j) { return j.title; }).join("、") + "形成报告主线。" : "请先在数据对标页生成证据包。",
+        priorityJudgments: judgments.map(function (j) { return j.id; }),
+      },
+      judgments: judgments,
+      evidenceMap: evidenceMap,
+      topicChains: topicChains,
+      candidatePages: candidatePages.slice(0, 12),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
   window.buildRecommendedEvidencePack = buildRecommendedEvidencePack;
+  window.buildManagementDiagnosisPack = buildManagementDiagnosisPack;
   window.confirmEvidencePack = confirmEvidencePack;
   window.readEvidencePack = readEvidencePack;
   window.saveEvidencePack = saveEvidencePack;
