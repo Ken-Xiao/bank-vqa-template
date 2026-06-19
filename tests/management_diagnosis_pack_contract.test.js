@@ -115,6 +115,66 @@ assert(diagnosis.candidatePages.length <= 12, "candidate pages are capped at 12"
 assert(diagnosis.candidatePages.some((page) => page.sourceType === "judgment" && page.pageRole === "executive-judgment"), "candidate pages include judgment page");
 assert(diagnosis.candidatePages.some((page) => page.sourceType === "topic-chain" && page.pageRole === "management-action"), "candidate pages include management action page");
 
+const storyOnlyPack = {
+  version: "20260619-2300",
+  status: "confirmed",
+  targetBank: { id: "CN033", name: "苏州农商行" },
+  year: 2025,
+  selectedIssues: [],
+  recommendedIssues: [],
+  storyCards: [
+    {
+      domainKey: "nim",
+      storyId: "nim_liability_cost",
+      domainLabel: "息差与负债",
+      title: "净息差落后需要回拆负债成本",
+      lead: "目标行净息差低于对标组，直接原因是负债成本偏高，深层原因是存款定期化率更高。",
+      causalNodes: [
+        { role: "结果", metric: "净息差", targetValue: "1.55%", peerValue: "1.86%", gap: "-0.31pct", pressure: true },
+        { role: "直接原因", metric: "计息负债成本率", targetValue: "2.25%", peerValue: "1.96%", gap: "+0.29pct", pressure: true },
+        { role: "深层原因", metric: "定期存款占比", targetValue: "68.2%", peerValue: "59.1%", gap: "+9.1pct", pressure: true }
+      ],
+      visualAsset: { src: "assets/figures/图3-3_息差缺口与负债成本对照.png", label: "息差传导图" }
+    }
+  ]
+};
+const storyDiagnosis = context.window.buildManagementDiagnosisPack(storyOnlyPack);
+assert.equal(storyDiagnosis.judgments.length, 1, "storyCards-only pack creates one judgment");
+assert(storyDiagnosis.judgments[0].causeChain.join(" -> ").includes("定期存款占比"), "storyCards judgment preserves deep metric");
+
+const singleStrongPack = {
+  version: "20260619-2310",
+  status: "confirmed",
+  targetBank: { id: "CN033", name: "苏州农商行" },
+  year: 2025,
+  peerGroup: { label: "当前对标组", banks: ["常熟农商行"] },
+  recommendedIssues: [
+    {
+      issueId: "single_strong_deep_chain",
+      title: "息差修复优先",
+      priority: 1,
+      confidence: "高",
+      primaryMetric: "NIM",
+      conclusion: "NIM 低于对标组，需要沿负债成本继续拆解。",
+      evidence: [
+        { evidenceId: "ev_single_nim", metric: "NIM", gap: "-0.31pct", strength: "强", direction: "低于同业", targetValue: "1.55%", peerValue: "1.86%" }
+      ],
+      causalChain: ["NIM 低于对标组", "因为负债成本高于对标组", "因为定期存款占比高于对标组"],
+      action: "优先压降高成本定期存款占比。",
+      domainKey: "nim"
+    }
+  ],
+  selectedIssues: ["single_strong_deep_chain"]
+};
+const singleStrongDiagnosis = context.window.buildManagementDiagnosisPack(singleStrongPack);
+assert.equal(singleStrongDiagnosis.judgments[0].reportReadiness, "ready", "single strong evidence with causal depth is ready");
+assert(singleStrongDiagnosis.candidatePages.some((page) => page.sourceId === "single_strong_deep_chain" && page.selected), "ready candidate page is selected by default");
+
+const emptyDiagnosis = context.window.buildManagementDiagnosisPack(null);
+assert.equal(emptyDiagnosis.judgments.length, 0, "empty pack returns empty judgments");
+const draftDiagnosis = context.window.buildManagementDiagnosisPack(Object.assign({}, samplePack, { status: "draft" }));
+assert.equal(draftDiagnosis.judgments.length, 0, "draft pack returns empty judgments");
+
 const serialized = JSON.stringify(diagnosis);
 ["值得关注", "持续跟踪", "结构承压"].forEach((word) => {
   assert(!serialized.includes(word), "diagnosis pack avoids generic phrase: " + word);

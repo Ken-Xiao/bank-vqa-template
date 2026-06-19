@@ -224,9 +224,60 @@
   function selectedIssueObjects(pack) {
     if (!pack || pack.status !== "confirmed") return [];
     var selected = pack.selectedIssues || [];
-    return (pack.recommendedIssues || [])
+    var issues = (pack.recommendedIssues || []);
+    if (!issues.length && Array.isArray(pack.storyCards) && pack.storyCards.length) {
+      issues = pack.storyCards.map(storyCardToIssue).filter(Boolean);
+      selected = issues.map(function(issue){ return issue.issueId; });
+    }
+    return issues
       .filter(function (issue) { return selected.indexOf(issue.issueId) >= 0; })
       .sort(function (a, b) { return (a.priority || 99) - (b.priority || 99); });
+  }
+
+  function storyCardToIssue(card, index) {
+    if (!card) return null;
+    var nodes = Array.isArray(card.causalNodes) ? card.causalNodes : [];
+    var primary = nodes[0] || {};
+    var reasons = nodes.slice(1).filter(function(node){ return node && node.metric; });
+    var evidence = nodes.map(function(node, nodeIndex){
+      return {
+        evidenceId: "story_" + (card.domainKey || "domain") + "_" + (card.storyId || index || 0) + "_" + (nodeIndex + 1),
+        metric: node.metric || "故事线指标",
+        targetValue: node.targetValue || "",
+        peerValue: node.peerValue || "",
+        gap: node.gap || "",
+        direction: node.pressure ? "形成压力" : "形成优势",
+        strength: node.pressure ? "强" : "中",
+        source: (card.domainLabel || card.domainKey || "数据对标") + "故事线",
+        visualAsset: card.visualAsset || null,
+      };
+    });
+    var causalChain = [];
+    if (primary.metric) causalChain.push(primary.metric + "形成结果差距" + (primary.gap ? "（差距 " + primary.gap + "）" : ""));
+    reasons.forEach(function(node){
+      causalChain.push("因为" + node.metric + (node.gap ? "偏离同业（差距 " + node.gap + "）" : "偏离同业"));
+    });
+    if (!causalChain.length && card.lead) causalChain.push(card.lead);
+    return {
+      issueId: "story_" + (card.domainKey || "domain") + "_" + (card.storyId || index || 0),
+      title: card.title || card.domainLabel || "数据对标故事线",
+      priority: index + 1,
+      confidence: evidence.some(function(ev){ return ev.strength === "强"; }) ? "高" : "中",
+      primaryMetric: primary.metric || (card.metricKeys || [])[0] || "故事线指标",
+      conclusion: card.lead || ((card.title || "该故事线") + "需要沿因果链继续拆解。"),
+      evidence: evidence,
+      causalChain: causalChain,
+      action: reasons.length
+        ? "优先复核" + reasons.map(function(node){ return node.metric; }).slice(0, 2).join("、") + "，再进入管理动作拆解。"
+        : "围绕该故事线补充可复核指标并进入专题分析。",
+      reportUse: ["结论摘要", "证据地图", "专题归因"],
+      domainKey: card.domainKey,
+      storyId: card.storyId,
+      domainLabel: card.domainLabel,
+      visualAsset: card.visualAsset || null,
+      chartTypes: card.chartTypes || [],
+      storyLead: card.lead || "",
+    };
   }
 
   function evidencePackAnswerModel(pack) {
@@ -286,8 +337,8 @@
     var strongCount = evidence.filter(function (ev) { return ev.strength === "强"; }).length;
     var mediumCount = evidence.filter(function (ev) { return ev.strength === "中"; }).length;
     var chainDepth = Array.isArray(issue && issue.causalChain) ? issue.causalChain.length : 0;
-    if (strongCount >= 1 && evidence.length >= 2 && chainDepth >= 3) return "ready";
-    if (strongCount + mediumCount >= 1 && evidence.length >= 1 && chainDepth >= 2) return "review";
+    if (strongCount >= 1 && chainDepth >= 3) return "ready";
+    if (strongCount + mediumCount >= 1 && chainDepth >= 2) return "review";
     return "appendix";
   }
 
