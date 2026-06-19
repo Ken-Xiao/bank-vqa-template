@@ -5056,6 +5056,137 @@
       white-space: nowrap;
     }
 
+    .management-diagnosis-answer,
+    .management-evidence-index {
+      display: grid;
+      gap: 16px;
+    }
+
+    .management-answer-hero {
+      border: 1px solid var(--line, #e6eaef);
+      border-radius: 8px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .management-answer-hero span,
+    .management-judgment-card span,
+    .management-topic-chain span,
+    .management-evidence-row span,
+    .management-evidence-status span {
+      display: block;
+      color: var(--muted, #607184);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .management-answer-hero h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: var(--ink, #102033);
+    }
+
+    .management-answer-hero p,
+    .management-judgment-card p,
+    .management-topic-chain p,
+    .management-evidence-row p {
+      margin: 0;
+      color: var(--muted, #607184);
+      line-height: 1.55;
+    }
+
+    .management-judgment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .management-judgment-card,
+    .management-evidence-row,
+    .management-topic-chain {
+      border: 1px solid var(--line, #e6eaef);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .management-topic-chain {
+      min-height: 360px;
+      position: relative;
+      width: min(100%, 840px);
+    }
+
+    .management-judgment-card h4,
+    .management-evidence-row h4,
+    .management-topic-chain h3 {
+      margin: 0 0 8px;
+      color: var(--ink, #102033);
+    }
+
+    .management-judgment-card b {
+      display: block;
+      margin: 12px 0;
+      color: var(--brand, #1a3a5c);
+    }
+
+    .management-judgment-card .btn {
+      margin-top: 12px;
+    }
+
+    .management-evidence-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.8fr) minmax(160px, 0.5fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .management-evidence-metrics {
+      display: grid;
+      gap: 8px;
+    }
+
+    .management-evidence-metrics b {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line, #e6eaef);
+      padding-bottom: 6px;
+      color: var(--ink, #102033);
+    }
+
+    .management-evidence-metrics em {
+      color: var(--brand, #1a3a5c);
+      font-style: normal;
+    }
+
+    .management-evidence-status strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--brand, #1a3a5c);
+    }
+
+    .management-readiness-ready {
+      border-color: rgba(46, 125, 98, 0.35);
+      box-shadow: inset 0 3px 0 rgba(46, 125, 98, 0.28);
+    }
+
+    .management-readiness-review {
+      border-color: rgba(184, 92, 56, 0.35);
+      box-shadow: inset 0 3px 0 rgba(184, 92, 56, 0.22);
+    }
+
+    .management-readiness-appendix {
+      border-color: rgba(96, 113, 132, 0.3);
+      box-shadow: inset 0 3px 0 rgba(96, 113, 132, 0.18);
+    }
+
+    @media (max-width: 1100px) {
+      .management-judgment-grid,
+      .management-evidence-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .coverage-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.22fr) minmax(340px, .78fr);
