@@ -400,7 +400,7 @@ assert(managementAnswer.judgments[0].evidenceRefs.includes("ev_a"), "management 
 const managementMap = context.window.managementDiagnosisEvidenceMapModel(samplePack);
 assert.equal(managementMap.judgments.length, 1, "evidence map keeps judgment list");
 assert.equal(managementMap.rows.length, 1, "evidence map keeps selected evidence rows");
-assert.equal(managementMap.rows[0].reportReadiness, "review", "single medium-depth issue becomes review state");
+assert.equal(managementMap.rows[0].reportReadiness, "ready", "single strong issue with causal depth becomes ready state");
 
 const managementTopics = context.window.managementDiagnosisTopicModel(storyPack);
 assert.equal(managementTopics.topicChains.length, 1, "topic model uses top story chain");

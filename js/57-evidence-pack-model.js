@@ -303,6 +303,9 @@
           issueId: issue.issueId,
           issueTitle: issue.title,
           supports: issue.conclusion,
+          visualAsset: issue.visualAsset || ev.visualAsset || null,
+          domainKey: issue.domainKey || "",
+          storyId: issue.storyId || "",
         }));
       });
     });
@@ -323,6 +326,10 @@
         causalChain: issue.causalChain || [],
         action: issue.action || "",
         evidenceIds: (issue.evidence || []).map(function (ev) { return ev.evidenceId; }),
+        visualAsset: issue.visualAsset || null,
+        domainKey: issue.domainKey || "",
+        storyId: issue.storyId || "",
+        chartTypes: issue.chartTypes || [],
       };
     });
     return {
@@ -478,12 +485,75 @@
     };
   }
 
+  function diagnosisFromAny(input) {
+    var diagnosis = input && input.judgments && input.evidenceMap && input.topicChains
+      ? input
+      : buildManagementDiagnosisPack(input);
+    diagnosis = diagnosis || {};
+    var judgments = Array.isArray(diagnosis.judgments) ? diagnosis.judgments : [];
+    var evidenceMap = Array.isArray(diagnosis.evidenceMap) ? diagnosis.evidenceMap : [];
+    var topicChains = Array.isArray(diagnosis.topicChains) ? diagnosis.topicChains : [];
+    var candidatePages = Array.isArray(diagnosis.candidatePages) ? diagnosis.candidatePages : [];
+    var executiveAnswer = diagnosis.executiveAnswer || {};
+    return Object.assign({}, diagnosis, {
+      version: diagnosis.version || "",
+      context: diagnosis.context || {},
+      executiveAnswer: {
+        headline: executiveAnswer.headline || "",
+        totalVerdict: executiveAnswer.totalVerdict || "",
+        priorityJudgments: Array.isArray(executiveAnswer.priorityJudgments) ? executiveAnswer.priorityJudgments : [],
+      },
+      judgments: judgments,
+      evidenceMap: evidenceMap,
+      topicChains: topicChains,
+      candidatePages: candidatePages,
+    });
+  }
+
+  function managementDiagnosisAnswerModel(input) {
+    var diagnosis = diagnosisFromAny(input);
+    return {
+      empty: !diagnosis.judgments.length,
+      version: diagnosis.version,
+      context: diagnosis.context,
+      headline: diagnosis.executiveAnswer.headline,
+      totalVerdict: diagnosis.executiveAnswer.totalVerdict,
+      judgments: diagnosis.judgments.slice(0, 3),
+    };
+  }
+
+  function managementDiagnosisEvidenceMapModel(input) {
+    var diagnosis = diagnosisFromAny(input);
+    return {
+      empty: !diagnosis.judgments.length,
+      version: diagnosis.version,
+      context: diagnosis.context,
+      judgments: diagnosis.judgments.slice(0, 3),
+      rows: diagnosis.evidenceMap,
+      candidatePages: diagnosis.candidatePages,
+    };
+  }
+
+  function managementDiagnosisTopicModel(input) {
+    var diagnosis = diagnosisFromAny(input);
+    return {
+      empty: !diagnosis.topicChains.length,
+      version: diagnosis.version,
+      context: diagnosis.context,
+      topicChains: diagnosis.topicChains.slice(0, 3),
+      candidatePages: diagnosis.candidatePages,
+    };
+  }
+
   window.buildRecommendedEvidencePack = buildRecommendedEvidencePack;
   window.buildManagementDiagnosisPack = buildManagementDiagnosisPack;
   window.confirmEvidencePack = confirmEvidencePack;
   window.readEvidencePack = readEvidencePack;
   window.saveEvidencePack = saveEvidencePack;
   window.markEvidencePackStale = markEvidencePackStale;
+  window.managementDiagnosisAnswerModel = managementDiagnosisAnswerModel;
+  window.managementDiagnosisEvidenceMapModel = managementDiagnosisEvidenceMapModel;
+  window.managementDiagnosisTopicModel = managementDiagnosisTopicModel;
   window.evidencePackAnswerModel = evidencePackAnswerModel;
   window.evidencePackMapModel = evidencePackMapModel;
   window.evidencePackTopicModel = evidencePackTopicModel;
