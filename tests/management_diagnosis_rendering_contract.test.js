@@ -12,6 +12,8 @@ const css = fs.readFileSync("styles/app.css", "utf8");
   "management-evidence-index",
   "management-topic-chain",
   "data-jump-report-page",
+  "renderReportPageLibrary",
+  "暂无可展开专题链",
   "展开证据"
 ].forEach((needle) => {
   assert(workspace.includes(needle), "workspace must include focused diagnosis rendering: " + needle);

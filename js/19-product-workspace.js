@@ -769,6 +769,16 @@ document.addEventListener("click", function (event) {
   stepStoryDeckPlayer(playerId, next ? 1 : -1);
 });
 
+document.addEventListener("click", function (event) {
+  const jump = event.target.closest("[data-jump-report-page]");
+  if (!jump) return;
+  if (typeof setAppMode === "function") setAppMode("report");
+  if (typeof setWorkspaceTab === "function") setWorkspaceTab("report");
+  if (typeof renderReportPageLibrary === "function") renderReportPageLibrary();
+  const reportShell = document.getElementById("analysisDeckShell") || document.getElementById("formalReportShell");
+  reportShell?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
 window.stepStoryDeckPlayer = stepStoryDeckPlayer;
 window.storyDeckPlayerState = storyDeckPlayerState;
 
@@ -847,7 +857,10 @@ function renderManagementDiagnosisEvidenceMap(model) {
 }
 
 function renderManagementDiagnosisTopics(model) {
-  if (!model || model.empty) return evidencePackEmptyHtml();
+  if (!model || model.empty) return `<div class="empty-card">
+    <b>暂无可展开专题链</b>
+    <p>当前证据包已确认，但尚未形成足够清晰的 1-3 条多层因果链。建议回到证据地图补充原因指标，或将该判断暂时降级为附录线索。</p>
+  </div>`;
   const pages = (model.topicChains || []).slice(0, 3).map((chain, index) => `
     <article class="management-topic-chain">
       <span>专题链 ${index + 1} · ${step2Esc(readinessLabel(chain.reportReadiness))}</span>
@@ -872,52 +885,127 @@ function renderManagementDiagnosisTopics(model) {
 
 function renderEvidencePackAnswer(model) {
   if (!model || model.empty) return evidencePackEmptyHtml();
-  return `<div class="step2-pack-answer">
+  const primaryIssue = model.issues[0] || {};
+  const evidenceRows = model.issues.flatMap((issue) => (issue.evidence || []).map((row) => Object.assign({}, row, {
+    primaryMetric: issue.primaryMetric,
+  })));
+  const pages = [
+    evidencePackCanvasPageHtml({
+      pageType: "summary",
+      kicker: "结论摘要",
+      title: model.summary,
+      subtitle: `围绕 ${step2Esc(model.targetBank?.name || "目标银行")} 的已确认问题，先给董事会一个可被证据支撑的总答案。`,
+      visualAsset: primaryIssue.visualAsset,
+      evidenceRows,
+      causalChain: primaryIssue.causalChain || [],
+      footerLabel: "下一步",
+      conclusion: primaryIssue.action || "优先进入证据地图，核验证据强度和因果链是否足以支撑正式报告。"
+    })
+  ].concat(model.issues.map((issue, index) => evidencePackCanvasPageHtml({
+    pageType: "summary",
+    kicker: `结论摘要 0${index + 2}`,
+    title: issue.title,
+    subtitle: issue.conclusion,
+    visualAsset: issue.visualAsset,
+    evidenceRows: issue.evidence || [],
+    causalChain: issue.causalChain || [],
+    footerLabel: "管理含义",
+    conclusion: issue.action || "该问题已纳入本轮诊断。"
+  })));
+  return `<div class="step2-pack-answer step2-pack-page-stack">
     <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")} · ${step2Esc(model.targetBank?.name || "")} · ${step2Esc(model.year || "")}</p>
-    <h3>${step2Esc(model.summary)}</h3>
-    <div class="step2-pack-issue-grid">
+    ${renderStoryDeckPlayer("answer", pages, { label: "结论摘要" })}
+    <details class="step2-pack-detail-list">
+      <summary>查看已纳入诊断的问题明细</summary>
+      <div class="step2-pack-issue-grid">
       ${model.issues.map((issue) => {
         const ev = issue.evidence?.[0] || {};
         return `<article class="step2-pack-issue-card">
           <span>${step2Esc(issue.confidence || "中")}置信</span>
+          ${evidencePackVisualHtml(issue.visualAsset, true)}
           <b>${step2Esc(issue.title)}</b>
           <p>${step2Esc(issue.conclusion)}</p>
           <em>证据 ${step2Esc(ev.evidenceId || "--")}：${step2Esc(issue.primaryMetric)} ${step2Esc(ev.gap || "--")} · ${step2Esc(ev.strength || "--")}证据</em>
+          ${evidencePackChainHtml((issue.causalChain || []).slice(0, 4))}
           <small>${step2Esc(issue.action || "")}</small>
         </article>`;
       }).join("")}
-    </div>
+      </div>
+    </details>
   </div>`;
 }
 
 function renderEvidencePackMap(model) {
   if (!model || model.empty) return evidencePackEmptyHtml();
-  return `<div class="step2-pack-map">
+  const grouped = model.rows.reduce((acc, row) => {
+    const key = row.issueId || row.storyId || "evidence";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(row);
+    return acc;
+  }, {});
+  const pages = Object.keys(grouped).map((key, index) => {
+      const rows = grouped[key];
+      const first = rows[0] || {};
+      return evidencePackCanvasPageHtml({
+        pageType: "evidence-map",
+        kicker: `证据地图 0${index + 1}`,
+        title: `${first.issueTitle || first.metric || "核心问题"} 的证据链`,
+        subtitle: "把同一条故事线下的结果指标、直接原因和结构原因放在同一页，避免只看单点数值。",
+        visualAsset: first.visualAsset,
+        evidenceRows: rows,
+        causalChain: rows.map((row, rowIndex) => `${rowIndex > 0 ? "因为" : ""}${row.metric || row.evidenceId}${row.gap ? " " + row.gap : ""}`),
+        footerLabel: "证据判断",
+        conclusion: first.supports || "该证据组用于支撑后续专题归因。"
+      });
+    });
+  return `<div class="step2-pack-map step2-pack-page-stack">
     <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")}</p>
-    <table>
-      <thead><tr><th>证据</th><th>指标</th><th>差距</th><th>强度</th><th>支持结论</th></tr></thead>
-      <tbody>${model.rows.map((row) => `<tr>
-        <td>${step2Esc(row.evidenceId)}</td>
-        <td>${step2Esc(row.metric)}</td>
-        <td>${step2Esc(row.gap)}</td>
-        <td>${step2Esc(row.strength)}</td>
-        <td>${step2Esc(row.supports)}</td>
-      </tr>`).join("")}</tbody>
-    </table>
+    ${renderStoryDeckPlayer("evidence", pages, { label: "证据地图" })}
+    <details class="step2-pack-detail-list">
+      <summary>查看全部证据行</summary>
+      <div class="step2-pack-map-list">
+      ${model.rows.map((row) => `<article class="step2-pack-map-row">
+        ${evidencePackVisualHtml(row.visualAsset, true)}
+        <div>
+          <span>${step2Esc(row.evidenceId)}</span>
+          <b>${step2Esc(row.metric)} · ${step2Esc(row.gap || "--")}</b>
+          <p>${step2Esc(row.supports)}</p>
+          <em>${step2Esc(row.direction || "")} · ${step2Esc(row.strength || "--")}证据 · 目标 ${step2Esc(row.targetValue || "--")} / 对标 ${step2Esc(row.peerValue || "--")}</em>
+        </div>
+      </article>`).join("")}
+      </div>
+    </details>
   </div>`;
 }
 
 function renderEvidencePackTopics(model) {
   if (!model || model.empty) return evidencePackEmptyHtml();
-  return `<div class="step2-pack-topics">
+  const pages = model.topics.map((topic, index) => evidencePackCanvasPageHtml({
+    pageType: "topic-attribution",
+    kicker: `专题归因 0${index + 1}`,
+    title: topic.title,
+    subtitle: topic.conclusion,
+    visualAsset: topic.visualAsset,
+    evidenceRows: (topic.evidenceIds || []).map((id) => ({ evidenceId: id, metric: id, direction: "引用证据", strength: "已选" })),
+    causalChain: topic.causalChain || [],
+    footerLabel: "管理动作",
+    conclusion: topic.action || "将该专题纳入正式报告，并继续补充可落地的管理抓手。"
+  }));
+  return `<div class="step2-pack-topics step2-pack-page-stack">
     <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")}</p>
-    ${model.topics.map((topic) => `<article class="step2-pack-topic-card">
+    ${renderStoryDeckPlayer("topics", pages, { label: "专题归因" })}
+    <details class="step2-pack-detail-list">
+      <summary>查看专题归因明细</summary>
+      ${model.topics.map((topic) => `<article class="step2-pack-topic-card">
+      ${evidencePackVisualHtml(topic.visualAsset)}
       <h3>${step2Esc(topic.title)}</h3>
       <p>${step2Esc(topic.conclusion)}</p>
-      <ol>${topic.causalChain.map((node) => `<li>${step2Esc(node)}</li>`).join("")}</ol>
-      <small>证据：${step2Esc(topic.evidenceIds.join("、"))}</small>
+      ${evidencePackChainHtml(topic.causalChain || [])}
+      <ol>${(topic.causalChain || []).map((node) => `<li>${step2Esc(node)}</li>`).join("")}</ol>
+      <small>证据：${step2Esc((topic.evidenceIds || []).join("、"))}</small>
       <b>${step2Esc(topic.action)}</b>
     </article>`).join("")}
+    </details>
   </div>`;
 }
 
