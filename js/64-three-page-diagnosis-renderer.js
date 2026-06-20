@@ -133,7 +133,137 @@
     return section;
   }
 
+  function storyById(model, storylineId) {
+    var stories = model && Array.isArray(model.selectedIssues) ? model.selectedIssues : [];
+    return stories.filter(function (story) {
+      return story && (story.storylineId === storylineId || story.issueId === storylineId);
+    })[0] || null;
+  }
+
+  function chartForStory(story) {
+    return story && Array.isArray(story.charts) ? story.charts[0] : null;
+  }
+
+  function chainForStory(story) {
+    var chain = story && story.causalChain || {};
+    return [
+      chain.result || chain.resultMetric,
+      chain.directCause,
+      chain.structureCause,
+      chain.action || chain.recommendedAction,
+    ].filter(Boolean);
+  }
+
+  function buildConclusionPlayerPages(model) {
+    var page = model.conclusion || {};
+    return (page.cards || page.topIssues || []).map(function (card, index) {
+      var story = storyById(model, card.storylineId);
+      return {
+        pageId: "conclusion_" + (card.storylineId || index),
+        eyebrow: "结论摘要",
+        title: card.title || page.headline || "主判断",
+        subtitle: card.conclusion || card.sentence || page.headline || "",
+        conclusion: card.evidenceText || page.nextQuestion || "",
+        evidence: [{
+          metric: card.metric || card.title,
+          sentence: card.evidenceText || card.conclusion || "",
+          gap: card.strength ? card.strength + "证据" : "",
+        }],
+        chain: chainForStory(story).length ? chainForStory(story) : [card.metric, card.nextQuestion],
+        chart: chartForStory(story),
+        readingGuide: chartForStory(story) && chartForStory(story).readingGuide || {},
+        source: (card.sourceFactIds || []).join("、") || "故事线事实包",
+      };
+    });
+  }
+
+  function evidenceItemToPlayerEvidence(item) {
+    item = item || {};
+    return {
+      metric: item.metric || item.title || "证据",
+      sentence: item.targetValue || item.peerValue || item.gap
+        ? "目标 " + (item.targetValue || "—") + " / 对标 " + (item.peerValue || "—") + " / 差距 " + (item.gap || "—")
+        : (item.summary || item.conclusion || ""),
+      gap: item.strength ? item.strength + "证据" : "",
+    };
+  }
+
+  function buildEvidencePlayerPages(model) {
+    var page = model.evidenceMap || {};
+    if (Array.isArray(page.groups) && page.groups.length) {
+      return page.groups.slice(0, 6).map(function (group, index) {
+        var first = (group.items || [])[0] || {};
+        var story = storyById(model, first.storylineId || first.issueId);
+        return {
+          pageId: "evidence_" + (group.category || index),
+          eyebrow: "证据地图",
+          title: group.title || group.category || "证据分组",
+          subtitle: page.chainSummary || "按事实包分类展示证据强度。",
+          conclusion: (first.metric || group.title || "证据") + "支撑当前故事线判断。",
+          evidence: (group.items || []).slice(0, 4).map(evidenceItemToPlayerEvidence),
+          chain: chainForStory(story),
+          chart: chartForStory(story),
+          readingGuide: chartForStory(story) && chartForStory(story).readingGuide || {},
+          source: (first.sourceFactIds || []).join("、") || first.source || "故事线事实包",
+        };
+      });
+    }
+    return [{
+      pageId: "evidence_overview",
+      eyebrow: "证据地图",
+      title: page.headline || "证据地图",
+      subtitle: page.chainSummary || "",
+      conclusion: "当前证据强度：" + ((page.strength && page.strength.label) || page.strength || "待补"),
+      evidence: [page.peerPosition, (page.anomalies || [])[0], page.valuationAnchor].filter(Boolean).map(evidenceItemToPlayerEvidence),
+      chain: [],
+      chart: null,
+      source: "故事线事实包",
+    }];
+  }
+
+  function buildAttributionPlayerPages(model) {
+    var page = model.attribution || {};
+    var topics = page.topics || page.visibleTopics || [];
+    if (!topics.length) topics = [{ title: page.headline || "专题归因", storylineId: page.activeStorylineId || page.activeIssueId }];
+    return topics.slice(0, 3).map(function (topic, index) {
+      var story = storyById(model, topic.storylineId || topic.issueId);
+      var chart = chartForStory(story) || (page.charts || [])[0] || null;
+      var chain = chainForStory(story);
+      if (!chain.length && page.chain) {
+        chain = [page.chain.result, page.chain.directCause, page.chain.structureCause, page.chain.action].filter(Boolean);
+      }
+      return {
+        pageId: "attribution_" + (topic.storylineId || topic.issueId || index),
+        eyebrow: "专题归因",
+        title: topic.title || page.headline || "专题归因",
+        subtitle: topic.conclusion || "结果指标、直接原因、结构原因与管理动作保持在同一页。",
+        conclusion: (page.reportCandidates || [])[0] && (page.reportCandidates || [])[0].evidenceSentence || topic.conclusion || "",
+        evidence: (page.evidence || []).slice(0, 4).map(function (item) {
+          return { metric: item.title || "专题证据", sentence: item.text || "", gap: "" };
+        }),
+        chain: chain,
+        chart: chart,
+        readingGuide: chart && chart.readingGuide || {},
+        source: (topic.sourceFactIds || []).join("、") || "故事线事实包",
+      };
+    });
+  }
+
+  function renderStorylinePlayerSection(model, title, pages) {
+    var section = el("section", "three-page-diagnosis is-storyline-player");
+    appendFactPackBanner(section, model);
+    var mount = el("div", "three-page-storyline-player-mount");
+    section.appendChild(mount);
+    if (typeof window.renderStorylinePagePlayer === "function") {
+      window.renderStorylinePagePlayer(mount, pages, { title: title });
+    }
+    return section;
+  }
+
   function renderConclusionSummaryPage(model) {
+    if (model.source === "storylineFactPack" && typeof window.renderStorylinePagePlayer === "function") {
+      return renderStorylinePlayerSection(model, "结论摘要", buildConclusionPlayerPages(model));
+    }
     var page = model.conclusion || {};
     var section = el("section", "three-page-diagnosis is-conclusion");
     appendFactPackBanner(section, model);
@@ -198,6 +328,9 @@
   }
 
   function renderEvidenceMapPage(model) {
+    if (model.source === "storylineFactPack" && typeof window.renderStorylinePagePlayer === "function") {
+      return renderStorylinePlayerSection(model, "证据地图", buildEvidencePlayerPages(model));
+    }
     var page = model.evidenceMap || {};
     var strength = page.strength && page.strength.label || page.strength || "弱";
     var section = el("section", "three-page-diagnosis is-evidence");
@@ -226,6 +359,9 @@
   }
 
   function renderAttributionPage(model) {
+    if (model.source === "storylineFactPack" && typeof window.renderStorylinePagePlayer === "function") {
+      return renderStorylinePlayerSection(model, "专题归因", buildAttributionPlayerPages(model));
+    }
     var page = model.attribution || {};
     var chain = page.chain || {};
     var section = el("section", "three-page-diagnosis is-attribution");
