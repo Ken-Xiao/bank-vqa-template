@@ -4,7 +4,7 @@
 
 **Goal:** 将结论摘要、证据地图、专题归因三页改成证据包驱动的单任务链条，减少杂项内容并保证目标行、对标组、年份一致。
 
-**Architecture:** 新增一个独立的三页诊断页面模型文件，负责把 `readEvidencePack()` / `buildManagementDiagnosisPack()` 转换成 `conclusion / evidenceMap / attribution` 三类页面输入；新增一个渲染文件，负责将模型挂载到现有 `step2Content` 区域，并按 `answer / evidence / topics` 控制显示。旧专题深钻模块不删除，统一进入折叠区域，避免破坏既有分析能力。
+**Architecture:** 新增一个独立的三页诊断页面模型文件，负责把 `readEvidencePack()` / `buildManagementDiagnosisPack()` 转换成 `conclusion / evidenceMap / attribution` 三类页面输入，并在模型层完成主判断卡选择、证据强度判定、专题排序折叠、报告候选页数据契约、文案 trace 校验和证据包异常状态归一。新增一个渲染文件，负责将模型挂载到现有 `step2Content` 区域，并按 `answer / evidence / topics` 控制显示。旧专题深钻模块不删除，统一进入折叠区域，避免破坏既有分析能力。
 
 **Tech Stack:** 原生 JavaScript、现有 `index.html` portal page 架构、`benchmarkiq.evidencePack` 本地存储、Node 静态契约测试、Playwright 浏览器验证。
 
@@ -33,11 +33,88 @@
 - Test: `tests/three_page_diagnosis_model_contract.test.js`  
   验证模型结构、空状态、过期状态、证据包字段映射。
 
+- Test: `tests/three_page_diagnosis_rules_contract.test.js`
+  验证主判断卡、证据强度、专题折叠、报告候选页、禁用泛化表述和 trace 规则。
+
 - Test: `tests/three_page_diagnosis_renderer_contract.test.js`  
   验证渲染文件包含三页容器、折叠规则和跳转按钮。
 
 - Test: `tests/three_page_diagnosis_flow_runtime.test.js`  
   使用 VM 或轻量 DOM mock 验证 `renderThreePageDiagnosis()` 能按当前 portal page 渲染正确页面。
+
+---
+
+## Review-Driven Rule Contract
+
+本轮评估意见要求先把“页面怎么自动生成”变成可执行规则，再写 UI。Task 1 必须先落地以下规则，Task 2 只能消费模型结果，不能重新硬编码业务判断。
+
+### 主判断卡生成规则
+
+- 输入优先级：`selectedIssues` > `recommendedIssues` > `storyCards`，只使用已经绑定 `evidenceId / metric / primaryMetric` 的内容。
+- 第 1 张卡：必须来自 top issue；若 top issue 没有可追溯证据，则显示证据不足状态，不补泛化判断。
+- 第 2 张卡：优先从 top issue 的直接相关证据、`causalChain.directCause` 或同一 `issueId` 的下一层约束中选择；没有合适内容时使用第二个 issue。
+- 第 3 张卡：优先从 `causalChain.structureCause / action / thirdEvidence` 中选择；没有合适内容时使用第三个 issue。
+- 少于 3 张时隐藏空卡；超过 3 张时只取前三张。去重 key 为 `evidenceId || primaryMetric || metric || title`。
+- 每张卡必须带 `trace`，否则只能进入弱提示或被隐藏。
+
+### 证据强度规则
+
+第一版使用简单规则引擎，避免业务口径散落在渲染层：
+
+```js
+function scoreEvidenceStrength(evidenceItems, pack) {
+  var peerCount = pack && pack.peerGroup && Array.isArray(pack.peerGroup.banks) ? pack.peerGroup.banks.length : 0;
+  if (!pack || pack.status !== "confirmed" || peerCount < 3) {
+    return { label: "弱", supportCount: 0, counterCount: 1 };
+  }
+  var supportCount = evidenceItems.filter(function (item) {
+    return item.signalDirection === "support";
+  }).length;
+  var counterCount = evidenceItems.filter(function (item) {
+    return item.signalDirection === "counter";
+  }).length;
+  if (supportCount >= 2 && counterCount === 0) return { label: "强", supportCount: supportCount, counterCount: counterCount };
+  if (supportCount >= 1 && counterCount === 0) return { label: "中", supportCount: supportCount, counterCount: counterCount };
+  return { label: "弱", supportCount: supportCount, counterCount: counterCount };
+}
+```
+
+三类证据信号为：同业位置、异动偏离、估值或质量锚。字段缺失、对标组不足、存在反证或证据包未确认时，默认降为弱。
+
+### 专题折叠规则
+
+- `rankAttributionTopics(issues)` 输出 `{ allTopics, visibleTopics, foldedTopics }`。
+- 1-3 个专题全部显示；4 个及以上只显示主专题 + 2 个备选专题，其余进入 `foldedTopics`。
+- 排序权重：证据强度 > 与 top issue 的因果距离 > 是否有 `reportCandidates` > issue priority。
+- 折叠区只显示数量和标题，不在首屏展开，避免页面重新变杂。
+
+### 报告候选页数据契约
+
+`buildReportCandidates(issue, pack)` 必须输出可流向报告编排页的结构：
+
+```js
+{
+  id: "report_<issueId>_<layout>",
+  sourceIssueId: "profitability_pressure",
+  title: "盈利能力承压专题页",
+  chartType: "bridge",
+  visualAsset: null,
+  evidenceSentence: "2025 年目标行净息差低于对标组，且负债结构解释了主要差距。",
+  useScenario: "董事会汇报",
+  recommendedSlideLayout: "headline-evidence-chart",
+  context: { targetBank: "目标行", peerGroup: [], year: 2025, issueId: "profitability_pressure" },
+  trace: [{ field: "recommendedIssues[0].primaryMetric", source: "evidencePack", value: "净息差" }]
+}
+```
+
+必填字段：`id / sourceIssueId / title / chartType / evidenceSentence / recommendedSlideLayout / context / trace`。候选页标题、证据句和图表类型来自 evidence pack 或专题链，不允许在前端凭空生成。
+
+### 文案和异常状态规则
+
+- `GENERIC_LANGUAGE_PATTERNS` 至少包含：`需要综合分析 / 整体表现较好 / 整体表现较差 / 存在一定压力 / 需要进一步关注 / 建议持续优化 / 指标有所波动 / 需结合实际情况判断 / 具有一定参考意义`。
+- 强判断文案必须通过 `hasTrace(item)`，并且不能命中禁用泛化表述。
+- `normalizePackStatus(pack)` 至少输出：`missing-pack / stale-pack / partial-pack / error-pack / confirmed`。
+- 渲染层必须支持：加载 skeleton、字段缺失降级、生成失败重试入口、回到数据对标入口。
 
 ---
 
@@ -59,12 +136,23 @@ const model = fs.readFileSync("js/63-three-page-diagnosis-model.js", "utf8");
 
 [
   "function readThreePageEvidencePack",
+  "function normalizePackStatus",
   "function buildThreePageDiagnosisModel",
+  "function buildConclusionCards",
   "function buildConclusionPageModel",
+  "function scoreEvidenceStrength",
   "function buildEvidenceMapPageModel",
+  "function rankAttributionTopics",
+  "function buildReportCandidates",
   "function buildAttributionPageModel",
+  "function traceForEvidence",
+  "function hasTrace",
+  "GENERIC_LANGUAGE_PATTERNS",
   "status: \"missing-pack\"",
   "status: \"stale-pack\"",
+  "status: \"partial-pack\"",
+  "status: \"error-pack\"",
+  "supportCount >= 2 && counterCount === 0",
   "window.buildThreePageDiagnosisModel = buildThreePageDiagnosisModel",
 ].forEach((needle) => {
   assert(model.includes(needle), `three-page model missing ${needle}`);
@@ -78,6 +166,11 @@ const model = fs.readFileSync("js/63-three-page-diagnosis-model.js", "utf8");
   "peerGroup",
   "selectedIssues",
   "reportCandidates",
+  "allTopics",
+  "foldedTopics",
+  "recommendedSlideLayout",
+  "evidenceSentence",
+  "trace",
 ].forEach((needle) => {
   assert(model.includes(needle), `three-page model must expose ${needle}`);
 });
@@ -286,6 +379,177 @@ git commit -m "feat: add three-page diagnosis model"
 
 ---
 
+### Task 1A: 规则引擎与口径契约
+
+**Files:**
+- Modify: `js/63-three-page-diagnosis-model.js`
+- Test: `tests/three_page_diagnosis_rules_contract.test.js`
+
+- [ ] **Step 1: Write rule contract test**
+
+Create `tests/three_page_diagnosis_rules_contract.test.js`:
+
+```js
+const fs = require("fs");
+const assert = require("assert/strict");
+
+const model = fs.readFileSync("js/63-three-page-diagnosis-model.js", "utf8");
+
+[
+  "GENERIC_LANGUAGE_PATTERNS",
+  "需要综合分析",
+  "整体表现较好",
+  "存在一定压力",
+  "function buildConclusionCards",
+  "function scoreEvidenceStrength",
+  "function rankAttributionTopics",
+  "function buildReportCandidates",
+  "function normalizePackStatus",
+  "function hasTrace",
+  "partial-pack",
+  "error-pack",
+  "supportCount >= 2 && counterCount === 0",
+  "foldedTopics",
+  "allTopics",
+  "recommendedSlideLayout",
+  "evidenceSentence",
+  "trace",
+].forEach((needle) => {
+  assert(model.includes(needle), `rule contract missing ${needle}`);
+});
+
+console.log("three-page-diagnosis-rules-contract-ok");
+```
+
+- [ ] **Step 2: Implement exact helper rules in the model**
+
+Add these helpers near the top of `js/63-three-page-diagnosis-model.js`, before page builders:
+
+```js
+var GENERIC_LANGUAGE_PATTERNS = [
+  "需要综合分析",
+  "整体表现较好",
+  "整体表现较差",
+  "存在一定压力",
+  "需要进一步关注",
+  "建议持续优化",
+  "指标有所波动",
+  "需结合实际情况判断",
+  "具有一定参考意义",
+];
+
+function normalizePackStatus(pack) {
+  if (!pack) return "missing-pack";
+  if (pack.status === "stale") return "stale-pack";
+  if (pack.status === "error") return "error-pack";
+  var missing = [];
+  ["targetBank", "peerGroup", "year"].forEach(function (key) {
+    if (!pack[key]) missing.push(key);
+  });
+  if (!Array.isArray(pack.recommendedIssues) && !Array.isArray(pack.selectedIssues) && !Array.isArray(pack.storyCards)) {
+    missing.push("recommendedIssues");
+  }
+  return missing.length ? "partial-pack" : (pack.status || "confirmed");
+}
+
+function traceForEvidence(issue, ev, fieldPrefix) {
+  var prefix = fieldPrefix || "issue";
+  var trace = [];
+  if (issue && issue.issueId) trace.push({ field: prefix + ".issueId", source: "evidencePack", value: issue.issueId });
+  if (issue && issue.primaryMetric) trace.push({ field: prefix + ".primaryMetric", source: "evidencePack", value: issue.primaryMetric });
+  if (issue && issue.metric) trace.push({ field: prefix + ".metric", source: "evidencePack", value: issue.metric });
+  if (ev && ev.gap) trace.push({ field: prefix + ".evidence.gap", source: "evidencePack", value: ev.gap });
+  return trace;
+}
+
+function hasTrace(item) {
+  return Array.isArray(item && item.trace) && item.trace.length > 0;
+}
+
+function textHasGenericLanguage(text) {
+  return GENERIC_LANGUAGE_PATTERNS.some(function (pattern) {
+    return String(text || "").indexOf(pattern) >= 0;
+  });
+}
+```
+
+- [ ] **Step 3: Replace simplified builders with rule-driven builders**
+
+The model must include these function names and behavior:
+
+```js
+function buildConclusionCards(pack, issues) {
+  var cards = [];
+  var top = issues[0];
+  if (!top) return cards;
+  var evidence = Array.isArray(top.evidence) ? top.evidence : [];
+
+  function addCard(issue, ev, role) {
+    if (!issue) return;
+    var trace = traceForEvidence(issue, ev, role);
+    var card = {
+      title: issue.title || issue.issueName || role,
+      metric: issue.primaryMetric || issue.metric || (ev && ev.metric),
+      evidenceId: (ev && ev.evidenceId) || issue.evidenceId || issue.issueId,
+      sentence: (ev && ev.sentence) || issue.conclusion || issue.diagnosis || "",
+      trace: trace,
+    };
+    var key = card.evidenceId || card.metric || card.title;
+    if (!key || !hasTrace(card) || textHasGenericLanguage(card.sentence)) return;
+    if (cards.some(function (item) { return (item.evidenceId || item.metric || item.title) === key; })) return;
+    cards.push(card);
+  }
+
+  addCard(top, evidence[0], "topIssue");
+  addCard(top, evidence[1] || top.directEvidence, "directRelatedEvidence");
+  addCard(top, evidence[2] || top.structureDriver || top.actionEvidence, "nextLayerConstraint");
+  for (var i = 1; cards.length < 3 && i < issues.length; i += 1) addCard(issues[i], (issues[i].evidence || [])[0], "fallbackIssue");
+  return cards.slice(0, 3);
+}
+
+function buildReportCandidates(issue, pack) {
+  if (!issue) return [];
+  var trace = traceForEvidence(issue, (issue.evidence || [])[0], "reportCandidates");
+  if (!trace.length) return [];
+  return [{
+    id: "report_" + (issue.issueId || "issue") + "_headline",
+    sourceIssueId: issue.issueId || "unknown",
+    title: (issue.title || issue.issueName || "经营诊断") + "专题页",
+    chartType: issue.chartType || "bridge",
+    visualAsset: issue.visualAsset || null,
+    evidenceSentence: issue.evidenceSentence || issue.conclusion || "",
+    useScenario: issue.useScenario || "董事会汇报",
+    recommendedSlideLayout: issue.recommendedSlideLayout || "headline-evidence-chart",
+    context: {
+      targetBank: pack && pack.targetBank,
+      peerGroup: pack && pack.peerGroup,
+      year: pack && pack.year,
+      issueId: issue.issueId,
+    },
+    trace: trace,
+  }];
+}
+```
+
+- [ ] **Step 4: Run rule contract**
+
+Run:
+
+```bash
+node tests/three_page_diagnosis_rules_contract.test.js
+```
+
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add js/63-three-page-diagnosis-model.js tests/three_page_diagnosis_rules_contract.test.js
+git commit -m "test: add three-page diagnosis rule contracts"
+```
+
+---
+
 ### Task 2: 三页主画布渲染器
 
 **Files:**
@@ -319,6 +583,11 @@ const css = fs.readFileSync("styles/app.css", "utf8");
   "function renderAttributionPage",
   "function renderThreePageEmptyState",
   "function renderThreePageStaleState",
+  "function renderThreePageLoadingState",
+  "function renderThreePagePartialState",
+  "function renderThreePageErrorState",
+  "data-trace-field",
+  "data-report-candidate-id",
   "data-three-page-next",
   "window.renderThreePageDiagnosis = renderThreePageDiagnosis",
 ].forEach((needle) => assert(renderer.includes(needle), `renderer missing ${needle}`));
@@ -408,10 +677,33 @@ Create `js/64-three-page-diagnosis-renderer.js`:
       + '</section>';
   }
 
+  function renderThreePageLoadingState(model) {
+    return '<section class="three-page-diagnosis is-loading">'
+      + '<div class="three-page-skeleton"></div><div class="three-page-skeleton"></div><div class="three-page-skeleton"></div>'
+      + '<p>正在读取本轮证据包...</p>'
+      + '</section>';
+  }
+
+  function renderThreePagePartialState(model) {
+    return '<section class="three-page-diagnosis is-partial">'
+      + '<div class="three-page-hero"><span>证据包字段不完整</span><h2>当前只能展示已确认的证据</h2>'
+      + '<p>缺失字段不会生成主判断卡，也不会进入最终报告候选页。</p>'
+      + '<button type="button" data-three-page-next="benchmark">回到数据对标补齐</button></div>'
+      + '</section>';
+  }
+
+  function renderThreePageErrorState(model) {
+    return '<section class="three-page-diagnosis is-error">'
+      + '<div class="three-page-hero"><span>证据包生成失败</span><h2>请重新生成证据包</h2>'
+      + '<p>系统没有读取到可追溯的证据字段，本页不会显示旧目标行内容。</p>'
+      + '<button type="button" data-three-page-next="benchmark">重新生成</button></div>'
+      + '</section>';
+  }
+
   function renderConclusionSummaryPage(model) {
     var page = model.conclusion || {};
     var cards = (page.topIssues || []).map(function (issue) {
-      return '<article class="three-page-card">'
+      return '<article class="three-page-card" data-trace-field="' + esc((issue.trace && issue.trace[0] && issue.trace[0].field) || "") + '">'
         + '<span>判断 ' + esc(issue.rank) + '｜' + esc(issue.strength) + '证据</span>'
         + '<h3>' + esc(issue.title) + '</h3>'
         + '<p>' + esc(issue.conclusion) + '</p>'
@@ -471,7 +763,7 @@ Create `js/64-three-page-diagnosis-renderer.js`:
       return '<article class="three-page-card"><span>' + esc(item.title) + '</span><p>' + esc(item.text) + '</p></article>';
     }).join("");
     var candidates = (page.reportCandidates || []).map(function (item) {
-      return '<article class="three-page-report-candidate"><b>' + esc(item.title) + '</b><p>' + esc(item.evidence) + '</p><em>' + esc(item.useCase) + '</em></article>';
+      return '<article class="three-page-report-candidate" data-report-candidate-id="' + esc(item.id) + '" data-trace-field="' + esc((item.trace && item.trace[0] && item.trace[0].field) || "") + '"><b>' + esc(item.title) + '</b><p>' + esc(item.evidenceSentence || item.evidence) + '</p><em>' + esc(item.useScenario || item.useCase) + '</em></article>';
     }).join("");
     return '<section class="three-page-diagnosis is-attribution">'
       + '<div class="three-page-hero"><span>专题归因</span><h2>' + esc(page.headline || page.title) + '</h2>'
@@ -494,6 +786,18 @@ Create `js/64-three-page-diagnosis-renderer.js`:
     }
     if (model.status === "stale-pack") {
       host.innerHTML = renderThreePageStaleState(model);
+      return model;
+    }
+    if (model.status === "loading-pack") {
+      host.innerHTML = renderThreePageLoadingState(model);
+      return model;
+    }
+    if (model.status === "partial-pack") {
+      host.innerHTML = renderThreePagePartialState(model);
+      return model;
+    }
+    if (model.status === "error-pack") {
+      host.innerHTML = renderThreePageErrorState(model);
       return model;
     }
     var page = currentPortalPage();
@@ -831,6 +1135,7 @@ node --check js/64-three-page-diagnosis-renderer.js
 node --check js/42-portal-router.js
 node --check js/08-report.js
 node tests/three_page_diagnosis_model_contract.test.js
+node tests/three_page_diagnosis_rules_contract.test.js
 node tests/three_page_diagnosis_renderer_contract.test.js
 node tests/three_page_diagnosis_flow_runtime.test.js
 node tests/benchmark_downstream_state_sync_contract.test.js
@@ -893,10 +1198,15 @@ If no files changed during validation, do not create an empty commit.
 - 证据地图三栏证明：Task 1 defines `buildEvidenceMapPageModel`; Task 2 renders `renderEvidenceMapPage`.
 - 专题归因单问题链：Task 1 defines `buildAttributionPageModel`; Task 2 renders `renderAttributionPage`.
 - 证据包驱动：Task 1 reads `readEvidencePack()` and local storage fallback.
-- 空状态/过期状态：Task 1 emits `missing-pack / stale-pack`; Task 2 renders matching states.
+- 主判断卡生成规则：Review-Driven Rule Contract and Task 1A define `buildConclusionCards`.
+- 证据强度标准：Review-Driven Rule Contract and Task 1A define `scoreEvidenceStrength`.
+- 专题数量折叠：Review-Driven Rule Contract and Task 1A define `rankAttributionTopics` with `allTopics / foldedTopics`.
+- 报告候选页契约：Review-Driven Rule Contract and Task 1A define `buildReportCandidates` with required fields and trace.
+- 泛化判断约束：Review-Driven Rule Contract and Task 1A define `GENERIC_LANGUAGE_PATTERNS`, `hasTrace`, and trace-backed judgment rules.
+- 异常状态：Task 1 emits `missing-pack / stale-pack / partial-pack / error-pack`; Task 2 renders matching states plus loading state.
 - 高级内容默认折叠：Task 2 includes `.three-page-advanced`; Task 3 wraps legacy advanced mounts.
 - 导航路径：Task 2 adds `data-three-page-next`; Task 3 refreshes on portal changes.
-- 验收验证：Task 4 includes static bundle and browser validation.
+- 验收验证：Task 4 includes static bundle, rules contract, and browser validation.
 
 ### Placeholder Scan
 
