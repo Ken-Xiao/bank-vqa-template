@@ -104,16 +104,25 @@
   function resolveBenchmarkBankId(bankIdOrName) {
     if (!_bm.data || !bankIdOrName) return null;
     var text = String(bankIdOrName);
+    var aliasMap = {
+      "苏农银行": "苏州农商行",
+      "苏州农村商业银行": "苏州农商行",
+      "江苏苏州农村商业银行": "苏州农商行"
+    };
+    if (aliasMap[text]) text = aliasMap[text];
     for (var i=0;i<_bm.data.banks.length;i++) {
       var b = _bm.data.banks[i];
       if (b.id === text || b.name === text) return b.id;
       if (typeof displayBankName === "function" && displayBankName(b.name) === text) return b.id;
     }
-    var stripped = text.replace(/银行$|农商行$|股份有限公司$/g, "");
+    var stripped = text.replace(/银行$|农商行$|农商银行$|农村商业银行$|股份有限公司$/g, "");
     for (var j=0;j<_bm.data.banks.length;j++) {
       var bb = _bm.data.banks[j];
-      var candidate = String(bb.name || "").replace(/银行$|农商行$/g, "");
+      var displayCandidate = typeof displayBankName === "function" ? displayBankName(bb.name) : bb.name;
+      var candidate = String(bb.name || "").replace(/银行$|农商行$|农商银行$|农村商业银行$|股份有限公司$/g, "");
+      var candidateDisplay = String(displayCandidate || "").replace(/银行$|农商行$|农商银行$|农村商业银行$|股份有限公司$/g, "");
       if (candidate && (candidate.indexOf(stripped) === 0 || stripped.indexOf(candidate) === 0)) return bb.id;
+      if (candidateDisplay && (candidateDisplay.indexOf(stripped) === 0 || stripped.indexOf(candidateDisplay) === 0)) return bb.id;
     }
     return null;
   }
@@ -4078,7 +4087,9 @@
       // 银行列表点击
       var bankItem = e.target.closest("#bmBankList .bm-bank-item");
       if (bankItem) {
-        if (selectBenchmarkTargetBank(bankItem.dataset.bankId || bankItem.dataset.bankName, "target-change")) renderAll();
+        if (selectBenchmarkTargetBank(bankItem.dataset.bankId || bankItem.dataset.bankName, "target-change")) {
+          setBenchmarkView("overview", { returnContext: "overview" });
+        }
         return;
       }
       // 健康仪表盘行点击：跳到该银行 + 第一个真域
@@ -4270,6 +4281,20 @@
   // 暴露
   window.initBenchmarkPage = initBenchmarkPage;
   window.renderBenchmarkPage = function(){ if (_bm.data) renderAll(); };
+  window.setBenchmarkView = setBenchmarkView;
+  window.routeBenchmarkTargetToOverview = function(bankId, reason){
+    if (!_bm.audience) {
+      _bm.audience = "board";
+      try { localStorage.setItem("benchmarkiq.audience", "board"); } catch (e) { /* silent */ }
+      renderAudienceSwitcher();
+    }
+    if (selectBenchmarkTargetBank(bankId, reason || "target-change")) {
+      setBenchmarkView("overview", { returnContext: "overview" });
+      return true;
+    }
+    setBenchmarkView("overview", { returnContext: "overview" });
+    return false;
+  };
 
   // 自启动 1：DOMContentLoaded
   if (document.readyState === "loading") {

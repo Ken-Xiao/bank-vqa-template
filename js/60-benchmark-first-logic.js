@@ -487,7 +487,6 @@
       document.getElementById('bmEmpty').hidden = true;
       document.getElementById('bmDomainContent').hidden = false;
       renderKPIs();
-      renderCorrelationMatrix();
       renderAngles();
     }
   }
@@ -510,6 +509,10 @@
       existingBankList.querySelectorAll('.bm-bank-item').forEach(item => {
         item.addEventListener('click', () => {
           const name = item.dataset.bankName;
+          if (typeof window.routeBenchmarkTargetToOverview === 'function') {
+            window.routeBenchmarkTargetToOverview(name, 'target-change');
+            return;
+          }
           state.target = banks.find(b => b.name === name);
           const recommended = banks.filter(b => b.name !== name && b.type === state.target.type && b.region === state.target.region).slice(0, 4);
           state.peers.custom = recommended.map(b => b.name);
