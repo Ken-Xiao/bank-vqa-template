@@ -1736,6 +1736,8 @@
       <div id="peerEditModalContent"></div>
     </div>
   </div>
+  <aside id="storylineFactPackDrawer" class="storyline-fact-pack-drawer" aria-label="故事线事实包"></aside>
+  <div id="storylineChartViewer" class="storyline-chart-viewer" hidden></div>
   <script src="data.js"></script>
   <script src="data_tushare.js?v=20260602-phase1" onerror="console.warn('[bootstrap] data_tushare.js not loaded, Tushare metrics will be unavailable')"></script>
   <script src="data_bank_scope_ready.js?v=20260608-bank-scope-ready-v1" onerror="console.warn('[bootstrap] data_bank_scope_ready.js not loaded, bank scope ready metrics will be unavailable')"></script>
@@ -1794,6 +1796,8 @@
   <!-- 对标数据：内联为全局变量，file:// 模式下也可用；同名 JSON 仍存在供 fetch fallback -->
   <script src="data_benchmark.js?v=20260615-benchmark-v2" onerror="console.warn('[bootstrap] data_benchmark.js 未加载，将回退到 fetch JSON')"></script>
   <script src="js/57-evidence-pack-model.js?v=20260619-evidence-pack"></script>
+  <script src="js/65-storyline-fact-pack-model.js"></script>
+  <script src="js/66-storyline-fact-pack-ui.js"></script>
   <script src="js/63-three-page-diagnosis-model.js?v=20260620-three-page"></script>
   <script src="js/64-three-page-diagnosis-renderer.js?v=20260620-three-page"></script>
   <script src="js/55-benchmark-page.js?v=20260615-benchmark-v2"></script>
