@@ -502,6 +502,7 @@
           <a href="#step2TopicCards" data-step2-jump="topics" data-step2-page="topics"><span>1</span>专题入口</a>
           <a href="#step2ActionPath" data-step2-jump="actions" data-step2-page="answer topics"><span>2</span>行动路径</a>
         </nav>
+        <div id="threePageDiagnosisMount" class="three-page-diagnosis-mount" data-portal-page="answer evidence topics"></div>
         <div class="analysis-workbench-grid" id="analysisWorkbenchGrid">
           <main class="analysis-main-canvas" id="analysisMainCanvas" aria-label="诊断主画布">
         <section class="step-focus-section step2-diagnosis-hero" id="step2SummarySection" data-portal-page="answer" aria-label="30秒总结">
@@ -1790,6 +1791,8 @@
   <!-- 对标数据：内联为全局变量，file:// 模式下也可用；同名 JSON 仍存在供 fetch fallback -->
   <script src="data_benchmark.js?v=20260615-benchmark-v2" onerror="console.warn('[bootstrap] data_benchmark.js 未加载，将回退到 fetch JSON')"></script>
   <script src="js/57-evidence-pack-model.js?v=20260619-evidence-pack"></script>
+  <script src="js/63-three-page-diagnosis-model.js?v=20260620-three-page"></script>
+  <script src="js/64-three-page-diagnosis-renderer.js?v=20260620-three-page"></script>
   <script src="js/55-benchmark-page.js?v=20260615-benchmark-v2"></script>
   <script src="js/56-benchmark-state-bridge.js?v=20260616-bridge"></script>
   <script src="js/60-benchmark-first-logic.js?v=20260619-benchmark-first"></script>

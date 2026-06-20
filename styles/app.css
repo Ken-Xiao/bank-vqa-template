@@ -14089,3 +14089,172 @@
     }
 
     /* chapter-hero-host 在 portal-page 显隐控制内自动处理（继承 [data-portal-page] CSS） */
+
+    /* ==========================================================================
+       Three-page evidence-driven diagnosis
+       ========================================================================== */
+    .three-page-diagnosis-mount {
+      display: block;
+      margin-bottom: 18px;
+    }
+
+    .three-page-diagnosis,
+    .three-page-stale {
+      border: 1px solid var(--border, #d9dee7);
+      background: #fff;
+      padding: 22px;
+    }
+
+    .three-page-hero {
+      border-bottom: 1px solid var(--border, #d9dee7);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .three-page-hero span,
+    .three-page-card span,
+    .three-page-evidence-cell span {
+      display: block;
+      color: #5d6877;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .three-page-hero h2 {
+      margin: 6px 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .three-page-hero p {
+      margin: 0;
+      color: #5d6877;
+      max-width: 920px;
+      line-height: 1.6;
+    }
+
+    .three-page-meta,
+    .three-page-actions,
+    .three-page-kpi-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .three-page-meta span,
+    .three-page-kpi,
+    .three-page-card,
+    .three-page-evidence-cell,
+    .three-page-report-candidate {
+      border: 1px solid #d9dee7;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }
+
+    .three-page-card-grid,
+    .three-page-evidence-map,
+    .three-page-report-candidates {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .three-page-card h3,
+    .three-page-evidence-cell h3 {
+      margin: 6px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .three-page-card p,
+    .three-page-evidence-cell p,
+    .three-page-report-candidate p {
+      margin: 0;
+      color: #242a31;
+      line-height: 1.55;
+    }
+
+    .three-page-card em,
+    .three-page-evidence-cell em,
+    .three-page-report-candidate em,
+    .three-page-kpi em {
+      display: block;
+      margin-top: 8px;
+      color: #5d6877;
+      font-style: normal;
+      font-size: 12px;
+    }
+
+    .three-page-kpi b {
+      display: block;
+      margin-top: 4px;
+      font-size: 20px;
+      color: #111827;
+    }
+
+    .three-page-risk,
+    .three-page-advanced {
+      margin-top: 14px;
+      border-top: 1px solid #d9dee7;
+      padding-top: 14px;
+    }
+
+    .three-page-risk ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: #5d6877;
+    }
+
+    .three-page-attribution-chain {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      list-style: none;
+      margin: 14px 0 0;
+      padding: 0;
+    }
+
+    .three-page-attribution-chain li {
+      border: 1px solid #009CDE;
+      background: #f4fbff;
+      padding: 12px;
+    }
+
+    .three-page-attribution-chain b {
+      display: block;
+      margin-top: 6px;
+      line-height: 1.35;
+      color: #111827;
+    }
+
+    .three-page-actions button {
+      border: 1px solid #111;
+      background: #111;
+      color: #fff;
+      padding: 9px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .three-page-actions button + button {
+      background: #fff;
+      color: #111;
+    }
+
+    .three-page-skeleton {
+      height: 18px;
+      max-width: 560px;
+      background: linear-gradient(90deg, #f1f5f9, #e5eaf0, #f1f5f9);
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 860px) {
+      .three-page-attribution-chain {
+        grid-template-columns: 1fr;
+      }
+    }
