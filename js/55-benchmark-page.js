@@ -30,6 +30,10 @@
     loading: false,
     mode: "stories",       // stories（故事线，默认）/ selected（精选指标）/ all（全量）
     audience: null,        // board/cfo/cro/expert — 首次启动从 localStorage 读，null = 显示引导卡
+    viewMode: "overview",  // overview / domain / story
+    activeStoryRef: null,  // { domainKey, storyId }
+    returnContext: "overview",
+    expandedDetail: {},
   };
   // 启动时从 localStorage 读 audience
   try {
@@ -95,6 +99,22 @@
   function getBank(id) {
     if (!_bm.data || !id) return null;
     for (var i=0;i<_bm.data.banks.length;i++) if (_bm.data.banks[i].id === id) return _bm.data.banks[i];
+    return null;
+  }
+  function resolveBenchmarkBankId(bankIdOrName) {
+    if (!_bm.data || !bankIdOrName) return null;
+    var text = String(bankIdOrName);
+    for (var i=0;i<_bm.data.banks.length;i++) {
+      var b = _bm.data.banks[i];
+      if (b.id === text || b.name === text) return b.id;
+      if (typeof displayBankName === "function" && displayBankName(b.name) === text) return b.id;
+    }
+    var stripped = text.replace(/银行$|农商行$|股份有限公司$/g, "");
+    for (var j=0;j<_bm.data.banks.length;j++) {
+      var bb = _bm.data.banks[j];
+      var candidate = String(bb.name || "").replace(/银行$|农商行$/g, "");
+      if (candidate && (candidate.indexOf(stripped) === 0 || stripped.indexOf(candidate) === 0)) return bb.id;
+    }
     return null;
   }
   function formatVal(v, unit) {
@@ -322,6 +342,7 @@
       return '<label class="bm-issue-card">'
         + '<input type="checkbox" data-toggle-evidence-issue="'+escapeXml(issue.issueId)+'"'+checked+' />'
         + '<span>'
+        + '<em class="bm-evidence-toggle-copy">'+(checked ? '已纳入本轮诊断' : '纳入本轮诊断')+'</em>'
         + '<strong>'+escapeXml(issue.title)+'：'+escapeXml(issue.conclusion)+'</strong>'
         + '<p>'+escapeXml(chain)+'</p>'
         + '<span class="bm-issue-evidence">'
@@ -341,7 +362,7 @@
       + '<span>推荐问题：'+String((pack.recommendedIssues || []).length)+' 个</span>'
       + '</div>'
       + '<div class="bm-issue-list">'+(issuesHtml || '<div class="bm-pack-empty">当前样本暂未形成足够证据。</div>')+'</div>'
-      + '<div class="bm-pack-actions"><button type="button" class="bm-primary-action" id="bmConfirmEvidencePack">确认数据包并用于报告</button></div>';
+      + '<div class="bm-pack-actions"><button type="button" class="bm-primary-action bm-evidence-primary-action" id="bmConfirmEvidencePack">生成并确认证据包</button></div>';
   }
 
   function markPackStaleForBenchmarkChange(reason) {
@@ -350,11 +371,22 @@
     }
   }
 
+  function selectBenchmarkTargetBank(bankId, reason) {
+    var resolvedBankId = resolveBenchmarkBankId(bankId);
+    if (!resolvedBankId || resolvedBankId === _bm.selectedBankId) return false;
+    _bm.selectedBankId = resolvedBankId;
+    resetBenchmarkDrillState();
+    markPackStaleForBenchmarkChange(reason || "target-change");
+    if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
+    return true;
+  }
+  window.selectBenchmarkTargetBank = selectBenchmarkTargetBank;
+
   function bindEvidencePackUi(shell) {
     if (!shell || shell.dataset.evidencePackBound === "1") return;
     shell.dataset.evidencePackBound = "1";
     shell.addEventListener("click", function(e){
-      var restartBtn = e.target.closest("#bmRestartAnalysis");
+      var restartBtn = e.target.closest("#bmRestartAnalysis, [data-restart-from-overview]");
       if (restartBtn) {
         var drawer = document.getElementById("bmRestartDrawer");
         if (drawer) drawer.hidden = false;
@@ -372,6 +404,7 @@
         _bm.selectedBankId = null;
         _bm.customPeers = [];
         _bm.activePeers = { national_type: true, region_type: true, national_other: false, custom: false };
+        resetBenchmarkDrillState();
         var drawer2 = document.getElementById("bmRestartDrawer");
         if (drawer2) drawer2.hidden = true;
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
@@ -478,11 +511,521 @@
     host.innerHTML = domainTabs + healthTab;
   }
 
+  function resetBenchmarkDrillState() {
+    _bm.viewMode = "overview";
+    _bm.activeStoryRef = null;
+    _bm.returnContext = "overview";
+    _bm.expandedDetail = {};
+  }
+
+  function setBenchmarkView(mode, opts) {
+    opts = opts || {};
+    _bm.viewMode = mode || "overview";
+    if (opts.domainKey) _bm.activeDomain = opts.domainKey;
+    if (opts.storyId) {
+      _bm.activeStoryRef = {
+        domainKey: opts.domainKey || _bm.activeDomain,
+        storyId: opts.storyId
+      };
+    } else if (_bm.viewMode !== "story") {
+      _bm.activeStoryRef = null;
+    }
+    _bm.returnContext = opts.returnContext || (_bm.viewMode === "domain" ? "overview" : _bm.returnContext || "overview");
+    _bm.expandedDetail = {};
+    renderDomainTabs();
+    renderDomainContent();
+  }
+
+  function getStoryMetrics(dom, story) {
+    return (story.metrics || []).filter(function(mk){ return dom.items && dom.items[mk]; });
+  }
+
+  function metricGapForStory(domKey, metricKey, targetBank, year) {
+    if (!_bm.data || !targetBank) return null;
+    var dom = _bm.data.domains[domKey];
+    var item = dom && dom.items ? dom.items[metricKey] : null;
+    if (!item) return null;
+    var fullKey = domKey + "." + metricKey;
+    var targetVal = valOf(targetBank.id, year, fullKey);
+    var peerIds = getPeerGroupIds("national_type", targetBank);
+    var peerVal = peerIds.length ? meanOf(peerIds, year, fullKey) : null;
+    if (targetVal === null || peerVal === null) return null;
+    var gap = targetVal - peerVal;
+    var pressure = item.direction === "lower_better" ? gap > 0 : gap < 0;
+    return { item: item, metricKey: metricKey, fullKey: fullKey, targetVal: targetVal, peerVal: peerVal, gap: gap, pressure: pressure };
+  }
+
+  function scoreStory(domKey, story, targetBank) {
+    var dom = _bm.data.domains[domKey];
+    var metrics = getStoryMetrics(dom, story);
+    var gaps = metrics.map(function(mk){ return metricGapForStory(domKey, mk, targetBank, _bm.snapshotYear); }).filter(Boolean);
+    var featured = metrics.filter(function(mk){ return dom.selected && dom.selected.indexOf(mk) >= 0; }).length;
+    var gapScore = gaps.reduce(function(sum, g){
+      var base = Math.abs(g.peerVal || 0) || 1;
+      return sum + Math.abs(g.gap / base);
+    }, 0);
+    return {
+      domainKey: domKey,
+      story: story,
+      metrics: metrics,
+      gaps: gaps,
+      score: gapScore + featured * 0.18 + metrics.length * 0.03,
+    };
+  }
+
+  function getRecommendedStories(targetBank, limit) {
+    if (!_bm.data || !targetBank) return [];
+    var all = [];
+    Object.keys(_bm.data.domains).forEach(function(domKey){
+      var dom = _bm.data.domains[domKey];
+      (dom.stories || []).forEach(function(story){ all.push(scoreStory(domKey, story, targetBank)); });
+    });
+    return all.filter(function(s){ return s.metrics.length >= 2; })
+      .sort(function(a,b){ return b.score - a.score; })
+      .slice(0, limit || 3);
+  }
+
+  function renderStorylineCard(rec, index, source) {
+    var dom = _bm.data.domains[rec.domainKey];
+    var mainGaps = rec.gaps.slice(0, 3);
+    var pressureCount = rec.gaps.filter(function(g){ return g.pressure; }).length;
+    var tone = pressureCount ? "压力" : "优势";
+    var storyRef = rec.domainKey + "/" + rec.story.id;
+    var chips = mainGaps.map(function(g){
+      var unit = g.item.unit || "";
+      var gapText = (g.gap > 0 ? "+" : "") + g.gap.toFixed(2) + (unit === "x" ? "x" : unit);
+      return '<span>'+escapeXml(g.item.name)+' '+gapText+'</span>';
+    }).join("");
+    if (!chips) chips = '<span>该故事线需补充披露数据</span>';
+    return '<article class="bm-storyline-card" data-story-card="'+rec.domainKey+'/'+rec.story.id+'">'
+      + '<div class="bm-storyline-index">'+pad2(index)+'</div>'
+      + '<div class="bm-storyline-main"><span class="bm-storyline-domain">'+escapeXml(dom.label)+'</span>'
+      + '<h3>'+escapeXml(rec.story.title)+'</h3><p>'+escapeXml(rec.story.lead || "围绕指标差距形成对标证据链。")+'</p>'
+      + '<div class="bm-storyline-chips">'+chips+'</div></div>'
+      + '<aside class="bm-storyline-action"><span class="bm-storyline-tone">'+tone+'</span>'
+      + '<button type="button" data-open-story-detail="'+storyRef+'" data-story-source="'+source+'">进入详情</button>'
+      + renderBenchmarkStorylineActions(storyRef)
+      + '</aside>'
+      + '</article>';
+  }
+
+  function renderBenchmarkOverview(targetBank) {
+    var recommended = getRecommendedStories(targetBank, 3);
+    var domainKeys = Object.keys(_bm.data.domains);
+    return '<section class="bm-layout-overview" id="bmBenchmarkOverview">'
+      + '<header class="bm-overview-hero">'
+      + '<div><span class="bm-pane-kicker">当前样本</span><h2>'+escapeXml(targetBank.name)+' 数据对标总览</h2>'
+      + '<p>'+_bm.snapshotYear+' 截面 · 趋势 '+_bm.trendStart+'–'+_bm.trendEnd+' · 默认展示 3 条优先故事线</p></div>'
+      + '<button type="button" class="bm-secondary-action" id="bmOverviewRestart" data-restart-from-overview="1">重新选择样本</button>'
+      + '</header>'
+      + '<section class="bm-overview-recommendations" aria-label="优先故事线">'
+      + recommended.map(function(rec, idx){ return renderStorylineCard(rec, idx + 1, "overview"); }).join("")
+      + '</section>'
+      + '<section class="bm-overview-domains" aria-label="全部对标域">'
+      + '<header><h3>全部对标域</h3><p>进入某个域后查看该域全部故事线。</p></header>'
+      + '<div class="bm-domain-entry-grid">'
+      + domainKeys.map(function(domKey){
+          var dom = _bm.data.domains[domKey];
+          var count = (dom.stories || []).length;
+          return '<button type="button" class="bm-domain-entry" data-open-domain-list="'+domKey+'">'
+            + '<b>'+escapeXml(dom.label)+'</b><span>'+count+' 条故事线</span></button>';
+        }).join("")
+      + '</div></section></section>';
+  }
+
+  function renderDomainStoryList(domKey, targetBank) {
+    var dom = _bm.data.domains[domKey];
+    var stories = (dom.stories || []).map(function(story){ return scoreStory(domKey, story, targetBank); });
+    return '<section class="bm-domain-story-list" id="bmDomainStoryList">'
+      + '<header class="bm-domain-list-head"><button type="button" data-back-to-overview="1">回到总览</button>'
+      + '<div><span class="bm-pane-kicker">对标域</span><h2>'+escapeXml(dom.label)+'</h2><p>'+escapeXml(dom.subtitle || "")+'</p></div></header>'
+      + '<div class="bm-domain-story-grid">'+stories.map(function(rec, idx){ return renderStorylineCard(rec, idx + 1, "domain"); }).join("")+'</div>'
+      + '<details class="bm-detail-collapse"><summary>展开该域全量指标</summary><div class="bm-metric-grid">'
+      + Object.keys(dom.items).map(function(mkey){ return renderMetricCard(dom, domKey, mkey, dom.items[mkey], targetBank); }).join("")
+      + '</div></details></section>';
+  }
+
+  function findStoryRef(ref) {
+    if (!ref || !_bm.data) return null;
+    var dom = _bm.data.domains[ref.domainKey];
+    if (!dom) return null;
+    var story = (dom.stories || []).filter(function(s){ return s.id === ref.storyId; })[0];
+    if (!story) return null;
+    return { dom: dom, story: story, domKey: ref.domainKey };
+  }
+
+  function benchmarkStorylineId(domKey, story) {
+    return domKey + "/" + ((story && story.id) || "story");
+  }
+
+  function findBenchmarkStoryByRef(ref) {
+    if (!ref || !_bm.data || !_bm.data.domains) return null;
+    var parts = String(ref).split("/");
+    var domKey = parts[0];
+    var storyId = parts.slice(1).join("/") || "story";
+    var dom = _bm.data.domains[domKey];
+    if (!dom) return null;
+    var story = (dom.stories || []).filter(function(s){ return s.id === storyId; })[0];
+    if (!story) return null;
+    return { domKey: domKey, dom: dom, story: story };
+  }
+
+  function getActiveBenchmarkPeers(targetBank) {
+    if (!targetBank) return [];
+    var ids = [];
+    ["national_type","region_type","national_other","custom"].forEach(function(key){
+      if (_bm.activePeers[key]) ids = ids.concat(getPeerGroupIds(key, targetBank));
+    });
+    return ids.filter(function(id, idx, arr){ return id && arr.indexOf(id) === idx; })
+      .map(function(id){ return getBank(id); })
+      .filter(Boolean);
+  }
+
+  function renderBenchmarkStorylineActions(ref) {
+    var safeRef = escapeXml(ref);
+    return '<button type="button" data-storyline-fact-action="add" data-storyline-ref="'+safeRef+'">加入事实包</button>'
+      + '<button type="button" data-storyline-fact-action="image" data-storyline-ref="'+safeRef+'">查看大图</button>'
+      + '<button type="button" data-storyline-fact-action="guide" data-storyline-ref="'+safeRef+'">读图指南</button>';
+  }
+
+  function buildBenchmarkStoryEvidencePack(ref) {
+    var found = findBenchmarkStoryByRef(ref);
+    var targetBank = getBank(_bm.selectedBankId);
+    if (!found || !targetBank) return null;
+    var storyId = benchmarkStorylineId(found.domKey, found.story);
+    var rec = scoreStory(found.domKey, found.story, targetBank);
+    var metrics = getStoryMetrics(found.dom, found.story);
+    var primaryMetricKey = metrics[0];
+    var primaryMetric = primaryMetricKey && found.dom.items[primaryMetricKey]
+      ? (found.dom.items[primaryMetricKey].name || primaryMetricKey)
+      : (found.story.title || storyId);
+    var causalNodes = buildStoryCausalNodes(found.domKey, found.story);
+    var visual = selectStoryVisualAsset(found.domKey, found.story);
+    var facts = rec.gaps.slice(0, 3).map(function(g, idx){
+      var unit = g.item.unit || "";
+      var gapText = (g.gap > 0 ? "+" : "") + g.gap.toFixed(2) + (unit === "x" ? "x" : unit);
+      return {
+        factId: storyId + "_fact_" + (idx + 1),
+        metric: g.item.name || g.metricKey,
+        targetValue: formatVal(g.targetVal, unit),
+        peerValue: formatVal(g.peerVal, unit),
+        gap: gapText,
+        category: g.pressure ? "anomaly" : "peerPosition",
+        signalDirection: "support",
+        strength: idx === 0 ? "强" : "中",
+        source: "Benchmark IQ " + _bm.snapshotYear + " 年数据对标"
+      };
+    });
+    var guideGap = facts[0] ? (facts[0].metric + "：" + facts[0].gap) : (primaryMetric + "：待补充差距");
+    return {
+      status: "confirmed",
+      targetBank: targetBank,
+      year: _bm.snapshotYear,
+      peerGroup: { banks: getActiveBenchmarkPeers(targetBank) },
+      selectedStorylineIds: [storyId],
+      recommendedIssues: [{
+        issueId: storyId,
+        storylineId: storyId,
+        title: found.story.title,
+        priority: 1,
+        primaryMetric: primaryMetric,
+        conclusion: found.story.lead || "围绕指标差距形成对标证据链。",
+        category: facts[0] && facts[0].category || "peerPosition",
+        evidence: facts.length ? facts : [{
+          factId: storyId + "_fact_1",
+          metric: primaryMetric,
+          targetValue: "",
+          peerValue: "",
+          gap: "待补充",
+          category: "peerPosition",
+          signalDirection: "support",
+          strength: "待补",
+          source: "Benchmark IQ " + _bm.snapshotYear + " 年数据对标"
+        }],
+        charts: [{
+          chartId: storyId + "_chart_1",
+          title: found.story.title + "｜对标证据图",
+          src: visual.src,
+          enlargedSrc: visual.src,
+          readingGuide: {
+            whatToSee: visual.caption || ("先看" + primaryMetric + "的目标行与对标组差距。"),
+            keyGap: guideGap,
+            supports: found.story.lead || "支持当前故事线判断。",
+            reportUse: "适合放入专题归因页或证据地图页，作为报告主图。",
+            source: "Benchmark IQ 数据对标页"
+          },
+          sourceFactIds: facts.slice(0, 3).map(function(f){ return f.factId; })
+        }],
+        causalChain: {
+          resultMetric: primaryMetric,
+          directCause: causalNodes[1] && causalNodes[1].metric || causalNodes[0] && causalNodes[0].metric || "待确认直接原因",
+          structureCause: causalNodes[2] && causalNodes[2].metric || causalNodes[1] && causalNodes[1].metric || "待确认结构原因",
+          recommendedAction: causalNodes[3] && ("复核" + causalNodes[3].metric + "管理动作") || "围绕指标差距形成管理层复核清单。"
+        }
+      }]
+    };
+  }
+
+  function mergeStorylineFactPacks(existing, nextPack, selectedIds) {
+    var selectedMap = {};
+    selectedIds.forEach(function(id){ if (id) selectedMap[id] = true; });
+    var storyMap = {};
+    (existing && existing.storylines || []).concat(nextPack && nextPack.storylines || []).forEach(function(storyline){
+      if (!storyline || !storyline.storylineId) return;
+      storyMap[storyline.storylineId] = Object.assign({}, storyline, {
+        selected: !!selectedMap[storyline.storylineId]
+      });
+    });
+    return {
+      version: "storyline-fact-pack-v1",
+      status: nextPack && nextPack.status || existing && existing.status || "partial",
+      context: nextPack && nextPack.context || existing && existing.context || {},
+      selectedStorylineIds: selectedIds,
+      storylines: Object.keys(storyMap).map(function(id){ return storyMap[id]; })
+    };
+  }
+
+  function ensureStorylineFactPackFromBenchmarkStory(ref) {
+    if (typeof window.buildStorylineFactPack !== "function" || typeof window.saveStorylineFactPack !== "function") return null;
+    var sourcePack = buildBenchmarkStoryEvidencePack(ref);
+    if (!sourcePack) return null;
+    var storyId = sourcePack.selectedStorylineIds[0];
+    var existing = typeof window.readStorylineFactPack === "function" ? window.readStorylineFactPack() : null;
+    var selectedIds = (existing && existing.selectedStorylineIds || []).slice();
+    if (selectedIds.indexOf(storyId) < 0) selectedIds.push(storyId);
+    var nextPack = window.buildStorylineFactPack(sourcePack, { selectedStorylineIds: selectedIds });
+    var mergedPack = mergeStorylineFactPacks(existing, nextPack, selectedIds);
+    window.saveStorylineFactPack(mergedPack);
+    if (typeof window.renderStorylineFactPackControls === "function") window.renderStorylineFactPackControls();
+    return mergedPack;
+  }
+
+  function openBenchmarkStorylineChart(ref) {
+    var pack = ensureStorylineFactPackFromBenchmarkStory(ref);
+    if (!pack || typeof window.openStorylineChartViewer !== "function") return null;
+    var found = findBenchmarkStoryByRef(ref);
+    var storyId = found ? benchmarkStorylineId(found.domKey, found.story) : String(ref || "");
+    var storyline = (pack.storylines || []).filter(function(item){ return item.storylineId === storyId; })[0];
+    var chart = storyline && storyline.charts && storyline.charts[0];
+    if (chart) return window.openStorylineChartViewer(chart);
+    return null;
+  }
+
+  function refreshStorylineFactPackControls() {
+    if (typeof window.renderStorylineFactPackControls === "function") window.renderStorylineFactPackControls();
+  }
+
+  function renderStoryRelationMap(rec, targetBank) {
+    var nodes = rec.gaps.slice(0, 4);
+    if (!nodes.length) return '';
+    return '<section class="bm-story-relation-map" data-return-causal-chain="1">'
+      + '<header><span class="bm-pane-kicker">故事性关联图</span><h3>结果指标到原因指标的传导链</h3></header>'
+      + '<div class="bm-relation-chain">'
+      + nodes.map(function(g, idx){
+          var unit = g.item.unit || "";
+          var gapText = (g.gap > 0 ? "+" : "") + g.gap.toFixed(2) + (unit === "x" ? "x" : unit);
+          return '<button type="button" class="bm-relation-node" data-causal-chain-key="'+g.fullKey+'">'
+            + '<span>'+(idx === 0 ? "结果" : "原因 "+idx)+'</span><b>'+escapeXml(g.item.name)+'</b>'
+            + '<em>'+escapeXml(targetBank.name)+' '+formatVal(g.targetVal, unit)+' / 同类 '+formatVal(g.peerVal, unit)+' / 差距 '+gapText+'</em></button>';
+        }).join('<i class="bm-relation-arrow">→</i>')
+      + '</div></section>';
+  }
+
+  var STORY_VISUAL_ASSETS = {
+    profitability: [
+      { src: "assets/figures/图2-5_ROA七因子五年变动对比.png", label: "ROA 七因子", keywords: ["ROA", "ROE", "利润", "归因", "成本"], caption: "利润传导图：ROA、收入结构、成本收入比与拨备共同解释 ROE。" },
+      { src: "assets/figures/图2-1_核心与非核心收入分化散点.png", label: "收入分化", keywords: ["收入", "核心", "非息", "手续费"], caption: "收入结构图：核心收入和非息收入的分化决定盈利弹性。" },
+      { src: "assets/figures/图1-2_四类银行收入结构堆叠对比.png", label: "收入结构", keywords: ["收入结构", "利息", "非息"], caption: "收入结构堆叠图：用四类银行对比说明收入来源差异。" }
+    ],
+    nim: [
+      { src: "assets/figures/图3-3_息差缺口与负债成本对照.png", label: "息差与负债成本", keywords: ["NIM", "息差", "负债成本", "定期化"], caption: "资产负债传导图：生息资产收益率、负债成本和存款定期化共同解释 NIM。" },
+      { src: "assets/figures/图3-1_息差对冲缺口横向排名.png", label: "息差缺口排名", keywords: ["息差", "缺口", "排名"], caption: "息差缺口图：横向比较目标行相对同业的息差防守能力。" },
+      { src: "assets/figures/图3-6_息差缺口与风险调整收益双面板.png", label: "风险调整收益", keywords: ["收益", "风险调整", "贷款收益"], caption: "收益成色图：把名义息差和风险调整收益放在同一证据链中。" }
+    ],
+    deposit: [
+      { src: "assets/figures/图3-2_存款结构与五区域定期占比.png", label: "存款结构", keywords: ["存款", "定期", "活期", "负债"], caption: "负债底盘图：活期、定期、零售和对公存款结构解释负债成本弹性。" },
+      { src: "assets/figures/图3-3_息差缺口与负债成本对照.png", label: "负债成本", keywords: ["成本", "息差", "定期化"], caption: "负债成本图：定期化率与负债成本共同影响净息差。" }
+    ],
+    quality: [
+      { src: "assets/figures/图4-5_偏离度覆盖率样本散点.png", label: "偏离度覆盖率", keywords: ["偏离", "拨备", "覆盖", "不良"], caption: "风险确认图：偏离度、关注率、不良率和拨备覆盖率共同解释资产质量压力。" },
+      { src: "assets/figures/图4-2_逾期偏离度哑铃图.png", label: "逾期偏离", keywords: ["逾期", "偏离", "不良"], caption: "风险迁徙图：逾期偏离度说明风险确认是否滞后。" },
+      { src: "assets/figures/图4-6_区域风险缓冲热力矩阵.png", label: "风险缓冲", keywords: ["风险", "缓冲", "区域"], caption: "风险缓冲图：用区域矩阵识别资产质量和拨备的组合压力。" }
+    ],
+    loan_corp: [
+      { src: "assets/figures/图4-6_区域风险缓冲热力矩阵.png", label: "行业风险缓冲", keywords: ["行业", "对公", "风险", "不良"], caption: "行业暴露图：行业占比、不良率与风险缓冲共同定位对公风险区。" },
+      { src: "assets/figures/图3-4_贷款收益成色桥图.png", label: "贷款收益成色", keywords: ["贷款", "收益", "成色"], caption: "贷款成色图：从贷款收益到风险调整收益解释对公业务质量。" }
+    ],
+    loan_retail: [
+      { src: "assets/figures/图4-1_零售不良率行业与区域双面板.png", label: "零售不良", keywords: ["零售", "消费", "按揭", "不良"], caption: "零售风险图：零售贷款结构和不良率变化解释零售资产质量。" },
+      { src: "assets/figures/补充图表_零售不良逾期_哑铃图_2023-2025_16x9__补充图表_零售不良逾期_方案D_哑铃与三年轨迹_四类银行_16x9.png", label: "零售逾期轨迹", keywords: ["零售", "逾期", "轨迹"], caption: "零售迁徙图：用逾期与不良的变化轨迹识别风险暴露。" }
+    ],
+    ifrs9: [
+      { src: "assets/figures/图4-4_拨备策略六分类备档.png", label: "拨备策略", keywords: ["IFRS9", "阶段", "拨备", "减值"], caption: "拨备策略图：IFRS9 阶段分布与拨备充足性解释风险抵补。" },
+      { src: "assets/figures/图4-4_利润质量四象限.png", label: "利润质量", keywords: ["利润", "减值", "拨备"], caption: "利润质量图：信用减值和利润表现共同判断风险释放程度。" }
+    ],
+    capital: [
+      { src: "assets/figures/图5-1_资本效率四象限.png", label: "资本效率", keywords: ["资本", "ROE", "RWA", "效率"], caption: "资本效率图：资本充足率、RWA 密度和 ROE 共同解释增长约束。" },
+      { src: "assets/figures/图5-2_资本余量与RWA缺口双图.png", label: "资本余量", keywords: ["资本", "余量", "缺口"], caption: "资本余量图：资本缓冲和 RWA 缺口决定资产扩张空间。" },
+      { src: "assets/figures/图5-3_资本压力指数全员排序.png", label: "资本压力排序", keywords: ["压力", "排序", "资本"], caption: "资本压力图：用全样本排序定位目标行资本压力。" }
+    ],
+    liquidity: [
+      { src: "assets/figures/图5-2_资本余量与RWA缺口双图.png", label: "安全边际", keywords: ["流动性", "安全", "余量", "缺口"], caption: "安全边际图：流动性和资本余量共同约束资产扩张节奏。" },
+      { src: "assets/figures/图5-4_五区域城农商三指标对比.png", label: "区域安全边际", keywords: ["区域", "流动性", "存贷比"], caption: "区域对比图：把流动性指标放入区域同业参照中判断安全边际。" }
+    ]
+  };
+
+  function storyVisualKeywords(story) {
+    return [
+      story && story.title,
+      story && story.lead,
+      story && story.chart,
+      (story && story.metrics || []).join(" ")
+    ].join(" ");
+  }
+
+  function selectStoryVisualAsset(domKey, story) {
+    var options = STORY_VISUAL_ASSETS[domKey] || [];
+    if (!options.length) {
+      return { src: "assets/sunong_ref/cover-bg.png", label: "通用咨询底图", caption: "使用报告式信息图承载该故事线的指标关系。", fallback: true };
+    }
+    var haystack = storyVisualKeywords(story);
+    var scored = options.map(function(opt){
+      var score = (opt.keywords || []).reduce(function(sum, kw){
+        return sum + (haystack.indexOf(kw) >= 0 ? 1 : 0);
+      }, 0);
+      return { option: opt, score: score };
+    }).sort(function(a,b){ return b.score - a.score; });
+    return scored[0].option || options[0];
+  }
+
+  function renderStoryVisualAssetOptions(domKey, activeAsset) {
+    var options = STORY_VISUAL_ASSETS[domKey] || [];
+    if (options.length < 2) return '';
+    return '<div class="bm-story-visual-options" aria-label="可替换图库素材">'
+      + options.slice(0, 3).map(function(opt){
+          var active = activeAsset && opt.src === activeAsset.src ? " is-active" : "";
+          return '<button type="button" class="bm-story-visual-option'+active+'" data-story-visual-src="'+escapeXml(opt.src)+'">'
+            + '<img loading="lazy" src="'+escapeXml(opt.src)+'" alt="'+escapeXml(opt.label)+'" />'
+            + '<span>'+escapeXml(opt.label)+'</span></button>';
+        }).join("")
+      + '</div>';
+  }
+
+  function buildStoryCausalNodes(domKey, story) {
+    var targetBank = getBank(_bm.selectedBankId);
+    if (!targetBank || !_bm.data || !_bm.data.domains) return [];
+    var dom = _bm.data.domains[domKey];
+    if (!dom) return [];
+    var metrics = getStoryMetrics(dom, story).slice(0, 4);
+    return metrics.map(function(mk, idx){
+      var g = metricGapForStory(domKey, mk, targetBank, _bm.snapshotYear);
+      var item = dom.items[mk] || {};
+      var unit = item.unit || "";
+      var gapText = g ? ((g.gap > 0 ? "+" : "") + g.gap.toFixed(2) + (unit === "x" ? "x" : unit)) : "";
+      return {
+        role: idx === 0 ? "结果" : "原因 " + idx,
+        domainKey: domKey,
+        metricKey: domKey + "." + mk,
+        metric: item.name || mk,
+        targetValue: g ? formatVal(g.targetVal, unit) : "",
+        peerValue: g ? formatVal(g.peerVal, unit) : "",
+        gap: gapText,
+        pressure: g ? !!g.pressure : false,
+      };
+    });
+  }
+
+  function renderConsultingVisual(domKey, story) {
+    var visual = selectStoryVisualAsset(domKey, story);
+    return '<figure class="bm-consulting-visual">'
+      + '<div class="bm-consulting-visual-media">'
+      + '<img loading="lazy" src="'+escapeXml(visual.src)+'" alt="'+escapeXml(story.title)+' 相关咨询图表" />'
+      + '</div>'
+      + '<figcaption><span class="bm-pane-kicker">咨询风格证据图</span><h3>'+escapeXml(story.title)+'</h3>'
+      + '<p>'+escapeXml(visual.caption)+'</p>'
+      + renderStoryVisualAssetOptions(domKey, visual)
+      + '</figcaption></figure>';
+  }
+
+  function renderAudienceVisualEvidence(dom, domKey, targetBank, audience) {
+    var labels = {
+      board: { kicker: "董办判断图", title: "用一张图看清本章主线", note: "优先呈现能解释管理层判断的主题图片。" },
+      cfo: { kicker: "财务指标图", title: "把指标差距放进同一张证据图", note: "优先呈现利润、息差、负债成本、资本效率等可量化链条。" },
+      cro: { kicker: "风险关系图", title: "把预警信号放进风险传导链", note: "优先呈现资产质量、行业暴露、拨备和安全边际。" },
+      expert: { kicker: "专题证据图", title: "主题故事线图库", note: "保留图库选择和故事线联动。" }
+    };
+    var meta = labels[audience] || labels.expert;
+    var stories = (dom.stories || []).map(function(story){
+      return scoreStory(domKey, story, targetBank);
+    }).sort(function(a, b){ return b.score - a.score; }).slice(0, audience === "cfo" ? 2 : 1);
+    if (!stories.length) return "";
+    return '<section class="bm-audience-visual-section" data-audience-visual="'+escapeXml(audience)+'">'
+      + '<header class="bm-flow-section-head">'
+      + '<span class="bm-flow-section-num">图</span>'
+      + '<h3 class="bm-flow-section-title">'+escapeXml(meta.title)+'</h3>'
+      + '<span class="bm-flow-section-meta">'+escapeXml(meta.note)+'</span>'
+      + '</header>'
+      + '<div class="bm-audience-visual-grid">'
+      + stories.map(function(rec){
+          var story = rec.story;
+          var visual = selectStoryVisualAsset(domKey, story);
+          var chain = rec.gaps.slice(0, 3).map(function(g){ return g.item.name; }).join(" → ");
+          return '<figure class="bm-audience-visual-card">'
+            + '<div class="bm-audience-visual-media"><img loading="lazy" src="'+escapeXml(visual.src)+'" alt="'+escapeXml(story.title)+' 主题证据图" /></div>'
+            + '<figcaption>'
+            + '<span class="bm-pane-kicker">'+escapeXml(meta.kicker)+'｜'+escapeXml(visual.label || "证据图")+'</span>'
+            + '<h4>'+escapeXml(story.title)+'</h4>'
+            + '<p>'+escapeXml(visual.caption || story.lead || "")+'</p>'
+            + (chain ? '<em>'+escapeXml(chain)+'</em>' : '')
+            + '</figcaption>'
+            + '</figure>';
+        }).join("")
+      + '</div>'
+      + '</section>';
+  }
+
+  window.getBenchmarkStoryVisualAsset = function(domKey, story) {
+    return selectStoryVisualAsset(domKey, story);
+  };
+  window.getBenchmarkStoryCausalNodes = function(domKey, story) {
+    return buildStoryCausalNodes(domKey, story);
+  };
+
+  function renderStoryDetail(targetBank) {
+    var found = findStoryRef(_bm.activeStoryRef);
+    if (!found) return renderBenchmarkOverview(targetBank);
+    var rec = scoreStory(found.domKey, found.story, targetBank);
+    var dom = found.dom;
+    var stories = dom.stories || [];
+    var idx = stories.findIndex(function(s){ return s.id === found.story.id; });
+    if (idx < 0) idx = 0;
+    var prev = stories[(idx - 1 + stories.length) % stories.length] || found.story;
+    var next = stories[(idx + 1) % stories.length] || found.story;
+    var detailChart = renderStoryCard(dom, found.domKey, found.story, idx + 1, stories.length, targetBank);
+    var storyRef = benchmarkStorylineId(found.domKey, found.story);
+    return '<section class="bm-story-detail" id="bmStoryDetail">'
+      + '<nav class="bm-story-detail-topbar">'
+      + '<button type="button" id="bmBackToOverview" data-back-to-overview="1">回到总览</button>'
+      + '<button type="button" id="bmBackToDomain" data-back-to-domain="'+found.domKey+'">回到'+escapeXml(dom.label)+'</button>'
+      + '<button type="button" id="bmPrevStory" data-open-story-detail="'+found.domKey+'/'+prev.id+'" data-story-source="detail">上一条</button>'
+      + '<button type="button" id="bmNextStory" data-open-story-detail="'+found.domKey+'/'+next.id+'" data-story-source="detail">下一条</button>'
+      + '</nav>'
+      + '<header class="bm-story-detail-head"><span class="bm-pane-kicker">'+escapeXml(dom.label)+'</span><h2>'+escapeXml(found.story.title)+'</h2><p>'+escapeXml(found.story.lead || "")+'</p>'
+      + '<div class="bm-storyline-action bm-story-detail-actions">'+renderBenchmarkStorylineActions(storyRef)+'</div></header>'
+      + renderStoryRelationMap(rec, targetBank)
+      + renderConsultingVisual(found.domKey, found.story)
+      + '<section class="bm-story-detail-chart">'+detailChart+'</section>'
+      + '<details class="bm-detail-collapse"><summary data-story-detail-toggle="metrics">展开指标明细</summary>'+renderMatrixView(dom, found.domKey, targetBank)+'</details>'
+      + '<details class="bm-detail-collapse"><summary data-story-detail-toggle="visual">展开图库来源说明</summary><p class="bm-visual-source-note">本故事线默认展示项目内 <code>assets/figures/</code> 的报告图表素材；后续可替换为更细分的咨询图库图片。</p></details>'
+      + '</section>';
+  }
+
   // ---------- 8. 右侧：域内容 ----------
   function renderDomainContent() {
     var empty = document.getElementById("bmEmpty");
     var host = document.getElementById("bmDomainContent");
     if (!empty || !host || !_bm.data) return;
+    try {
     if (!_bm.selectedBankId) {
       empty.classList.remove("is-hidden");
       empty.hidden = false;
@@ -509,8 +1052,21 @@
       host.innerHTML = renderHealthMatrix(null);
       return;
     }
+    if (_bm.viewMode === "overview") {
+      host.innerHTML = renderBenchmarkOverview(b);
+      return;
+    }
+    if (_bm.viewMode === "story") {
+      host.innerHTML = renderStoryDetail(b);
+      return;
+    }
     var dom = _bm.data.domains[_bm.activeDomain];
     if (!dom) { host.innerHTML = ''; return; }
+
+    if (_bm.viewMode === "domain" && _bm.audience === "expert") {
+      host.innerHTML = renderDomainStoryList(_bm.activeDomain, b);
+      return;
+    }
 
     // === 按 audience 分发 ===
     if (_bm.audience === "board") { host.innerHTML = renderAudienceBoardView(dom, _bm.activeDomain, b); return; }
@@ -629,6 +1185,9 @@
     var mainHtml = storiesHtml + matrixHtml + allHtml;
 
     host.innerHTML = heroHtml + pathHtml + legendHtml + mainHtml;
+    } finally {
+      refreshStorylineFactPackControls();
+    }
   }
 
   function pad2(n) { return n < 10 ? "0" + n : String(n); }
@@ -708,6 +1267,7 @@
       +   '<aside class="bm-chapter-side">' + scoreCardHtml + '</aside>'
       + '</header>'
       + renderDomainDecomposition(domKey, b, year)
+      + renderAudienceVisualEvidence(dom, domKey, b, "board")
       + '<section class="bm-board-chart-section">'
       +   '<header class="bm-board-chart-head">'
       +     '<h3>关键问题图 · 本章 ' + rows.length + ' 个核心指标</h3>'
@@ -749,6 +1309,7 @@
       +   '<aside class="bm-chapter-side">' + scoreCardHtml + '</aside>'
       + '</header>'
       + renderDomainDecomposition(domKey, b, _bm.snapshotYear)
+      + renderAudienceVisualEvidence(dom, domKey, b, "cfo")
       + '<section class="bm-flow-section">'
       +   '<header class="bm-flow-section-head">'
       +     '<span class="bm-flow-section-num">01</span>'
@@ -907,6 +1468,7 @@
       +     '<span class="bm-flow-section-num">02</span>'
       +     '<h3 class="bm-flow-section-title">本章风险关系图</h3>'
       +   '</header>'
+      +   renderAudienceVisualEvidence(dom, domKey, b, "cro")
       +   riskChartHtml
       + '</section>'
       // 同比变化日志
@@ -3446,6 +4008,7 @@
     renderDomainContent();
     renderNextBar();
     renderEvidencePackTray();
+    refreshStorylineFactPackControls();
   }
 
   // ---------- 13. 事件绑定 ----------
@@ -3456,24 +4019,74 @@
 
     // 银行类型 tab
     shell.addEventListener("click", function(e){
+      var openDomain = e.target.closest("[data-open-domain-list]");
+      if (openDomain) {
+        setBenchmarkView("domain", { domainKey: openDomain.dataset.openDomainList, returnContext: "overview" });
+        return;
+      }
+      var factAction = e.target.closest("[data-storyline-fact-action]");
+      if (factAction) {
+        e.preventDefault();
+        e.stopPropagation();
+        var ref = factAction.dataset.storylineRef;
+        if (factAction.dataset.storylineFactAction === "add") {
+          ensureStorylineFactPackFromBenchmarkStory(ref);
+        } else {
+          openBenchmarkStorylineChart(ref);
+        }
+        return;
+      }
+      var openStory = e.target.closest("[data-open-story-detail]");
+      if (openStory) {
+        var storyParts = openStory.dataset.openStoryDetail.split("/");
+        setBenchmarkView("story", {
+          domainKey: storyParts[0],
+          storyId: storyParts[1],
+          returnContext: openStory.dataset.storySource === "domain" ? "domain" : "overview"
+        });
+        return;
+      }
+      var backOverview = e.target.closest("[data-back-to-overview]");
+      if (backOverview) {
+        setBenchmarkView("overview");
+        return;
+      }
+      var backDomain = e.target.closest("[data-back-to-domain]");
+      if (backDomain) {
+        setBenchmarkView("domain", { domainKey: backDomain.dataset.backToDomain, returnContext: "overview" });
+        return;
+      }
+      var storyVisualBtn = e.target.closest("[data-story-visual-src]");
+      if (storyVisualBtn) {
+        e.preventDefault();
+        var figure = storyVisualBtn.closest(".bm-consulting-visual");
+        if (figure) {
+          var mainImg = figure.querySelector(".bm-consulting-visual-media img");
+          var thumbImg = storyVisualBtn.querySelector("img");
+          if (mainImg && storyVisualBtn.dataset.storyVisualSrc) {
+            mainImg.src = storyVisualBtn.dataset.storyVisualSrc;
+            if (thumbImg && thumbImg.alt) mainImg.alt = thumbImg.alt + " 相关咨询图表";
+          }
+          Array.prototype.forEach.call(figure.querySelectorAll(".bm-story-visual-option"), function(btn){
+            btn.classList.toggle("is-active", btn === storyVisualBtn);
+          });
+        }
+        return;
+      }
       var typeBtn = e.target.closest("#bmBankTypeTabs button");
       if (typeBtn) { _bm.bankTypeFilter = typeBtn.dataset.type; renderBankTypeTabs(); renderBankList(); return; }
       // 银行列表点击
       var bankItem = e.target.closest("#bmBankList .bm-bank-item");
       if (bankItem) {
-        _bm.selectedBankId = bankItem.dataset.bankId;
-        markPackStaleForBenchmarkChange("target-change");
-        if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
-        renderAll(); return;
+        if (selectBenchmarkTargetBank(bankItem.dataset.bankId || bankItem.dataset.bankName, "target-change")) renderAll();
+        return;
       }
       // 健康仪表盘行点击：跳到该银行 + 第一个真域
       var healthRow = e.target.closest("[data-jump-bank-id]");
       if (healthRow) {
-        _bm.selectedBankId = healthRow.dataset.jumpBankId;
-        markPackStaleForBenchmarkChange("target-change");
+        selectBenchmarkTargetBank(healthRow.dataset.jumpBankId, "target-change");
         var firstRealDomain = Object.keys(_bm.data.domains)[0];
         _bm.activeDomain = firstRealDomain;
-        if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
         renderAll();
         // 平滑滚动到 main 顶部
         var mainEl = document.querySelector(".bm-main");
@@ -3486,6 +4099,7 @@
       var snapBtn = e.target.closest("#bmSnapshotTabs button");
       if (snapBtn) {
         _bm.snapshotYear = parseInt(snapBtn.dataset.snap, 10);
+        resetBenchmarkDrillState();
         markPackStaleForBenchmarkChange("year-change");
         Array.prototype.forEach.call(snapBtn.parentNode.querySelectorAll("button"), function(b){b.classList.toggle("is-active", b === snapBtn);});
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
@@ -3497,6 +4111,7 @@
         var aud = audBtn.dataset.audience;
         if (["board","cfo","cro","expert"].indexOf(aud) >= 0) {
           _bm.audience = aud;
+          if (_bm.viewMode === "overview") _bm.viewMode = "domain";
           try { localStorage.setItem("benchmarkiq.audience", aud); } catch (e2) {}
           renderAudienceSwitcher();
           renderDomainContent();
@@ -3506,8 +4121,13 @@
       // 域 tab
       var domBtn = e.target.closest("#bmDomainTabs button");
       if (domBtn) {
-        _bm.activeDomain = domBtn.dataset.domainKey;
-        renderDomainTabs(); renderDomainContent(); return;
+        if (domBtn.dataset.domainKey === "__health__") {
+          _bm.activeDomain = "__health__";
+          _bm.viewMode = "domain";
+          renderDomainTabs(); renderDomainContent(); return;
+        }
+        setBenchmarkView("domain", { domainKey: domBtn.dataset.domainKey, returnContext: "overview" });
+        return;
       }
       // 模式 toggle
       var modeBtn = e.target.closest(".bm-mode-toggle button");
@@ -3519,6 +4139,7 @@
         var idx = _bm.customPeers.indexOf(id);
         if (idx >= 0) _bm.customPeers.splice(idx, 1);
         else if (_bm.customPeers.length < 8) _bm.customPeers.push(id);
+        resetBenchmarkDrillState();
         markPackStaleForBenchmarkChange("peer-change");
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
         renderPeerPool(); renderSummary(); renderDomainContent(); renderEvidencePackTray(); return;
@@ -3559,6 +4180,7 @@
       if (chip) {
         var rid = chip.dataset.peerRemove;
         _bm.customPeers = _bm.customPeers.filter(function(x){return x !== rid;});
+        resetBenchmarkDrillState();
         markPackStaleForBenchmarkChange("peer-change");
         if (typeof window.syncBenchmarkToState === "function") window.syncBenchmarkToState();
         renderPeerPool(); renderSummary(); renderDomainContent(); renderEvidencePackTray(); return;
@@ -3593,6 +4215,7 @@
         var inp = e.target.closest('input[type="checkbox"][data-peer-key]');
         if (!inp) return;
         _bm.activePeers[inp.dataset.peerKey] = inp.checked;
+        resetBenchmarkDrillState();
         markPackStaleForBenchmarkChange("peer-change");
         var custom = document.getElementById("bmPeerCustom");
         if (custom) custom.hidden = !_bm.activePeers.custom;
@@ -3606,12 +4229,14 @@
       var v = parseInt(e.target.value, 10);
       if (v >= _bm.trendEnd) { _bm.trendEnd = Math.min(2025, v + 1); fillTrendOptions(); }
       _bm.trendStart = v;
+      resetBenchmarkDrillState();
       renderSummary(); renderDomainContent();
     });
     if (tEnd) tEnd.addEventListener("change", function(e){
       var v = parseInt(e.target.value, 10);
       if (v <= _bm.trendStart) { _bm.trendStart = Math.max(2020, v - 1); fillTrendOptions(); }
       _bm.trendEnd = v;
+      resetBenchmarkDrillState();
       renderSummary(); renderDomainContent();
     });
   }
