@@ -33,6 +33,52 @@
     }
   }
 
+  function clonePlain(value) {
+    if (value == null) return value;
+    try {
+      return JSON.parse(JSON.stringify(value));
+    } catch (e) {
+      return value;
+    }
+  }
+
+  function asArray(value) {
+    return Array.isArray(value) ? value : [];
+  }
+
+  function firstText() {
+    for (var i = 0; i < arguments.length; i += 1) {
+      var value = arguments[i];
+      if (typeof value === "number" && !Number.isNaN(value)) return String(value);
+      if (typeof value === "string" && value.trim()) return value.trim();
+    }
+    return "";
+  }
+
+  function readSelectedStorylineFactPack() {
+    var pack = null;
+    if (typeof window.readStorylineFactPack === "function") {
+      pack = window.readStorylineFactPack();
+    } else {
+      try {
+        var raw = localStorage.getItem("benchmarkiq.storylineFactPack");
+        pack = raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        pack = window.__storylineFactPack || (window.benchmarkiq && window.benchmarkiq.storylineFactPack) || null;
+      }
+    }
+    if (!pack || !Array.isArray(pack.storylines)) return null;
+    var selectedIds = {};
+    asArray(pack.selectedStorylineIds).concat(asArray(pack.selectedIssues)).forEach(function (id) {
+      if (id) selectedIds[String(id)] = true;
+    });
+    var selectedStorylines = pack.storylines.filter(function (storyline) {
+      if (!storyline) return false;
+      return storyline.selected || selectedIds[String(storyline.storylineId)];
+    });
+    return { pack: pack, selectedStorylines: selectedStorylines };
+  }
+
   function normalizePackStatus(pack) {
     if (!pack) return "missing-pack";
     if (pack.status === "stale") return "stale-pack";
@@ -116,6 +162,14 @@
     return (a.priority || 99) - (b.priority || 99);
   }
 
+  function normalizeFactPackStatus(pack, selectedStorylines) {
+    if (!pack) return "missing-pack";
+    if (pack.status === "stale") return "stale-pack";
+    if (pack.status === "error") return "error-pack";
+    if (!selectedStorylines || !selectedStorylines.length) return "empty-selection";
+    return pack.status === "confirmed" ? "confirmed" : "draft";
+  }
+
   function modelContext(pack, status) {
     pack = pack || {};
     return {
@@ -126,6 +180,15 @@
       version: pack.version || "",
       updatedAt: pack.updatedAt || "",
     };
+  }
+
+  function factPackContext(pack, status, selectedStorylines) {
+    var source = clonePlain(pack && pack.context) || {};
+    return Object.assign({}, source, {
+      status: status || (pack && pack.status) || "draft",
+      version: pack && pack.version || "",
+      selectedStorylineCount: selectedStorylines ? selectedStorylines.length : 0,
+    });
   }
 
   function evidenceCategory(issue, ev) {
@@ -259,6 +322,68 @@
     };
   }
 
+  function traceForFactPackStory(story, fact, fieldPrefix) {
+    var prefix = fieldPrefix || "storyline";
+    var trace = [];
+    if (story && story.storylineId) trace.push({ field: prefix + ".storylineId", source: "storylineFactPack", value: story.storylineId });
+    if (story && story.title) trace.push({ field: prefix + ".title", source: "storylineFactPack", value: story.title });
+    if (fact && fact.factId) trace.push({ field: prefix + ".facts.factId", source: "storylineFactPack", value: fact.factId });
+    if (fact && fact.metric) trace.push({ field: prefix + ".facts.metric", source: "storylineFactPack", value: fact.metric });
+    asArray(fact && fact.trace).forEach(function (item) {
+      if (item) trace.push(item);
+    });
+    return trace;
+  }
+
+  function factText(fact) {
+    fact = fact || {};
+    var pieces = [];
+    if (fact.metric) pieces.push(fact.metric);
+    if (fact.targetValue || fact.peerValue) pieces.push("目标 " + (fact.targetValue || "—") + " / 对标 " + (fact.peerValue || "—"));
+    if (fact.gap) pieces.push("差距 " + fact.gap);
+    return pieces.join("，") || "事实待补";
+  }
+
+  function buildFactPackConclusion(pack, selectedStorylines) {
+    var cards = selectedStorylines.slice(0, 3).map(function (story, index) {
+      var facts = asArray(story && story.facts);
+      var fact = facts[0] || {};
+      var sourceFactIds = facts.slice(0, 3).map(function (item) { return item.factId; }).filter(Boolean);
+      return {
+        rank: index + 1,
+        role: index === 0 ? "topStoryline" : "selectedStoryline",
+        storylineId: story.storylineId,
+        title: story.title || "已选故事线",
+        metric: fact.metric || (story.causalChain && story.causalChain.resultMetric) || "",
+        evidenceId: fact.factId || story.storylineId,
+        sentence: story.conclusion || story.title || "",
+        conclusion: story.conclusion || story.title || "",
+        evidenceText: factText(fact),
+        strength: story.evidenceStrength || fact.strength || "待补",
+        nextQuestion: story.causalChain && story.causalChain.directCause || "",
+        sourceFactIds: sourceFactIds,
+        trace: traceForFactPackStory(story, fact, "conclusion.cards"),
+      };
+    });
+    var top = selectedStorylines[0] || {};
+    return {
+      headline: top.conclusion || top.title || "已选故事线结论",
+      cards: cards,
+      topIssues: cards,
+      kpis: cards.map(function (card) {
+        return {
+          label: card.metric || card.title,
+          value: card.evidenceText || "待确认",
+          peer: "当前对标组",
+          gap: card.metric || "—",
+          sourceFactIds: card.sourceFactIds,
+          trace: card.trace,
+        };
+      }),
+      nextQuestion: cards[0] ? cards[0].nextQuestion : "进入证据地图复核",
+    };
+  }
+
   function firstByCategory(items, category) {
     return items.filter(function (item) { return item.category === category; })[0] || null;
   }
@@ -286,6 +411,61 @@
         .filter(function (item) { return item.signalDirection === "counter"; })
         .map(function (item) { return item.metric + " 方向与主判断不一致"; })
         .slice(0, 2),
+    };
+  }
+
+  function factPackEvidenceItems(selectedStorylines) {
+    var items = [];
+    selectedStorylines.forEach(function (story) {
+      asArray(story && story.facts).forEach(function (fact) {
+        var category = fact.category || "uncategorized";
+        items.push(Object.assign({}, fact, {
+          issueId: story.storylineId,
+          storylineId: story.storylineId,
+          title: story.title,
+          category: category,
+          primaryMetric: fact.metric || (story.causalChain && story.causalChain.resultMetric) || "",
+          signalDirection: fact.signalDirection || "support",
+          strength: fact.strength || story.evidenceStrength || "待补",
+          sourceFactIds: fact.factId ? [fact.factId] : [],
+          trace: traceForFactPackStory(story, fact, "evidenceMap.groups"),
+        }));
+      });
+    });
+    return items;
+  }
+
+  function buildFactPackEvidenceMap(pack, selectedStorylines) {
+    var items = factPackEvidenceItems(selectedStorylines);
+    var groupsByCategory = {};
+    items.forEach(function (item) {
+      var category = item.category || "uncategorized";
+      if (!groupsByCategory[category]) groupsByCategory[category] = [];
+      groupsByCategory[category].push(item);
+    });
+    var groups = Object.keys(groupsByCategory).sort().map(function (category) {
+      return { category: category, title: category, items: groupsByCategory[category] };
+    });
+    var peerPosition = firstByCategory(items, "peerPosition") || firstByCategory(items, "peer_position") || {};
+    var anomalies = items.filter(function (item) { return item.category === "anomaly"; });
+    var valuationAnchor = firstByCategory(items, "valuationAnchor") || firstByCategory(items, "valuation_anchor") || {};
+    return {
+      headline: "故事线事实包证据地图",
+      strength: {
+        label: selectedStorylines[0] && selectedStorylines[0].evidenceStrength || "待补",
+        supportCount: items.filter(function (item) { return item.signalDirection !== "counter"; }).length,
+        counterCount: items.filter(function (item) { return item.signalDirection === "counter"; }).length,
+      },
+      chainSummary: selectedStorylines.map(function (story) { return story.title; }).filter(Boolean).slice(0, 3).join(" → "),
+      groups: groups,
+      peerPosition: peerPosition,
+      anomalies: anomalies,
+      valuationAnchor: valuationAnchor,
+      allEvidence: items,
+      counterEvidence: items
+        .filter(function (item) { return item.signalDirection === "counter"; })
+        .map(function (item) { return (item.metric || item.title || "反证") + " 方向与主判断不一致"; })
+        .slice(0, 3),
     };
   }
 
@@ -368,7 +548,91 @@
     };
   }
 
+  function normalizeFactPackChain(story) {
+    var chain = story && story.causalChain || {};
+    return {
+      result: firstText(chain.result, chain.resultMetric, story && story.primaryMetric, "待确认结果指标"),
+      directCause: firstText(chain.directCause, "待确认直接原因"),
+      structureCause: firstText(chain.structureCause, "待确认结构原因"),
+      action: firstText(chain.action, chain.recommendedAction, story && story.recommendedAction, "待确认管理动作"),
+    };
+  }
+
+  function buildFactPackAttribution(pack, selectedStorylines) {
+    var active = selectedStorylines[0] || null;
+    var topics = selectedStorylines.map(function (story, index) {
+      var facts = asArray(story && story.facts);
+      return {
+        storylineId: story.storylineId,
+        issueId: story.storylineId,
+        title: story.title || "专题",
+        conclusion: story.conclusion || "",
+        strength: story.evidenceStrength || "待补",
+        priority: story.priority || index + 1,
+        factCount: facts.length,
+        chartCount: asArray(story && story.charts).length,
+        hasReportCandidates: asArray(story && story.reportCandidates).length > 0,
+        sourceFactIds: facts.map(function (fact) { return fact.factId; }).filter(Boolean),
+        trace: traceForFactPackStory(story, facts[0], "attribution.topics"),
+      };
+    });
+    var activeFacts = asArray(active && active.facts);
+    var reportCandidates = asArray(active && active.reportCandidates).map(function (candidate) {
+      return Object.assign({}, candidate, {
+        id: candidate.id || candidate.pageId,
+        recommendedAction: candidate.recommendedAction || (active && active.causalChain && active.causalChain.recommendedAction) || "",
+        trace: asArray(candidate.trace).length ? candidate.trace : traceForFactPackStory(active, activeFacts[0], "attribution.reportCandidates"),
+      });
+    });
+    return {
+      headline: active ? (active.title || "专题归因") : "专题归因",
+      activeStorylineId: active && active.storylineId,
+      activeIssueId: active && active.storylineId,
+      topics: topics,
+      visibleTopics: topics.slice(0, 3),
+      allTopics: topics,
+      foldedTopics: topics.slice(3),
+      chain: normalizeFactPackChain(active),
+      evidence: activeFacts.slice(0, 3).map(function (fact) {
+        return {
+          title: fact.metric || "事实",
+          text: factText(fact),
+          sourceFactIds: fact.factId ? [fact.factId] : [],
+          trace: traceForFactPackStory(active, fact, "attribution.evidence"),
+        };
+      }),
+      charts: asArray(active && active.charts),
+      reportCandidates: reportCandidates,
+      advancedCollapsed: true,
+    };
+  }
+
+  function buildThreePageDiagnosisFromStorylineFactPack(pack, selectedStorylines) {
+    selectedStorylines = selectedStorylines || [];
+    var status = normalizeFactPackStatus(pack, selectedStorylines);
+    return {
+      status: status,
+      source: "storylineFactPack",
+      context: factPackContext(pack, status, selectedStorylines),
+      selectedIssues: selectedStorylines,
+      conclusion: buildFactPackConclusion(pack, selectedStorylines),
+      evidenceMap: buildFactPackEvidenceMap(pack, selectedStorylines),
+      attribution: buildFactPackAttribution(pack, selectedStorylines),
+    };
+  }
+
   function buildThreePageDiagnosisModel(pack) {
+    if (arguments.length === 0) {
+      var selectedFactPack = readSelectedStorylineFactPack();
+      if (selectedFactPack && selectedFactPack.pack) {
+        if (selectedFactPack.selectedStorylines.length) {
+          return buildThreePageDiagnosisFromStorylineFactPack(selectedFactPack.pack, selectedFactPack.selectedStorylines);
+        }
+        if (selectedFactPack.pack.status === "confirmed" || selectedFactPack.pack.status === "partial") {
+          return buildThreePageDiagnosisFromStorylineFactPack(selectedFactPack.pack, []);
+        }
+      }
+    }
     pack = pack || readThreePageEvidencePack();
     if (!pack) {
       return {
@@ -397,6 +661,8 @@
   }
 
   window.readThreePageEvidencePack = readThreePageEvidencePack;
+  window.readSelectedStorylineFactPack = readSelectedStorylineFactPack;
+  window.buildThreePageDiagnosisFromStorylineFactPack = buildThreePageDiagnosisFromStorylineFactPack;
   window.buildThreePageDiagnosisModel = buildThreePageDiagnosisModel;
   window.__threePageDiagnosisModelInternals = {
     normalizePackStatus: normalizePackStatus,
@@ -404,5 +670,6 @@
     buildConclusionCards: buildConclusionCards,
     rankAttributionTopics: rankAttributionTopics,
     buildReportCandidates: buildReportCandidates,
+    buildThreePageDiagnosisFromStorylineFactPack: buildThreePageDiagnosisFromStorylineFactPack,
   };
 })();

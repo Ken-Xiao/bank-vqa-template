@@ -50,13 +50,35 @@
 
   function contextMeta(model) {
     var ctx = model.context || {};
-    var peerCount = ctx.peerGroup && Array.isArray(ctx.peerGroup.banks) ? ctx.peerGroup.banks.length : 0;
+    var peerCount = Array.isArray(ctx.peerGroup)
+      ? ctx.peerGroup.length
+      : (ctx.peerGroup && Array.isArray(ctx.peerGroup.banks) ? ctx.peerGroup.banks.length : 0);
     return append(el("div", "three-page-meta"), [
       el("span", "", "目标：" + (ctx.targetBank && (ctx.targetBank.name || ctx.targetBank.id) || "未选择")),
       el("span", "", "年份：" + (ctx.year || "待确认")),
       el("span", "", "对标组：" + peerCount + " 家"),
       el("span", "", "证据包：" + (ctx.status || model.status || "draft")),
     ]);
+  }
+
+  function factPackContextBanner(model) {
+    if (!model || model.source !== "storylineFactPack") return null;
+    var ctx = model.context || {};
+    var peerCount = Array.isArray(ctx.peerGroup)
+      ? ctx.peerGroup.length
+      : (ctx.peerGroup && Array.isArray(ctx.peerGroup.banks) ? ctx.peerGroup.banks.length : 0);
+    return append(el("div", "three-page-fact-pack-banner"), [
+      el("b", "", "故事线事实包"),
+      el("span", "", "目标行：" + (ctx.targetBank && (ctx.targetBank.name || ctx.targetBank.id) || "未选择")),
+      el("span", "", "年份：" + (ctx.year || "待确认")),
+      el("span", "", "对标组：" + peerCount + " 家"),
+      el("span", "", "已选故事线：" + (ctx.selectedStorylineCount || (model.selectedIssues || []).length || 0) + " 条"),
+    ]);
+  }
+
+  function appendFactPackBanner(section, model) {
+    var banner = factPackContextBanner(model);
+    if (banner) section.appendChild(banner);
   }
 
   function hero(kicker, title, body, model) {
@@ -114,10 +136,11 @@
   function renderConclusionSummaryPage(model) {
     var page = model.conclusion || {};
     var section = el("section", "three-page-diagnosis is-conclusion");
+    appendFactPackBanner(section, model);
     section.appendChild(hero("结论摘要", page.headline, "本页只保留总答案、主判断卡和最小 KPI。证据和机制进入后续页面。", model));
 
     var grid = el("div", "three-page-card-grid");
-    (page.topIssues || []).forEach(function (issue) {
+    (page.cards || page.topIssues || []).forEach(function (issue) {
       var card = dataTraceField(el("article", "three-page-card"), issue.trace);
       append(card, [
         el("span", "", "判断 " + (issue.rank || "") + "｜" + (issue.strength || "弱") + "证据"),
@@ -159,16 +182,38 @@
     return cell;
   }
 
+  function evidenceGroupCell(group) {
+    group = group || {};
+    var first = (group.items || [])[0] || {};
+    var cell = dataTraceField(el("article", "three-page-evidence-cell"), first.trace);
+    append(cell, [
+      el("span", "", group.title || group.category || "证据分组"),
+      el("h3", "", first.metric || first.title || "证据待补"),
+      el("p", "", first.targetValue || first.peerValue || first.gap
+        ? "目标 " + (first.targetValue || "—") + " / 对标 " + (first.peerValue || "—") + " / 差距 " + (first.gap || "—")
+        : ((group.items || []).length + " 条事实")),
+      el("em", "", (first.strength || "待补") + "证据｜" + (first.source || "故事线事实包")),
+    ]);
+    return cell;
+  }
+
   function renderEvidenceMapPage(model) {
     var page = model.evidenceMap || {};
     var strength = page.strength && page.strength.label || page.strength || "弱";
     var section = el("section", "three-page-diagnosis is-evidence");
+    appendFactPackBanner(section, model);
     section.appendChild(hero("证据地图｜" + strength + "证据", page.headline || "证据地图", page.chainSummary || "三类证据将用于验证主判断是否可进入正式报告。", model));
-    section.appendChild(append(el("div", "three-page-evidence-map"), [
-      evidenceCell("同业位置", page.peerPosition),
-      evidenceCell("异动偏离", (page.anomalies || [])[0]),
-      evidenceCell("估值/质量锚", page.valuationAnchor),
-    ]));
+    var map = el("div", "three-page-evidence-map");
+    if (Array.isArray(page.groups) && page.groups.length) {
+      page.groups.slice(0, 6).forEach(function (group) { map.appendChild(evidenceGroupCell(group)); });
+    } else {
+      append(map, [
+        evidenceCell("同业位置", page.peerPosition),
+        evidenceCell("异动偏离", (page.anomalies || [])[0]),
+        evidenceCell("估值/质量锚", page.valuationAnchor),
+      ]);
+    }
+    section.appendChild(map);
     var risks = el("ul", "");
     var counter = page.counterEvidence && page.counterEvidence.length ? page.counterEvidence : ["当前未识别明确反证，仍需保留数据口径脚注。"];
     counter.forEach(function (risk) { risks.appendChild(el("li", "", risk)); });
@@ -184,7 +229,22 @@
     var page = model.attribution || {};
     var chain = page.chain || {};
     var section = el("section", "three-page-diagnosis is-attribution");
+    appendFactPackBanner(section, model);
     section.appendChild(hero("专题归因", page.headline || "专题归因", "本页只聚焦一个主问题链，其他专题和高级分析默认折叠。", model));
+    var topics = page.topics || page.visibleTopics || [];
+    if (topics.length) {
+      var topicList = el("div", "three-page-topic-list");
+      topics.slice(0, 5).forEach(function (topic, index) {
+        var topicNode = dataTraceField(el("article", "three-page-card"), topic.trace);
+        append(topicNode, [
+          el("span", "", "专题 " + (index + 1) + "｜" + (topic.strength || "待补")),
+          el("h3", "", topic.title || topic.storylineId || "专题"),
+          el("p", "", topic.conclusion || ("事实 " + (topic.factCount || 0) + " 条 / 图表 " + (topic.chartCount || 0) + " 张")),
+        ]);
+        topicList.appendChild(topicNode);
+      });
+      section.appendChild(topicList);
+    }
     var chainList = el("ol", "three-page-attribution-chain");
     [
       ["结果指标", chain.result],
@@ -203,6 +263,19 @@
       ]), item.trace));
     });
     section.appendChild(evidenceGrid);
+    if (Array.isArray(page.charts) && page.charts.length) {
+      var charts = el("div", "three-page-report-candidates");
+      page.charts.slice(0, 3).forEach(function (chart) {
+        append(charts, [
+          append(el("article", "three-page-report-candidate"), [
+            el("b", "", chart.title || "专题图表"),
+            el("p", "", chart.readingGuide && (chart.readingGuide.supports || chart.readingGuide.keyGap) || ""),
+            el("em", "", (chart.sourceFactIds || []).join("、") || "故事线事实包"),
+          ]),
+        ]);
+      });
+      section.appendChild(charts);
+    }
     var candidates = el("div", "three-page-report-candidates");
     (page.reportCandidates || []).forEach(function (item) {
       var candidate = dataReportCandidateId(dataTraceField(el("article", "three-page-report-candidate"), item.trace), item.id);
