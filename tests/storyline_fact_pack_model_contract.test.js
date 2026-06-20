@@ -181,12 +181,17 @@ assert.strictEqual(costStory.causalChain.directCause, "费用刚性高于对标�
 assert.strictEqual(costStory.causalChain.structureCause, "网点与科技投入效率待复核");
 assert.strictEqual(costStory.causalChain.recommendedAction, "复核费用投入产出");
 
+const existingStory = model.storylines.find((storyline) => storyline.storylineId === "existing_story");
+assert.ok(existingStory.roleFit.includes("经营管理层"));
+
 context.window.saveStorylineFactPack(model);
 assert.ok(context.localStorage._store["benchmarkiq.storylineFactPack"]);
+assert.strictEqual(context.window.benchmarkiq.storylineFactPack.version, "storyline-fact-pack-v1");
 const loaded = context.window.readStorylineFactPack();
 assert.strictEqual(loaded.version, "storyline-fact-pack-v1");
 assert.deepStrictEqual(JSON.parse(JSON.stringify(loaded.selectedStorylineIds)), ["nim_pressure", "existing_story"]);
 assert.strictEqual(loaded.storylines[0].storylineId, "nim_pressure");
+assert.strictEqual(context.window.benchmarkiq.storylineFactPack.version, "storyline-fact-pack-v1");
 
 context.localStorage.setItem("benchmarkiq.storylineFactPack", "{bad json");
 const errorPack = context.window.readStorylineFactPack();

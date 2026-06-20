@@ -48,6 +48,13 @@
     return "partial";
   }
 
+  function syncRuntimePack(pack) {
+    window.__storylineFactPack = pack || null;
+    window.benchmarkiq = window.benchmarkiq || {};
+    window.benchmarkiq.storylineFactPack = pack || null;
+    return pack || null;
+  }
+
   function normalizePeerGroup(peerGroup) {
     var peers = Array.isArray(peerGroup) ? peerGroup : asArray(peerGroup && peerGroup.banks);
     return peers.map(function (peer) {
@@ -287,6 +294,11 @@
       });
   }
 
+  function normalizeRoleFit(issue) {
+    var roles = asArray(issue && issue.roleFit).length ? asArray(issue.roleFit) : asArray(issue && issue.reportUse);
+    return roles.length ? roles.slice() : ["经营管理层"];
+  }
+
   function normalizeStoryline(issue, index, selectedMap, context) {
     var storylineId = issueIdentifier(issue, index);
     var facts = buildFacts(issue, storylineId);
@@ -299,7 +311,7 @@
       selected: !!selectedMap[storylineId],
       conclusion: firstText(issue && issue.conclusion, issue && issue.lead, issueTitle(issue, storylineId)),
       evidenceStrength: firstText(issue && issue.evidenceStrength, issue && issue.confidence, facts[0] && facts[0].strength, status === "confirmed" ? "强" : "待补"),
-      roleFit: asArray(issue && issue.roleFit).length ? asArray(issue.roleFit).slice() : asArray(issue && issue.reportUse),
+      roleFit: normalizeRoleFit(issue),
       sourceIssueId: firstText(issue && issue.sourceIssueId, issue && issue.issueId, storylineId),
       status: status,
       facts: facts,
@@ -330,7 +342,7 @@
   }
 
   function saveStorylineFactPack(pack) {
-    window.__storylineFactPack = pack || null;
+    syncRuntimePack(pack);
     var store = storage();
     try {
       if (store) {
@@ -348,12 +360,11 @@
     try {
       var raw = store && store.getItem(STORAGE_KEY);
       if (raw) {
-        window.__storylineFactPack = JSON.parse(raw);
-        return window.__storylineFactPack;
+        return syncRuntimePack(JSON.parse(raw));
       }
-      return window.__storylineFactPack || null;
+      return syncRuntimePack(window.__storylineFactPack || (window.benchmarkiq && window.benchmarkiq.storylineFactPack) || null);
     } catch (e) {
-      return { version: "storyline-fact-pack-v1", status: "error", context: {}, selectedStorylineIds: [], storylines: [], error: String(e && e.message || e) };
+      return syncRuntimePack({ version: "storyline-fact-pack-v1", status: "error", context: {}, selectedStorylineIds: [], storylines: [], error: String(e && e.message || e) });
     }
   }
 
