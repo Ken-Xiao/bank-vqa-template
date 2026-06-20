@@ -84,6 +84,8 @@
 - 复杂图表矩阵。
 - 行动路线全展开。
 
+行动路径不删除，而是后移：原结论摘要页中的行动项统一进入专题归因页的“管理动作”段，并在报告页候选的 `useScenario` 与 `recommendedAction` 中承接。结论摘要只保留下一步入口，不展开行动清单。
+
 ### 4.2 证据地图页：三类证据证明主判断
 
 页面定位：把结论摘要中的判断变成可复核证据。
@@ -101,11 +103,25 @@
    证据强度规则：
 
    - 证据地图分为三类证据：`同业位置`、`异动偏离`、`估值/质量锚`。
+   - evidence pack 应为每条 issue 或 evidence 显式提供 `category`：`peerPosition / anomaly / valuationAnchor`。模型层优先按 `category` 归类，不能默认按 issue 数组下标归类。
+   - 如果证据包缺少 `category`，模型可以使用回退规则：指标标题或 evidence source 包含“同业 / 对标 / 分位”归入 `peerPosition`，包含“变化 / 同比 / 环比 / 扩大”归入 `anomaly`，包含 `PB / ROE / 不良 / 拨备 / 资本` 归入 `valuationAnchor`。触发回退时页面进入 `partial-pack` 并提示：`证据分类字段缺失，已按指标口径临时归类`。
    - 每类证据形成一个 `signalDirection`：支持主判断 / 反向 / 不足。
    - **强证据**：至少两类证据支持主判断，且没有强反证；或三类证据中有两类为强、中强度且方向一致。
    - **中证据**：仅一类证据支持主判断，另一类证据不足，且无明确反证；或两类证据方向一致但数据覆盖不足。
    - **弱证据**：只有一类弱证据、存在明显反证、证据包字段缺失、对标组不足 3 家，或证据包不是 confirmed 状态。
    - 第一版算法可以采用规则引擎：`supportCount >= 2 && counterCount === 0` 为强，`supportCount >= 1 && counterCount === 0` 为中，其余为弱；后续再叠加数据覆盖率和时间跨度。
+
+   后续加权算法预留：
+
+   ```js
+   weightedScore = sum(confidence * coverage * recency * directionWeight)
+   ```
+
+   - `confidence`：单项证据强度，强=1，中=0.65，弱=0.35。
+   - `coverage`：对标组覆盖度和指标可用度，0-1。
+   - `recency`：最新年份权重，当前年=1，上一年=0.7，更早=0.4。
+   - `directionWeight`：支持=1，反向=-1，不足=0。
+   - 第一版如果两类证据都只是边缘弱证据，即使方向一致，也应从“强”降为“中”。
 
 2. **三栏证据地图**
    - 左栏：同业位置  
@@ -162,6 +178,17 @@
      - 结构原因：如定期化率、贷款结构、拨备策略、资本消耗。
      - 管理动作：如负债结构复盘、贷款定价、风险确认、资本约束。
 
+   因果链字段映射：
+
+   | 链条段 | 优先字段 | 回退字段 | 缺失展示 |
+   | --- | --- | --- | --- |
+   | 结果指标 | `primaryMetric` | `causalChain[0]` | `待确认结果指标` |
+   | 直接原因 | `causalChain.directCause` | `directDriver` 或 `causalChain[1]` | `待确认直接原因` |
+   | 结构原因 | `causalChain.structureCause` | `structureDriver` 或 `causalChain[2]` | `待确认结构原因` |
+   | 管理动作 | `recommendedAction` | `action` 或 `causalChain[3]` | `待确认管理动作` |
+
+   字段命名以表格为准。渲染层不得在字段缺失时硬编管理建议；只能显示“待确认”状态，并在 trace 中标记缺失字段。
+
 3. **专题证据卡**
    - 每条链最多展示 3 个证据点。
    - 证据点必须可回跳到证据地图或数据对标。
@@ -192,6 +219,7 @@
 
    - `sourceIssueId / evidenceSentence / context / trace` 来自 evidence pack。
    - `chartType / recommendedSlideLayout` 由前端根据专题链类型生成。
+   - `recommendedAction` 来自 `recommendedAction / action / causalChain[3]`，用于报告编排页承接行动路径。
    - `visualAsset` 优先使用 storyCards 或 evidence pack 中已有图片；没有图片时为 `null`，渲染层显示“暂无证据图”，不得使用无关装饰图。
 
 5. **高级深钻折叠区**
@@ -226,6 +254,7 @@
   },
   evidenceMap: {
     strength,
+    categoryStatus,
     peerPosition,
     anomalies,
     valuationAnchor,
@@ -342,6 +371,9 @@
 7. 所有强判断字段必须有 `trace`；没有 trace 的判断不得以强结论样式渲染。
 8. `reportCandidates` 必须包含 `id / sourceIssueId / title / chartType / evidenceSentence / recommendedSlideLayout / context / trace`。
 9. 专题超过 3 个时，首屏最多显示 3 个，剩余专题进入折叠列表。
+10. 证据地图优先按 `category` 标签归类；缺少标签时进入 `partial-pack` 并显示分类字段缺失提示。
+11. 因果链四段必须按字段映射表生成；缺少管理动作时显示 `待确认管理动作`，不得生成无 trace 的建议。
+12. 渲染安全验证：证据包中包含 `<script>` 或事件属性字符串时，页面文本可见但不得生成可执行脚本节点或事件属性。
 
 ### 9.2 需人工 review
 
@@ -349,6 +381,7 @@
 2. 禁用泛化表述是否被替换成可追溯事实表达。
 3. 证据强度是否符合业务直觉。
 4. 报告候选页标题是否适合进入正式汇报。
+5. 行动路径是否能在专题归因和报告候选页中被自然承接。
 
 ## 10. 禁用泛化表述清单
 

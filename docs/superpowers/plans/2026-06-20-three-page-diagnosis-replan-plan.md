@@ -16,16 +16,16 @@
   负责读取证据包并输出三页统一模型。只做数据整理，不写 DOM。
 
 - Create: `js/64-three-page-diagnosis-renderer.js`  
-  负责渲染结论摘要、证据地图、专题归因三页的新主画布，并处理空状态、过期状态、页面跳转。
+  负责渲染结论摘要、证据地图、专题归因三页的新主画布，并处理空状态、过期状态、页面跳转。渲染层优先使用 `document.createElement` 和 `textContent`，不得把证据包文案直接拼进可执行 HTML。
 
 - Modify: `index.html`  
   引入两个新脚本；在 `step2Content` 中增加 `threePageDiagnosisMount`，并给旧高级 mount 加上统一的折叠容器或保持在 advanced 区。
 
 - Modify: `styles/app.css` 或 `styles/benchmark.css`  
-  增加三页主画布样式。优先放到 `styles/app.css`，因为这三页属于 portal/report 页面，不属于纯数据对标页。
+  增加三页主画布样式。优先放到 `styles/app.css`，因为这三页属于 portal/report 页面，不属于纯数据对标页。新增样式使用 `font-weight: 700`，不使用 `font-weight: 760`。
 
 - Modify: `js/42-portal-router.js`  
-  页面切换到 `answer / evidence / topics` 时刷新三页模型渲染；离开 benchmark 前仍确保证据包已确认。
+  页面切换到 `answer / evidence / topics` 时刷新三页模型渲染；离开 benchmark 前仍确保证据包已确认。精确插入点是 `setPortalPage(page, options)` 中 `document.body.setAttribute("data-app-page", target)` 之后、`syncAppModeFromPortalPage(target)` 之后均可，推荐放在函数末尾 `updatePortalVisibility()` 之后的同一渲染批次。
 
 - Modify: `js/08-report.js` and related hooks only if needed  
   若 `renderAll()` 后旧渲染覆盖新画布，则在 `renderAll()` 末尾调用 `renderThreePageDiagnosis()`。避免重写旧报告生成逻辑。
@@ -36,11 +36,20 @@
 - Test: `tests/three_page_diagnosis_rules_contract.test.js`
   验证主判断卡、证据强度、专题折叠、报告候选页、禁用泛化表述和 trace 规则。
 
+- Test: `tests/three_page_diagnosis_behavior.test.js`
+  使用真实形状 fixture 验证证据强度、分类标签、主判断卡去重、专题折叠和禁用泛化表述降级。
+
 - Test: `tests/three_page_diagnosis_renderer_contract.test.js`  
   验证渲染文件包含三页容器、折叠规则和跳转按钮。
 
+- Test: `tests/three_page_diagnosis_renderer_security.test.js`
+  用包含 `<script>` 和事件属性字符串的证据包验证渲染层不会生成可执行脚本节点。
+
 - Test: `tests/three_page_diagnosis_flow_runtime.test.js`  
   使用 VM 或轻量 DOM mock 验证 `renderThreePageDiagnosis()` 能按当前 portal page 渲染正确页面。
+
+- Test: `tests/three_page_diagnosis_browser.spec.js`
+  将浏览器验证脚本沉淀为可复用 Playwright 回归测试。
 
 ---
 
@@ -116,6 +125,143 @@ function scoreEvidenceStrength(evidenceItems, pack) {
 - `normalizePackStatus(pack)` 至少输出：`missing-pack / stale-pack / partial-pack / error-pack / confirmed`。
 - 渲染层必须支持：加载 skeleton、字段缺失降级、生成失败重试入口、回到数据对标入口。
 
+### 证据分类与因果链规则
+
+- 证据地图优先读取 `issue.category` 或 `evidence.category`，合法值为 `peerPosition / anomaly / valuationAnchor`。
+- 缺少 category 时才使用指标名和 source 回退归类，并把模型状态标记为 `partial-pack`，`categoryStatus.message` 为 `证据分类字段缺失，已按指标口径临时归类`。
+- 因果链字段映射固定为：
+  - 结果指标：`primaryMetric` -> `causalChain[0]` -> `待确认结果指标`
+  - 直接原因：`causalChain.directCause` -> `directDriver` -> `causalChain[1]` -> `待确认直接原因`
+  - 结构原因：`causalChain.structureCause` -> `structureDriver` -> `causalChain[2]` -> `待确认结构原因`
+  - 管理动作：`recommendedAction` -> `action` -> `causalChain[3]` -> `待确认管理动作`
+- 原结论摘要中的行动路径移入专题归因的管理动作段，以及 `reportCandidates.recommendedAction / useScenario`。
+
+---
+
+### Task 0: 证据包结构勘察
+
+**Files:**
+- Read: `js/57-evidence-pack-model.js`
+- Read: existing tests using `benchmarkiq.evidencePack`
+- Create: `tests/fixtures/three_page_evidence_pack_fixture.json`
+
+- [ ] **Step 1: Inspect current evidence pack field names**
+
+Run:
+
+```bash
+rg -n "function buildIssue|function buildRecommendedEvidencePack|function buildManagementDiagnosisPack|directDriver|structureDriver|action|causalChain|category" js/57-evidence-pack-model.js tests
+```
+
+Expected: output confirms current fields include `primaryMetric`, `directDriver`, `structureDriver`, `action`, array-shaped `causalChain`, `recommendedIssues`, `selectedIssues`, and no stable `category` field yet.
+
+- [ ] **Step 2: Create a fixture with the current real shape plus new category labels**
+
+Create `tests/fixtures/three_page_evidence_pack_fixture.json`:
+
+```json
+{
+  "version": "fixture-20260620",
+  "status": "confirmed",
+  "targetBank": { "id": "target_bank", "name": "目标银行", "type": "城商行", "region": "浙江" },
+  "year": 2025,
+  "peerGroup": { "label": "当前对标组", "banks": ["对标银行A", "对标银行B", "对标银行C"], "peerBasis": ["同区域", "同类型"] },
+  "selectedIssues": ["profitability_pressure", "nim_pressure", "asset_quality_divergence"],
+  "recommendedIssues": [
+    {
+      "issueId": "profitability_pressure",
+      "title": "盈利能力承压",
+      "priority": 1,
+      "confidence": "高",
+      "primaryMetric": "ROE",
+      "conclusion": "ROE 低于对标组 1.20pct，主要受净息差和成本收入比拖累。",
+      "directDriver": "NIM 与成本收入比",
+      "structureDriver": "负债成本、收入结构和费用刚性",
+      "action": "先复核息差与费用效率，再确定盈利修复抓手",
+      "category": "peerPosition",
+      "evidence": [
+        {
+          "evidenceId": "ev_roe_gap",
+          "category": "peerPosition",
+          "metric": "ROE",
+          "targetValue": "7.20%",
+          "peerValue": "8.40%",
+          "gap": "-1.20pct",
+          "direction": "低于同业",
+          "signalDirection": "support",
+          "strength": "强",
+          "source": "2025 年末数据对标"
+        }
+      ],
+      "causalChain": ["ROE 与对标组形成差距", "直接原因指向 NIM 与成本收入比", "结构原因需要复核负债成本、收入结构和费用刚性", "行动抓手是先复核息差与费用效率"]
+    },
+    {
+      "issueId": "nim_pressure",
+      "title": "息差水平承压",
+      "priority": 2,
+      "confidence": "中",
+      "primaryMetric": "NIM",
+      "conclusion": "NIM 降幅大于对标组，说明息差防守压力扩大。",
+      "directDriver": "生息资产收益率与计息负债成本",
+      "structureDriver": "定期化率、存款成本率和贷款收益率",
+      "action": "拆解负债结构与资产定价",
+      "category": "anomaly",
+      "evidence": [
+        {
+          "evidenceId": "ev_nim_change",
+          "category": "anomaly",
+          "metric": "NIM",
+          "targetValue": "1.45%",
+          "peerValue": "1.68%",
+          "gap": "-0.23pct",
+          "direction": "低于同业",
+          "signalDirection": "support",
+          "strength": "中",
+          "source": "2025 年同比变化"
+        }
+      ],
+      "causalChain": ["NIM 与对标组形成差距", "直接原因指向生息资产收益率与计息负债成本", "结构原因需要复核定期化率、存款成本率和贷款收益率", "行动抓手是拆解负债结构与资产定价"]
+    },
+    {
+      "issueId": "asset_quality_divergence",
+      "title": "资产质量分化",
+      "priority": 3,
+      "confidence": "中",
+      "primaryMetric": "不良率",
+      "conclusion": "不良率高于对标组，估值和质量锚仍需解释。",
+      "directDriver": "不良生成和风险确认节奏",
+      "structureDriver": "对公贷款结构、区域行业暴露和零售客群风险",
+      "action": "按贷款结构和区域风险重新排序资产质量专题",
+      "category": "valuationAnchor",
+      "evidence": [
+        {
+          "evidenceId": "ev_npl_gap",
+          "category": "valuationAnchor",
+          "metric": "不良率",
+          "targetValue": "1.65%",
+          "peerValue": "1.20%",
+          "gap": "+0.45pct",
+          "direction": "高于同业",
+          "signalDirection": "support",
+          "strength": "中",
+          "source": "2025 年末数据对标"
+        }
+      ],
+      "causalChain": ["不良率与对标组形成差距", "直接原因指向不良生成和风险确认节奏", "结构原因需要复核对公贷款结构和区域行业暴露", "行动抓手是重排资产质量专题"]
+    }
+  ],
+  "narrativeGuardrails": { "mustCiteEvidence": true, "avoidGenericLanguage": true, "maxPrimaryIssues": 3 },
+  "updatedAt": "2026-06-20T00:00:00.000Z"
+}
+```
+
+- [ ] **Step 3: Commit fixture and reconnaissance result**
+
+```bash
+git add tests/fixtures/three_page_evidence_pack_fixture.json
+git commit -m "test: add three-page diagnosis evidence fixture"
+```
+
 ---
 
 ### Task 1: 三页诊断 Page Model
@@ -188,7 +334,9 @@ node tests/three_page_diagnosis_model_contract.test.js
 
 Expected: FAIL with `ENOENT` or `three-page model missing`.
 
-- [ ] **Step 3: Create the model file**
+- [ ] **Step 3: Create the model file with final rule hooks**
+
+This step creates the model file once. Do not commit a simplified intermediate version. The model must call category-based evidence grouping and chain-field mapping from the start; any fallback is marked through `categoryStatus` and `partial-pack`.
 
 Create `js/63-three-page-diagnosis-model.js`:
 
@@ -343,7 +491,7 @@ Create `js/63-three-page-diagnosis-model.js`:
       };
     }
     var issues = selectedIssuesFromPack(pack);
-    var status = pack.status === "stale" ? "stale-pack" : (pack.status || "draft");
+    var status = normalizePackStatus(pack);
     return {
       status: status,
       context: modelContext(pack),
@@ -359,7 +507,7 @@ Create `js/63-three-page-diagnosis-model.js`:
 })();
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 4: Run syntax check and keep contract red until Task 1A**
 
 Run:
 
@@ -368,14 +516,11 @@ node --check js/63-three-page-diagnosis-model.js
 node tests/three_page_diagnosis_model_contract.test.js
 ```
 
-Expected: both PASS, with `three-page-diagnosis-model-contract-ok`.
+Expected: syntax check PASS. The model contract may still FAIL until Task 1A adds the final rule helpers and behavior functions. Do not commit until Task 1A is complete.
 
 - [ ] **Step 5: Commit**
 
-```bash
-git add js/63-three-page-diagnosis-model.js tests/three_page_diagnosis_model_contract.test.js
-git commit -m "feat: add three-page diagnosis model"
-```
+Do not commit here. Continue directly into Task 1A and commit only after the rule contract and behavior tests pass. This avoids a git history entry where the evidence map is temporarily grouped by issue array position.
 
 ---
 
@@ -471,6 +616,27 @@ function textHasGenericLanguage(text) {
     return String(text || "").indexOf(pattern) >= 0;
   });
 }
+
+function evidenceCategory(issue, ev) {
+  var category = (ev && ev.category) || (issue && issue.category) || "";
+  if (category === "peerPosition" || category === "anomaly" || category === "valuationAnchor") {
+    return { category: category, fallback: false };
+  }
+  var haystack = [issue && issue.title, issue && issue.primaryMetric, ev && ev.metric, ev && ev.source].join(" ");
+  if (/同业|对标|分位/.test(haystack)) return { category: "peerPosition", fallback: true };
+  if (/变化|同比|环比|扩大|收窄/.test(haystack)) return { category: "anomaly", fallback: true };
+  if (/PB|ROE|不良|拨备|资本|质量/.test(haystack)) return { category: "valuationAnchor", fallback: true };
+  return { category: "peerPosition", fallback: true };
+}
+
+function chainSegment(issue, name) {
+  var chain = issue && issue.causalChain;
+  if (name === "result") return issue.primaryMetric || (Array.isArray(chain) && chain[0]) || "待确认结果指标";
+  if (name === "directCause") return (chain && chain.directCause) || issue.directDriver || (Array.isArray(chain) && chain[1]) || "待确认直接原因";
+  if (name === "structureCause") return (chain && chain.structureCause) || issue.structureDriver || (Array.isArray(chain) && chain[2]) || "待确认结构原因";
+  if (name === "action") return issue.recommendedAction || issue.action || (Array.isArray(chain) && chain[3]) || "待确认管理动作";
+  return "待确认";
+}
 ```
 
 - [ ] **Step 3: Replace simplified builders with rule-driven builders**
@@ -519,6 +685,7 @@ function buildReportCandidates(issue, pack) {
     visualAsset: issue.visualAsset || null,
     evidenceSentence: issue.evidenceSentence || issue.conclusion || "",
     useScenario: issue.useScenario || "董事会汇报",
+    recommendedAction: issue.recommendedAction || issue.action || chainSegment(issue, "action"),
     recommendedSlideLayout: issue.recommendedSlideLayout || "headline-evidence-chart",
     context: {
       targetBank: pack && pack.targetBank,
@@ -531,21 +698,84 @@ function buildReportCandidates(issue, pack) {
 }
 ```
 
-- [ ] **Step 4: Run rule contract**
+- [ ] **Step 4: Write behavior tests for the actual rules**
+
+Create `tests/three_page_diagnosis_behavior.test.js`:
+
+```js
+const fs = require("fs");
+const vm = require("vm");
+const assert = require("assert/strict");
+
+const source = fs.readFileSync("js/63-three-page-diagnosis-model.js", "utf8");
+const fixture = JSON.parse(fs.readFileSync("tests/fixtures/three_page_evidence_pack_fixture.json", "utf8"));
+
+function makeContext(pack) {
+  const context = {
+    window: {},
+    localStorage: {
+      getItem(key) { return key === "benchmarkiq.evidencePack" ? JSON.stringify(pack) : null; },
+      setItem() {},
+      removeItem() {},
+    },
+    console,
+  };
+  context.window = context;
+  vm.createContext(context);
+  vm.runInContext(source, context);
+  return context;
+}
+
+const context = makeContext(fixture);
+assert.equal(typeof context.buildThreePageDiagnosisModel, "function");
+const model = context.buildThreePageDiagnosisModel(fixture);
+
+assert.equal(model.evidenceMap.strength.label || model.evidenceMap.strength, "强", "3 support and 0 counter should be strong");
+assert.equal(model.evidenceMap.peerPosition.category, "peerPosition", "peer position must use category label");
+assert.equal(model.evidenceMap.anomalies[0].category, "anomaly", "anomaly must use category label");
+assert.equal(model.evidenceMap.valuationAnchor.category, "valuationAnchor", "valuation anchor must use category label");
+assert.ok(model.conclusion.topIssues.length <= 3, "conclusion cards must be at most 3");
+assert.equal(new Set(model.conclusion.topIssues.map((item) => item.evidenceId || item.metric)).size, model.conclusion.topIssues.length, "conclusion cards must be deduplicated");
+assert.ok(model.attribution.foldedTopics.length === 0, "3 topics should not be folded");
+assert.ok(model.attribution.reportCandidates[0].recommendedAction, "report candidate should carry action path");
+
+const weakPeerPack = JSON.parse(JSON.stringify(fixture));
+weakPeerPack.peerGroup.banks = ["对标银行A", "对标银行B"];
+const weakModel = makeContext(weakPeerPack).buildThreePageDiagnosisModel(weakPeerPack);
+assert.equal(weakModel.evidenceMap.strength.label || weakModel.evidenceMap.strength, "弱", "peer group with only 2 banks should be weak");
+
+const genericPack = JSON.parse(JSON.stringify(fixture));
+genericPack.recommendedIssues[0].conclusion = "存在一定压力，需要进一步关注。";
+const genericModel = makeContext(genericPack).buildThreePageDiagnosisModel(genericPack);
+assert.ok(!genericModel.conclusion.topIssues.some((item) => /存在一定压力|需要进一步关注/.test(item.sentence || item.conclusion || "")), "generic language should be downgraded or hidden");
+
+const fourTopicPack = JSON.parse(JSON.stringify(fixture));
+fourTopicPack.recommendedIssues.push(Object.assign({}, fourTopicPack.recommendedIssues[0], { issueId: "capital_pressure", title: "资本约束", priority: 4, primaryMetric: "资本充足率" }));
+fourTopicPack.selectedIssues.push("capital_pressure");
+const fourTopicModel = makeContext(fourTopicPack).buildThreePageDiagnosisModel(fourTopicPack);
+assert.equal(fourTopicModel.attribution.visibleTopics.length, 3, "4 topics should render 3 visible topics");
+assert.equal(fourTopicModel.attribution.foldedTopics.length, 1, "4 topics should fold 1 topic");
+
+console.log("three-page-diagnosis-behavior-ok");
+```
+
+- [ ] **Step 5: Run model, rule, and behavior contracts**
 
 Run:
 
 ```bash
+node tests/three_page_diagnosis_model_contract.test.js
 node tests/three_page_diagnosis_rules_contract.test.js
+node tests/three_page_diagnosis_behavior.test.js
 ```
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add js/63-three-page-diagnosis-model.js tests/three_page_diagnosis_rules_contract.test.js
-git commit -m "test: add three-page diagnosis rule contracts"
+git add js/63-three-page-diagnosis-model.js tests/three_page_diagnosis_model_contract.test.js tests/three_page_diagnosis_rules_contract.test.js tests/three_page_diagnosis_behavior.test.js
+git commit -m "feat: add evidence-driven three-page diagnosis model"
 ```
 
 ---
@@ -578,6 +808,9 @@ const css = fs.readFileSync("styles/app.css", "utf8");
 
 [
   "function renderThreePageDiagnosis",
+  "function el",
+  "document.createElement",
+  "textContent",
   "function renderConclusionSummaryPage",
   "function renderEvidenceMapPage",
   "function renderAttributionPage",
@@ -586,9 +819,10 @@ const css = fs.readFileSync("styles/app.css", "utf8");
   "function renderThreePageLoadingState",
   "function renderThreePagePartialState",
   "function renderThreePageErrorState",
-  "data-trace-field",
-  "data-report-candidate-id",
+  "dataTraceField",
+  "dataReportCandidateId",
   "data-three-page-next",
+  "replaceChildren",
   "window.renderThreePageDiagnosis = renderThreePageDiagnosis",
 ].forEach((needle) => assert(renderer.includes(needle), `renderer missing ${needle}`));
 
@@ -631,7 +865,7 @@ Near the existing script imports, after `js/57-evidence-pack-model.js` and befor
 
 - [ ] **Step 4: Create renderer implementation**
 
-Create `js/64-three-page-diagnosis-renderer.js`:
+Create `js/64-three-page-diagnosis-renderer.js`. Use `document.createElement`, `textContent`, `dataset`, and `replaceChildren`. Do not render evidence-pack text through `innerHTML`; the existing `esc()` string-template pattern is not accepted for this renderer because one missed escape can turn model output into executable HTML.
 
 ```js
 /* Bank VQA module: 64-three-page-diagnosis-renderer.js
@@ -649,6 +883,22 @@ Create `js/64-three-page-diagnosis-renderer.js`:
   function currentPortalPage() {
     if (typeof getPortalPage === "function") return getPortalPage();
     return document.body.getAttribute("data-app-page") || "answer";
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = String(text);
+    return node;
+  }
+
+  function replaceChildren(host, nodes) {
+    if (typeof host.replaceChildren === "function") {
+      host.replaceChildren.apply(host, nodes);
+      return;
+    }
+    while (host.firstChild) host.removeChild(host.firstChild);
+    nodes.forEach(function (node) { host.appendChild(node); });
   }
 
   function contextMeta(model) {
@@ -781,29 +1031,29 @@ Create `js/64-three-page-diagnosis-renderer.js`:
     if (!host || typeof window.buildThreePageDiagnosisModel !== "function") return null;
     var model = window.buildThreePageDiagnosisModel();
     if (model.status === "missing-pack") {
-      host.innerHTML = renderThreePageEmptyState(model);
+      replaceChildren(host, [renderThreePageEmptyState(model)]);
       return model;
     }
     if (model.status === "stale-pack") {
-      host.innerHTML = renderThreePageStaleState(model);
+      replaceChildren(host, [renderThreePageStaleState(model)]);
       return model;
     }
     if (model.status === "loading-pack") {
-      host.innerHTML = renderThreePageLoadingState(model);
+      replaceChildren(host, [renderThreePageLoadingState(model)]);
       return model;
     }
     if (model.status === "partial-pack") {
-      host.innerHTML = renderThreePagePartialState(model);
+      replaceChildren(host, [renderThreePagePartialState(model)]);
       return model;
     }
     if (model.status === "error-pack") {
-      host.innerHTML = renderThreePageErrorState(model);
+      replaceChildren(host, [renderThreePageErrorState(model)]);
       return model;
     }
     var page = currentPortalPage();
-    if (page === "evidence") host.innerHTML = renderEvidenceMapPage(model);
-    else if (page === "topics") host.innerHTML = renderAttributionPage(model);
-    else host.innerHTML = renderConclusionSummaryPage(model);
+    if (page === "evidence") replaceChildren(host, [renderEvidenceMapPage(model)]);
+    else if (page === "topics") replaceChildren(host, [renderAttributionPage(model)]);
+    else replaceChildren(host, [renderConclusionSummaryPage(model)]);
     return model;
   }
 
@@ -821,6 +1071,8 @@ Create `js/64-three-page-diagnosis-renderer.js`:
   });
 })();
 ```
+
+Implementation note: the structural example above shows the required rendering branches. Before committing, replace every `host.innerHTML = ...` path with `replaceChildren(host, [node])`, and build `node` with `document.createElement` and `textContent`.
 
 - [ ] **Step 5: Add CSS**
 
@@ -848,7 +1100,7 @@ Append to `styles/app.css`:
   display: block;
   color: #5d6877;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: 700;
 }
 .three-page-hero h2 {
   margin: 6px 0 8px;
@@ -941,7 +1193,7 @@ Append to `styles/app.css`:
   background: #111;
   color: #fff;
   padding: 9px 14px;
-  font-weight: 760;
+  font-weight: 700;
 }
 .three-page-actions button + button {
   background: #fff;
@@ -954,7 +1206,17 @@ Append to `styles/app.css`:
 }
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [ ] **Step 6: Verify renderer has no executable HTML path**
+
+Run:
+
+```bash
+rg -n "innerHTML|insertAdjacentHTML|outerHTML" js/64-three-page-diagnosis-renderer.js
+```
+
+Expected: no output. If the command prints a line, replace that code path with `document.createElement`, `textContent`, `dataset`, and `replaceChildren`.
+
+- [ ] **Step 7: Run test to verify it passes**
 
 Run:
 
@@ -965,11 +1227,106 @@ node tests/three_page_diagnosis_renderer_contract.test.js
 
 Expected: both PASS, with `three-page-diagnosis-renderer-contract-ok`.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add index.html styles/app.css js/64-three-page-diagnosis-renderer.js tests/three_page_diagnosis_renderer_contract.test.js
 git commit -m "feat: render focused three-page diagnosis"
+```
+
+---
+
+### Task 2A: 渲染安全测试
+
+**Files:**
+- Test: `tests/three_page_diagnosis_renderer_security.test.js`
+- Modify: `js/64-three-page-diagnosis-renderer.js`
+
+- [ ] **Step 1: Write renderer security test**
+
+Create `tests/three_page_diagnosis_renderer_security.test.js`:
+
+```js
+const fs = require("fs");
+const vm = require("vm");
+const assert = require("assert/strict");
+
+const renderer = fs.readFileSync("js/64-three-page-diagnosis-renderer.js", "utf8");
+
+function makeElement(tag) {
+  return {
+    tagName: tag.toUpperCase(),
+    className: "",
+    textContent: "",
+    dataset: {},
+    attributes: {},
+    children: [],
+    firstChild: null,
+    setAttribute(name, value) { this.attributes[name] = String(value); },
+    appendChild(child) { this.children.push(child); this.firstChild = this.children[0] || null; return child; },
+    removeChild(child) { this.children = this.children.filter((item) => item !== child); this.firstChild = this.children[0] || null; return child; },
+    closest() { return null; },
+  };
+}
+
+const mount = makeElement("div");
+const context = {
+  window: {},
+  document: {
+    body: { getAttribute() { return "answer"; } },
+    createElement: makeElement,
+    getElementById(id) { return id === "threePageDiagnosisMount" ? mount : null; },
+    addEventListener() {},
+    querySelectorAll() { return []; },
+  },
+  console,
+};
+context.window = context;
+context.buildThreePageDiagnosisModel = function () {
+  return {
+    status: "confirmed",
+    context: { targetBank: { name: "<script>alert(1)</script>" }, peerGroup: { banks: ["A", "B", "C"] }, year: 2025, status: "confirmed" },
+    conclusion: {
+      headline: "<img src=x onerror=alert(1)>",
+      topIssues: [{ rank: 1, strength: "强", title: "<script>alert(2)</script>", conclusion: "<b onclick=alert(3)>bad</b>", trace: [{ field: "x", value: "y" }] }],
+      kpis: [],
+    },
+    evidenceMap: {},
+    attribution: {},
+  };
+};
+
+vm.createContext(context);
+vm.runInContext(renderer, context);
+context.renderThreePageDiagnosis();
+
+function walk(node, acc = []) {
+  acc.push(node);
+  (node.children || []).forEach((child) => walk(child, acc));
+  return acc;
+}
+
+const nodes = walk(mount);
+assert.equal(nodes.some((node) => node.tagName === "SCRIPT"), false, "renderer must not create script nodes");
+assert.equal(nodes.some((node) => Object.keys(node.attributes || {}).some((key) => /^on/i.test(key))), false, "renderer must not create event handler attributes");
+assert.ok(nodes.some((node) => String(node.textContent).includes("<script>alert(2)</script>")), "unsafe-looking text should remain textContent");
+
+console.log("three-page-diagnosis-renderer-security-ok");
+```
+
+- [ ] **Step 2: Run security test**
+
+```bash
+node tests/three_page_diagnosis_renderer_security.test.js
+```
+
+Expected: PASS.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add js/64-three-page-diagnosis-renderer.js tests/three_page_diagnosis_renderer_security.test.js
+git commit -m "test: guard three-page diagnosis renderer safety"
 ```
 
 ---
@@ -981,6 +1338,8 @@ git commit -m "feat: render focused three-page diagnosis"
 - Modify: `js/08-report.js`
 - Modify: `index.html`
 - Test: `tests/three_page_diagnosis_flow_runtime.test.js`
+
+Precise router insertion point: in `js/42-portal-router.js`, update `setPortalPage(page, options)` after the existing page state and visibility updates. The function currently starts near line 116 and already handles evidence-pack confirmation through `ensureConfirmedEvidencePackBeforeLeavingBenchmark()`.
 
 - [ ] **Step 1: Write the failing flow runtime test**
 
@@ -1001,7 +1360,7 @@ assert(report.includes("renderThreePageDiagnosis"), "renderAll flow must refresh
 assert(html.includes("topicsAdvancedGroup") || html.includes("three-page-advanced"), "advanced topic content must remain grouped or folded");
 
 let currentPage = "answer";
-const host = { innerHTML: "" };
+const host = { children: [], replaceChildren(...nodes) { this.children = nodes; }, textContent: "" };
 const listeners = {};
 const context = {
   window: {},
@@ -1028,16 +1387,20 @@ context.window.buildThreePageDiagnosisModel = function () {
 vm.createContext(context);
 vm.runInContext(renderer, context);
 
+function textOf(node) {
+  return [node.textContent || ""].concat((node.children || []).map(textOf)).join(" ");
+}
+
 context.window.renderThreePageDiagnosis();
-assert(host.innerHTML.includes("甲银行主判断"), "answer page must render conclusion");
+assert(textOf(host).includes("甲银行主判断"), "answer page must render conclusion");
 
 currentPage = "evidence";
 context.window.renderThreePageDiagnosis();
-assert(host.innerHTML.includes("证据地图"), "evidence page must render evidence map");
+assert(textOf(host).includes("证据地图"), "evidence page must render evidence map");
 
 currentPage = "topics";
 context.window.renderThreePageDiagnosis();
-assert(host.innerHTML.includes("专题归因"), "topics page must render attribution");
+assert(textOf(host).includes("专题归因"), "topics page must render attribution");
 
 console.log("three-page-diagnosis-flow-runtime-ok");
 ```
@@ -1054,15 +1417,13 @@ Expected: FAIL because router/report refresh hooks are missing.
 
 - [ ] **Step 3: Add router refresh hook**
 
-In `js/42-portal-router.js`, find the function that applies the portal page. After page visibility and body state update, add:
+In `js/42-portal-router.js`, update `setPortalPage(page, options)` after portal visibility/body state updates. Use the normalized `target` variable:
 
 ```js
-if (typeof window.renderThreePageDiagnosis === "function" && ["answer", "evidence", "topics"].includes(page)) {
+if (typeof window.renderThreePageDiagnosis === "function" && ["answer", "evidence", "topics"].indexOf(target) >= 0) {
   window.renderThreePageDiagnosis();
 }
 ```
-
-If the router uses a local function name instead of `page`, use the actual current page variable and keep the same condition.
 
 - [ ] **Step 4: Add report render refresh hook**
 
@@ -1136,7 +1497,9 @@ node --check js/42-portal-router.js
 node --check js/08-report.js
 node tests/three_page_diagnosis_model_contract.test.js
 node tests/three_page_diagnosis_rules_contract.test.js
+node tests/three_page_diagnosis_behavior.test.js
 node tests/three_page_diagnosis_renderer_contract.test.js
+node tests/three_page_diagnosis_renderer_security.test.js
 node tests/three_page_diagnosis_flow_runtime.test.js
 node tests/benchmark_downstream_state_sync_contract.test.js
 node tests/evidence_pack_driven_pages_contract.test.js
@@ -1155,12 +1518,52 @@ python3 -m http.server 8798
 
 Expected: server prints `Serving HTTP on`.
 
-- [ ] **Step 3: Browser validation script**
+- [ ] **Step 3: Create reusable browser validation test**
+
+Create `tests/three_page_diagnosis_browser.spec.js`:
+
+```js
+const { chromium } = require("/Users/jinkunxiao/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
+
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 980 } });
+  await page.goto("http://127.0.0.1:8798/index.html#page/benchmark", { waitUntil: "commit", timeout: 20000 });
+  await page.waitForFunction(() => window.__bm && window.__bm.data && document.querySelector("#bmBankList .bm-bank-item"), null, { timeout: 30000 });
+  await page.evaluate(() => {
+    const el = document.querySelector("#bmBankList .bm-bank-item");
+    if (el) el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+  });
+  await page.waitForTimeout(800);
+  await page.evaluate(() => {
+    if (typeof window.buildRecommendedEvidencePack === "function" && typeof window.confirmEvidencePack === "function") {
+      const pack = window.buildRecommendedEvidencePack();
+      window.confirmEvidencePack(pack, pack.selectedIssues);
+    }
+  });
+  for (const pageName of ["answer", "evidence", "topics"]) {
+    await page.evaluate((next) => {
+      if (typeof window.setPortalPage === "function") window.setPortalPage(next, { force: true });
+    }, pageName);
+    await page.waitForTimeout(400);
+    const text = await page.locator("#threePageDiagnosisMount").innerText();
+    if (!text || text.length < 20) throw new Error("empty three-page mount for " + pageName);
+    if (!/目标|银行|证据|专题|判断/.test(text)) throw new Error("unexpected three-page text for " + pageName + ": " + text.slice(0, 120));
+    console.log(pageName + ":" + text.slice(0, 80).replace(/\s+/g, " "));
+  }
+  await browser.close();
+})().catch((error) => {
+  console.error(error.stack || error);
+  process.exit(1);
+});
+```
+
+- [ ] **Step 4: Run browser validation test**
 
 Run:
 
 ```bash
-/Users/jinkunxiao/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node -e "const { chromium } = require('/Users/jinkunxiao/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'); (async()=>{ const browser=await chromium.launch({headless:true}); const page=await browser.newPage({viewport:{width:1440,height:980}}); await page.goto('http://127.0.0.1:8798/index.html#page/benchmark', {waitUntil:'commit', timeout:20000}); await page.waitForFunction(()=>window.__bm&&window.__bm.data&&document.querySelector('#bmBankList .bm-bank-item'), null, {timeout:30000}); await page.evaluate(()=>{ const el=document.querySelector('#bmBankList .bm-bank-item'); if(el) el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window})); }); await page.waitForTimeout(800); await page.evaluate(()=>{ if (typeof window.buildRecommendedEvidencePack === 'function' && typeof window.confirmEvidencePack === 'function') { const pack = window.buildRecommendedEvidencePack(); window.confirmEvidencePack(pack, pack.selectedIssues); } }); for (const p of ['answer','evidence','topics']) { await page.evaluate((pageName)=>{ if (typeof window.setPortalPage === 'function') window.setPortalPage(pageName, { force:true }); }, p); await page.waitForTimeout(400); const text = await page.locator('#threePageDiagnosisMount').innerText(); if (!text || text.length < 20) throw new Error('empty three-page mount for '+p); console.log(p + ':' + text.slice(0,80).replace(/\\s+/g,' ')); } await browser.close(); })().catch(e=>{ console.error(e.stack||e); process.exit(1); });"
+/Users/jinkunxiao/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node tests/three_page_diagnosis_browser.spec.js
 ```
 
 Expected:
@@ -1173,16 +1576,16 @@ topics:...
 
 Each line should mention the current target bank or the current evidence-pack page title.
 
-- [ ] **Step 4: Stop local server**
+- [ ] **Step 5: Stop local server**
 
 If the server was started in a foreground terminal, press `Ctrl-C`. If it was started as a session by an agent tool, send `\u0003` to that session.
 
-- [ ] **Step 5: Commit validation-only adjustments if needed**
+- [ ] **Step 6: Commit validation-only adjustments if needed**
 
 If Task 4 required a small test or code adjustment, commit it:
 
 ```bash
-git add js/63-three-page-diagnosis-model.js js/64-three-page-diagnosis-renderer.js js/42-portal-router.js js/08-report.js index.html styles/app.css tests/three_page_diagnosis_*.test.js
+git add js/63-three-page-diagnosis-model.js js/64-three-page-diagnosis-renderer.js js/42-portal-router.js js/08-report.js index.html styles/app.css tests/fixtures/three_page_evidence_pack_fixture.json tests/three_page_diagnosis_*.test.js
 git commit -m "test: validate three-page diagnosis flow"
 ```
 
@@ -1198,15 +1601,20 @@ If no files changed during validation, do not create an empty commit.
 - 证据地图三栏证明：Task 1 defines `buildEvidenceMapPageModel`; Task 2 renders `renderEvidenceMapPage`.
 - 专题归因单问题链：Task 1 defines `buildAttributionPageModel`; Task 2 renders `renderAttributionPage`.
 - 证据包驱动：Task 1 reads `readEvidencePack()` and local storage fallback.
+- 证据包真实结构确认：Task 0 inspects `js/57-evidence-pack-model.js` and creates `tests/fixtures/three_page_evidence_pack_fixture.json`.
 - 主判断卡生成规则：Review-Driven Rule Contract and Task 1A define `buildConclusionCards`.
 - 证据强度标准：Review-Driven Rule Contract and Task 1A define `scoreEvidenceStrength`.
+- 证据地图分类标签：Review-Driven Rule Contract and Task 1A define `evidenceCategory` and `categoryStatus`.
+- 因果链字段映射：Review-Driven Rule Contract and Task 1A define `chainSegment`.
 - 专题数量折叠：Review-Driven Rule Contract and Task 1A define `rankAttributionTopics` with `allTopics / foldedTopics`.
 - 报告候选页契约：Review-Driven Rule Contract and Task 1A define `buildReportCandidates` with required fields and trace.
 - 泛化判断约束：Review-Driven Rule Contract and Task 1A define `GENERIC_LANGUAGE_PATTERNS`, `hasTrace`, and trace-backed judgment rules.
 - 异常状态：Task 1 emits `missing-pack / stale-pack / partial-pack / error-pack`; Task 2 renders matching states plus loading state.
+- 渲染安全：Task 2 requires DOM API rendering and Task 2A validates script/event-handler safety.
 - 高级内容默认折叠：Task 2 includes `.three-page-advanced`; Task 3 wraps legacy advanced mounts.
 - 导航路径：Task 2 adds `data-three-page-next`; Task 3 refreshes on portal changes.
-- 验收验证：Task 4 includes static bundle, rules contract, and browser validation.
+- 可复用浏览器验证：Task 4 creates and runs `tests/three_page_diagnosis_browser.spec.js`.
+- 验收验证：Task 4 includes static bundle, rules contract, behavior tests, security test, and browser validation.
 
 ### Placeholder Scan
 
@@ -1228,3 +1636,5 @@ Renderer function names match contract tests:
 - `renderConclusionSummaryPage`
 - `renderEvidenceMapPage`
 - `renderAttributionPage`
+- `el`
+- `replaceChildren`
