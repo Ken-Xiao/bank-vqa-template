@@ -37,6 +37,15 @@
     }
   }
 
+  function readStorylineFactPackForLibrary() {
+    if (typeof window.readStorylineFactPack !== "function") return null;
+    try {
+      return window.readStorylineFactPack();
+    } catch (e) {
+      return null;
+    }
+  }
+
   function chapterForDomain(domainKey, pageType) {
     if (pageType === "executive") return CHAPTERS[0];
     for (var i = 1; i < CHAPTERS.length; i++) {
@@ -197,8 +206,138 @@
     };
   }
 
+  function selectedStorylinesWithReportCandidates(pack) {
+    var selectedMap = {};
+    (pack && pack.selectedStorylineIds || []).forEach(function (id) {
+      if (id !== null && id !== undefined) selectedMap[String(id)] = true;
+    });
+    return (pack && pack.storylines || []).filter(function (story) {
+      var selected = story && (story.selected === true || selectedMap[String(story.storylineId || "")]);
+      return selected && (story.reportCandidates || []).length;
+    });
+  }
+
+  function storyFactRows(story, candidate) {
+    var sourceFactIds = candidate.sourceFactIds || [];
+    return sourceFactIds.map(function (id, index) {
+      var fact = (story.facts || []).filter(function (item) { return item.factId === id; })[0] || {};
+      return {
+        evidenceId: id,
+        role: "证据 " + (index + 1),
+        metric: fact.metric || fact.metricKey || id,
+        targetValue: fact.targetValue || "",
+        peerValue: fact.peerValue || "",
+        gap: fact.gap || "",
+        pressure: fact.pressure !== false,
+        dataQuality: fact.strength || story.evidenceStrength || "",
+        reportReadiness: fact.status || story.status || ""
+      };
+    });
+  }
+
+  function storyChartAsset(story, candidate) {
+    var chartId = candidate.chartIds && candidate.chartIds[0];
+    var chart = (story.charts || []).filter(function (item) { return item.chartId === chartId; })[0] || {};
+    if (!chart.src && !chart.url && !chart.imageUrl) return null;
+    return {
+      src: chart.src || chart.url || chart.imageUrl,
+      label: chart.title || chart.label || candidate.title || story.title || "证据图",
+      caption: chart.caption || candidate.evidenceSentence || ""
+    };
+  }
+
+  function storylineCandidateReady(candidate) {
+    return !!(
+      (candidate.sourceFactIds || []).length &&
+      (candidate.chartIds || []).length &&
+      candidate.evidenceSentence &&
+      candidate.readingGuideId
+    );
+  }
+
+  function pageFromStorylineCandidate(story, candidate, pack, index) {
+    candidate = candidate || {};
+    var sourceFactIds = Array.isArray(candidate.sourceFactIds) ? candidate.sourceFactIds.slice() : [];
+    var chartIds = Array.isArray(candidate.chartIds) ? candidate.chartIds.slice() : [];
+    var normalized = Object.assign({}, candidate, {
+      sourceFactIds: sourceFactIds,
+      chartIds: chartIds
+    });
+    var ready = storylineCandidateReady(normalized);
+    var chapter = chapterForDomain(story.domainKey || "", normalized.layout === "executive" ? "executive" : "attribution");
+    var status = ready ? "ready" : "待补证据";
+    var page = {
+      pageId: normalized.pageId || normalized.id || "report_" + (story.storylineId || "storyline") + "_" + (index + 1),
+      title: normalized.title || story.title || "专题归因页",
+      chapterId: chapter.key,
+      chapterKey: chapter.key,
+      chapterLabel: chapter.label,
+      pageType: normalized.layout || normalized.pageType || "causal-chain-with-chart",
+      storyId: story.storylineId || "",
+      storylineId: story.storylineId || "",
+      selected: ready,
+      body: normalized.evidenceSentence || story.conclusion || "",
+      evidence: normalized.evidenceSentence || "",
+      chart: chartIds[0] || "",
+      evidenceRows: storyFactRows(story, normalized),
+      causalNodes: story.causalChain || [],
+      conclusion: normalized.evidenceSentence || story.conclusion || "本页基于已选故事线的事实包生成。",
+      visualAsset: storyChartAsset(story, normalized),
+      source: "storylineFactPack",
+      sourceFactIds: sourceFactIds,
+      chartIds: chartIds,
+      evidenceSentence: normalized.evidenceSentence || "",
+      readingGuideId: normalized.readingGuideId || "",
+      recommendedSlideLayout: normalized.recommendedSlideLayout || "",
+      useScenario: normalized.useScenario || "",
+      reportReadiness: status,
+      status: status,
+      sourcePackStatus: pack && pack.status || ""
+    };
+    page.quality = {
+      hasTitle: !!page.title,
+      evidenceCount: sourceFactIds.length,
+      causalDepth: (page.causalNodes || []).length,
+      hasVisual: !!page.visualAsset,
+      status: status
+    };
+    return page;
+  }
+
+  function buildReportPageLibraryFromStorylineFactPack(pack) {
+    var selectedStorylines = selectedStorylinesWithReportCandidates(pack);
+    if (!pack || !selectedStorylines.length) {
+      return { version: nowVersion(), status: "empty", sourcePackVersion: pack && pack.version || "", targetBank: {}, year: "", pages: [], selectedPageIds: [], updatedAt: new Date().toISOString() };
+    }
+    var pages = [];
+    selectedStorylines.forEach(function (story) {
+      (story.reportCandidates || []).forEach(function (candidate, index) {
+        pages.push(pageFromStorylineCandidate(story, candidate, pack, index));
+      });
+    });
+    var selectedPageIds = pages.filter(function (page) { return page.selected; }).map(function (page) { return page.pageId; });
+    return {
+      version: nowVersion(),
+      status: selectedPageIds.length ? "ready" : "待补证据",
+      sourcePackVersion: pack.version || "",
+      targetBank: pack.context && pack.context.targetBank || {},
+      year: pack.context && pack.context.year || "",
+      chapters: CHAPTERS,
+      pages: pages,
+      selectedPageIds: selectedPageIds,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
   function buildReportPageLibrary(pack) {
-    if (arguments.length === 0) pack = readEvidencePackForLibrary();
+    var explicitPack = arguments.length > 0;
+    if (!explicitPack) {
+      var factPack = readStorylineFactPackForLibrary();
+      if (selectedStorylinesWithReportCandidates(factPack).length) {
+        return buildReportPageLibraryFromStorylineFactPack(factPack);
+      }
+      pack = readEvidencePackForLibrary();
+    }
     if (!pack) {
       return { version: nowVersion(), status: "empty", sourcePackVersion: "", targetBank: {}, year: "", pages: [], selectedPageIds: [], updatedAt: new Date().toISOString() };
     }
@@ -252,9 +391,12 @@
 
   function ensureReportPageLibrary() {
     var current = readReportPageLibrary();
+    var factPack = readStorylineFactPackForLibrary();
+    var activeStorylinePack = selectedStorylinesWithReportCandidates(factPack).length ? factPack : null;
     var pack = readEvidencePackForLibrary();
-    if (!current || (pack && current.sourcePackVersion !== pack.version)) {
-      current = buildReportPageLibrary(pack);
+    var sourceVersion = activeStorylinePack ? activeStorylinePack.version : (pack && pack.version);
+    if (!current || (sourceVersion && current.sourcePackVersion !== sourceVersion)) {
+      current = buildReportPageLibrary();
       saveReportPageLibrary(current);
     }
     return current;
@@ -276,6 +418,7 @@
 
   window.buildReportPageLibrary = buildReportPageLibrary;
   window.buildReportPageLibraryFromDiagnosisPack = buildReportPageLibraryFromDiagnosisPack;
+  window.buildReportPageLibraryFromStorylineFactPack = buildReportPageLibraryFromStorylineFactPack;
   window.saveReportPageLibrary = saveReportPageLibrary;
   window.readReportPageLibrary = readReportPageLibrary;
   window.ensureReportPageLibrary = ensureReportPageLibrary;
