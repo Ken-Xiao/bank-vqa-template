@@ -14262,6 +14262,16 @@
     /* ==========================================================================
        Storyline fact pack drawer and chart reading guide
        ========================================================================== */
+    .legacy-fact-pack {
+      opacity: 0.82;
+      filter: grayscale(0.15);
+    }
+
+    .legacy-fact-pack .fact-pack-toggle {
+      background: #f8fafc;
+      color: #475569;
+    }
+
     .storyline-fact-pack-drawer {
       position: fixed;
       right: 18px;
@@ -14367,6 +14377,11 @@
       padding: 10px;
     }
 
+    .storyline-fact-pack-list-item {
+      position: relative;
+      padding-right: 56px;
+    }
+
     .storyline-fact-pack-story {
       width: 100%;
       border: 0;
@@ -14386,6 +14401,24 @@
       color: #64748b;
     }
 
+    .storyline-fact-pack-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border: 1px solid #d7dde8;
+      background: #fff;
+      color: #64748b;
+      padding: 4px 7px;
+      font-size: 12px;
+      line-height: 1.2;
+      cursor: pointer;
+    }
+
+    .storyline-fact-pack-remove:hover {
+      border-color: #b91c1c;
+      color: #b91c1c;
+    }
+
     .storyline-fact-pack-list p {
       margin: 6px 0 0;
       color: #475569;
@@ -14401,11 +14434,14 @@
 
     .storyline-fact-pack-actions {
       display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       justify-content: flex-end;
       margin-top: 14px;
     }
 
-    .storyline-fact-pack-primary {
+    .storyline-fact-pack-primary,
+    .storyline-fact-pack-secondary {
       border: 1px solid #111827;
       background: #111827;
       color: #fff;
@@ -14414,7 +14450,13 @@
       cursor: pointer;
     }
 
-    .storyline-fact-pack-primary:disabled {
+    .storyline-fact-pack-secondary {
+      background: #fff;
+      color: #111827;
+    }
+
+    .storyline-fact-pack-primary:disabled,
+    .storyline-fact-pack-secondary:disabled {
       border-color: #cbd5e1;
       background: #e2e8f0;
       color: #64748b;

@@ -75,6 +75,23 @@
     });
   }
 
+  function removeStorylineFromFactPack(storylineId) {
+    var pack = readPack();
+    if (!pack || !storylineId) return null;
+    var id = String(storylineId);
+    var selectedIds = asArray(pack.selectedStorylineIds).map(String).filter(function (itemId) {
+      return itemId !== id;
+    });
+    pack.selectedStorylineIds = selectedIds;
+    pack.storylines = asArray(pack.storylines).map(function (storyline) {
+      if (storyline && String(storyline.storylineId) === id) storyline.selected = false;
+      return storyline;
+    });
+    if (typeof window.saveStorylineFactPack === "function") window.saveStorylineFactPack(pack);
+    renderStorylineFactPackControls();
+    return pack;
+  }
+
   function appendStorylineList(parent, storylines) {
     var list = document.createElement("ul");
     list.className = "storyline-fact-pack-list";
@@ -86,6 +103,7 @@
     }
     storylines.forEach(function (storyline) {
       var item = document.createElement("li");
+      item.className = "storyline-fact-pack-list-item";
       var button = document.createElement("button");
       button.type = "button";
       button.className = "storyline-fact-pack-story";
@@ -99,6 +117,15 @@
         button.disabled = true;
       }
       item.appendChild(button);
+      var remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "storyline-fact-pack-remove";
+      remove.textContent = "移除";
+      remove.setAttribute("aria-label", "从事实包移除：" + firstText(storyline.title, storyline.storylineId, "未命名故事线"));
+      remove.addEventListener("click", function () {
+        removeStorylineFromFactPack(storyline.storylineId);
+      });
+      item.appendChild(remove);
       if (storyline.conclusion) appendTextNode(item, "p", "", storyline.conclusion);
       list.appendChild(item);
     });
@@ -110,6 +137,16 @@
     window.location.hash = "#page/answer";
     if (typeof window.renderThreePageDiagnosis === "function") {
       window.renderThreePageDiagnosis();
+    }
+  }
+
+  function enterReportPageLibrary() {
+    if (typeof window.ensureReportPageLibrary === "function") {
+      window.ensureReportPageLibrary();
+    }
+    window.location.hash = "#page/report";
+    if (typeof window.renderReportPageLibrary === "function") {
+      window.renderReportPageLibrary();
     }
   }
 
@@ -144,6 +181,13 @@
 
     var actions = document.createElement("div");
     actions.className = "storyline-fact-pack-actions";
+    var reportCta = document.createElement("button");
+    reportCta.type = "button";
+    reportCta.className = "storyline-fact-pack-secondary";
+    reportCta.textContent = "生成报告页候选";
+    reportCta.disabled = storylines.length === 0;
+    reportCta.addEventListener("click", enterReportPageLibrary);
+    actions.appendChild(reportCta);
     var cta = document.createElement("button");
     cta.type = "button";
     cta.className = "storyline-fact-pack-primary";
@@ -238,6 +282,7 @@
   }
 
   window.renderStorylineFactPackControls = renderStorylineFactPackControls;
+  window.removeStorylineFromFactPack = removeStorylineFromFactPack;
   window.openStorylineChartViewer = openStorylineChartViewer;
   window.closeStorylineChartViewer = closeStorylineChartViewer;
 

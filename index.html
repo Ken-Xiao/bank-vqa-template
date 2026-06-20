@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Cache-Control" content="no-store" />
   <title>银行经营对标分析平台</title>
-  <link rel="stylesheet" href="styles/app.css?v=20260606-evidence-commentary" />
+  <link rel="stylesheet" href="styles/app.css?v=20260619-flow-stabilization" />
   <link rel="stylesheet" href="styles/rsm-consulting-ppt.css?v=20260530-client-spine" />
   <link rel="stylesheet" href="styles/rsm-deck.css?v=20260530-rsm-v7" />
   <link rel="stylesheet" href="styles/benchmark.css?v=20260615-benchmark-v1" />
@@ -1094,20 +1094,31 @@
       </section>
       </div>
 
-      <section class="analysis-deck-shell analysis-content client-internal" id="analysisDeckShell" data-workspace-tab="legacy-report" data-portal-page="report" aria-label="PPT版式报告预览" hidden>
+      <section class="analysis-deck-shell analysis-content report-page-library-shell client-internal"
+               id="analysisDeckShell"
+               data-workspace-tab="report"
+               data-portal-page="report"
+               aria-label="分析页库">
         <div class="deck-shell-head">
           <div>
-            <span>备用演示版</span>
-            <h2>PPT 版式预览</h2>
-            <p>本区域保留 16:9 演示稿结构，适用于会议现场翻页展示；正式交付以长文报告版为准。</p>
+            <span>分析页库</span>
+            <h2>自动生成 PPT 分析页，选择进入最终报告</h2>
+            <p>本区域读取数据对标证据包，生成可逐页查看的 16:9 分析页。每页均包含标题观点、证据、因果链和底部结论条。</p>
           </div>
-          <div class="deck-shell-meta">16:9 · 一页一主题 · 右侧导航</div>
+          <div class="deck-shell-meta" id="reportPageLibraryStatus">等待证据包</div>
         </div>
-        <div class="deck-review-controls">
-          <button class="btn secondary" id="deckPrevPage" type="button">上一页</button>
-          <div class="deck-review-page" id="deckReviewPage">待形成报告</div>
-          <button class="btn secondary" id="deckNextPage" type="button">下一页</button>
-          <select id="deckPageSelect" aria-label="选择报告页"></select>
+        <div class="report-page-library-grid">
+          <aside class="report-page-library-tree" id="reportPageLibraryTree" aria-label="分析页章节树"></aside>
+          <main class="report-page-library-preview-wrap">
+            <div class="deck-review-controls">
+              <button class="btn secondary" id="deckPrevPage" type="button">上一页</button>
+              <div class="deck-review-page" id="deckReviewPage">待形成报告</div>
+              <button class="btn secondary" id="deckNextPage" type="button">下一页</button>
+              <select id="deckPageSelect" aria-label="选择报告页"></select>
+            </div>
+            <section class="report-page-library-preview" id="reportPageLibraryPreview"></section>
+          </main>
+          <aside class="report-page-library-basket" id="reportPageLibraryBasket" aria-label="最终报告页面篮子"></aside>
         </div>
         <section class="print-deck" id="printDeck"></section>
       </section>
@@ -1684,9 +1695,9 @@
   </main>
 
   <!-- Fact Pack Bar -->
-  <div class="fact-pack-bar collapsed" id="bmFactPackBar" data-portal-page="benchmark">
+  <div class="fact-pack-bar collapsed legacy-fact-pack" id="bmFactPackBar" data-portal-page="benchmark" data-legacy-fact-pack="debug-export">
     <div class="fact-pack-toggle" id="bmFactPackToggle">
-      <span>事实清单 · <b id="bmFactCount">0</b> 条待传入报告分析系统</span>
+      <span>旧版事实清单导出 · <b id="bmFactCount">0</b> 条</span>
       <span id="bmFactToggleIcon">▲</span>
     </div>
     <div class="fact-pack-body">
@@ -1762,7 +1773,7 @@
   <script src="js/16-trial-checks.js"></script>
   <script src="js/17-rsm-deck-theme.js?v=20260529-deck-ui"></script>
   <script src="js/18-board-workbench.js?v=20260530-client-language"></script>
-  <script src="js/19-product-workspace.js?v=20260606-evidence-commentary"></script>
+  <script src="js/19-product-workspace.js?v=20260619-flow-stabilization"></script>
   <script src="js/24-prd-v3-workbench.js?v=20260605-portal-v14"></script>
   <script src="js/25-v4-deep-dive.js?v=20260605-portal-v14"></script>
   <script src="js/26-v5-value-engine.js?v=20260531-prd-v5"></script>
@@ -1800,6 +1811,8 @@
   <script src="js/66-storyline-fact-pack-ui.js"></script>
   <script src="js/63-three-page-diagnosis-model.js?v=20260620-three-page"></script>
   <script src="js/64-three-page-diagnosis-renderer.js?v=20260620-three-page"></script>
+  <script src="js/61-report-page-library-model.js?v=20260619-page-library"></script>
+  <script src="js/62-report-page-library-renderer.js?v=20260619-page-library"></script>
   <script src="js/55-benchmark-page.js?v=20260615-benchmark-v2"></script>
   <script src="js/56-benchmark-state-bridge.js?v=20260616-bridge"></script>
   <script src="js/60-benchmark-first-logic.js?v=20260619-benchmark-first"></script>
