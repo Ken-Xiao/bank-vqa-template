@@ -1,0 +1,121 @@
+{
+  "version": "fixture-20260620",
+  "status": "confirmed",
+  "targetBank": {
+    "id": "target_bank",
+    "name": "目标银行",
+    "type": "城商行",
+    "region": "浙江"
+  },
+  "year": 2025,
+  "peerGroup": {
+    "label": "当前对标组",
+    "banks": ["对标银行A", "对标银行B", "对标银行C"],
+    "peerBasis": ["同区域", "同类型"]
+  },
+  "selectedIssues": ["profitability_pressure", "nim_pressure", "asset_quality_divergence"],
+  "recommendedIssues": [
+    {
+      "issueId": "profitability_pressure",
+      "title": "盈利能力承压",
+      "priority": 1,
+      "confidence": "高",
+      "primaryMetric": "ROE",
+      "conclusion": "ROE 低于对标组 1.20pct，主要受净息差和成本收入比拖累。",
+      "directDriver": "NIM 与成本收入比",
+      "structureDriver": "负债成本、收入结构和费用刚性",
+      "action": "先复核息差与费用效率，再确定盈利修复抓手",
+      "category": "peerPosition",
+      "evidence": [
+        {
+          "evidenceId": "ev_roe_gap",
+          "category": "peerPosition",
+          "metric": "ROE",
+          "targetValue": "7.20%",
+          "peerValue": "8.40%",
+          "gap": "-1.20pct",
+          "direction": "低于同业",
+          "signalDirection": "support",
+          "strength": "强",
+          "source": "2025 年末数据对标"
+        }
+      ],
+      "causalChain": [
+        "ROE 与对标组形成差距",
+        "直接原因指向 NIM 与成本收入比",
+        "结构原因需要复核负债成本、收入结构和费用刚性",
+        "行动抓手是先复核息差与费用效率"
+      ]
+    },
+    {
+      "issueId": "nim_pressure",
+      "title": "息差水平承压",
+      "priority": 2,
+      "confidence": "中",
+      "primaryMetric": "NIM",
+      "conclusion": "NIM 降幅大于对标组，说明息差防守压力扩大。",
+      "directDriver": "生息资产收益率与计息负债成本",
+      "structureDriver": "定期化率、存款成本率和贷款收益率",
+      "action": "拆解负债结构与资产定价",
+      "category": "anomaly",
+      "evidence": [
+        {
+          "evidenceId": "ev_nim_change",
+          "category": "anomaly",
+          "metric": "NIM",
+          "targetValue": "1.45%",
+          "peerValue": "1.68%",
+          "gap": "-0.23pct",
+          "direction": "低于同业",
+          "signalDirection": "support",
+          "strength": "中",
+          "source": "2025 年同比变化"
+        }
+      ],
+      "causalChain": [
+        "NIM 与对标组形成差距",
+        "直接原因指向生息资产收益率与计息负债成本",
+        "结构原因需要复核定期化率、存款成本率和贷款收益率",
+        "行动抓手是拆解负债结构与资产定价"
+      ]
+    },
+    {
+      "issueId": "asset_quality_divergence",
+      "title": "资产质量分化",
+      "priority": 3,
+      "confidence": "中",
+      "primaryMetric": "不良率",
+      "conclusion": "不良率高于对标组，估值和质量锚仍需解释。",
+      "directDriver": "不良生成和风险确认节奏",
+      "structureDriver": "对公贷款结构、区域行业暴露和零售客群风险",
+      "action": "按贷款结构和区域风险重新排序资产质量专题",
+      "category": "valuationAnchor",
+      "evidence": [
+        {
+          "evidenceId": "ev_npl_gap",
+          "category": "valuationAnchor",
+          "metric": "不良率",
+          "targetValue": "1.65%",
+          "peerValue": "1.20%",
+          "gap": "+0.45pct",
+          "direction": "高于同业",
+          "signalDirection": "support",
+          "strength": "中",
+          "source": "2025 年末数据对标"
+        }
+      ],
+      "causalChain": [
+        "不良率与对标组形成差距",
+        "直接原因指向不良生成和风险确认节奏",
+        "结构原因需要复核对公贷款结构和区域行业暴露",
+        "行动抓手是重排资产质量专题"
+      ]
+    }
+  ],
+  "narrativeGuardrails": {
+    "mustCiteEvidence": true,
+    "avoidGenericLanguage": true,
+    "maxPrimaryIssues": 3
+  },
+  "updatedAt": "2026-06-20T00:00:00.000Z"
+}

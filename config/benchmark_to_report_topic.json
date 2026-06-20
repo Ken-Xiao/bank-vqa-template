@@ -1,0 +1,64 @@
+{
+  "_comment": "故事线 ID（domain.storyId）↔ 报告 topic ID 映射表。报告页指标卡跳转到数据对标时根据这个表定位到对应故事线。反向同理。",
+  "_schema": "topic_to_benchmark: { 报告topicId: { domain, story } }",
+  "_generated_at": "2026-06-16",
+
+  "topic_to_benchmark": {
+    "profit":         { "domain": "profitability", "story": "return_base" },
+    "profitability":  { "domain": "profitability", "story": "return_base" },
+    "roa_dupont":     { "domain": "profitability", "story": "return_base" },
+    "growth":         { "domain": "profitability", "story": "growth_engine" },
+    "income_mix":     { "domain": "profitability", "story": "income_mix" },
+    "profit_quality": { "domain": "profitability", "story": "profit_quality" },
+
+    "nim":            { "domain": "nim", "story": "nim_top" },
+    "loan_yield":     { "domain": "nim", "story": "loan_yield" },
+    "dep_cost":       { "domain": "nim", "story": "dep_cost" },
+
+    "risk":           { "domain": "quality", "story": "npl_exposure" },
+    "asset_quality":  { "domain": "quality", "story": "npl_exposure" },
+    "provision":      { "domain": "quality", "story": "prov_buffer" },
+    "migration":      { "domain": "quality", "story": "migration" },
+    "risk_dynamic":   { "domain": "quality", "story": "risk_dynamic" },
+
+    "loan_industry":  { "domain": "loan_corp", "story": "corp_top" },
+    "corp_risk":      { "domain": "loan_corp", "story": "corp_risk" },
+    "concentration":  { "domain": "loan_corp", "story": "concentration" },
+
+    "retail":         { "domain": "loan_retail", "story": "retail_mix" },
+    "retail_risk":    { "domain": "loan_retail", "story": "retail_risk" },
+
+    "deposit":        { "domain": "deposit", "story": "dep_struct" },
+    "liability":      { "domain": "deposit", "story": "dep_struct" },
+
+    "liquidity":      { "domain": "liquidity", "story": "reg_ratio" },
+
+    "ifrs9":          { "domain": "ifrs9", "story": "fa_stage" },
+
+    "capital":        { "domain": "capital", "story": "cap_stack" },
+    "cet1":           { "domain": "capital", "story": "cap_buffer" },
+    "scale":          { "domain": "capital", "story": "scale" },
+    "capital_eff":    { "domain": "capital", "story": "capital_eff" },
+    "rwa":            { "domain": "capital", "story": "capital_eff" },
+    "rorwa":          { "domain": "capital", "story": "capital_eff" }
+  },
+
+  "_metric_id_to_benchmark_comment": "下面是关键 metric 名 → benchmark 跳转参数，供报告页指标卡 hover/click 时使用。匹配优先 _bm.data.domains[X].items[Y].name 中文名，找不到再 fallback 到 topic 映射。",
+  "metric_name_to_benchmark": {
+    "总资产收益率":         { "domain": "profitability", "story": "return_base" },
+    "净资产收益率":         { "domain": "profitability", "story": "return_base" },
+    "成本收入比":           { "domain": "profitability", "story": "quality_profit" },
+    "营业收入 YoY%":         { "domain": "profitability", "story": "growth_engine" },
+    "净利息收益率":         { "domain": "nim", "story": "nim_top" },
+    "净利差":               { "domain": "nim", "story": "nim_top" },
+    "不良贷款率":           { "domain": "quality", "story": "npl_exposure" },
+    "拨备覆盖率":           { "domain": "quality", "story": "prov_buffer" },
+    "关注类贷款占比":       { "domain": "quality", "story": "npl_exposure" },
+    "对公贷款总占比":       { "domain": "loan_corp", "story": "corp_top" },
+    "对公行业 HHI":          { "domain": "loan_corp", "story": "concentration" },
+    "存贷比":               { "domain": "deposit", "story": "concentration" },
+    "核心一级资本充足率":   { "domain": "capital", "story": "cap_stack" },
+    "RWA 密度（RWA/总资产）":{ "domain": "capital", "story": "capital_eff" },
+    "RORWA（净利润/RWA）":  { "domain": "capital", "story": "capital_eff" }
+  }
+}

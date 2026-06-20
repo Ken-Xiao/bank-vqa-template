@@ -17,7 +17,7 @@ var state = {
   dataStep: "type",
   activeTopic: "profit",
   appMode: "setup",
-  activePortalPage: "launch",
+  activePortalPage: "benchmark",
   drawerOpen: false,
   activeDrawerTab: "data",
   whatIfScenario: { nimShift: 0, nplShift: 0, costIncomeShift: 0, active: false },

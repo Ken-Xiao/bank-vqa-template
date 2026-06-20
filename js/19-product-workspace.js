@@ -212,21 +212,53 @@ if (typeof window !== "undefined") {
   window.syncStep2PathNavForPortalPage = syncStep2PathNavForPortalPage;
 }
 
+// Sprint 17 线 B：4 个 context pill 内容映射
+const SCENARIO_LABEL = {
+  board: "董事会判断",
+  market: "资本市场沟通",
+  action: "管理层行动",
+};
+
 function renderGlobalBar() {
   const bank = document.getElementById("globalBankContext");
+  const peer = document.getElementById("globalPeerContext");
+  const scenario = document.getElementById("globalScenarioContext");
   const signal = document.getElementById("globalVqaSignal");
   const row = typeof targetRecord === "function" ? targetRecord() : null;
   const diagnosis = typeof commandCenterDiagnosis === "function" ? commandCenterDiagnosis() : null;
+
+  // Pill 1: 银行 + 年份
   if (bank) {
     bank.textContent = state?.confirmed && row
       ? `${displayBankName(row.bank)} · ${state.year || ""}`
       : "待选择银行";
   }
+
+  // Pill 2: 对标组（含 typology 推荐标记）
+  if (peer) {
+    const peers = (state && Array.isArray(state.peers)) ? state.peers : [];
+    if (!peers.length) {
+      peer.textContent = "待设置";
+    } else if (peers.length <= 3) {
+      peer.textContent = peers.join(" / ");
+    } else {
+      peer.textContent = `${peers.slice(0, 2).join(" / ")} +${peers.length - 2}`;
+    }
+  }
+
+  // Pill 3: 汇报场景
+  if (scenario) {
+    const key = (state && state.scenario) || "board";
+    scenario.textContent = SCENARIO_LABEL[key] || key;
+  }
+
+  // Pill 4: VQA 信号/状态（保留 globalVqaSignal id 不动）
   if (signal) {
     signal.textContent = state?.confirmed && diagnosis
       ? `价值质量 ${diagnosis.score} · ${diagnosis.signal || "待判断"}`
       : "确认口径后生成诊断";
   }
+
   document.querySelectorAll("[data-app-mode-target]").forEach((button) => {
     const isActive = button.dataset.appModeTarget === state.appMode;
     button.classList.toggle("is-active", isActive);
@@ -240,7 +272,7 @@ function bindGlobalBar() {
     button.dataset.appModeBound = "1";
     button.addEventListener("click", () => {
       const mode = button.dataset.appModeTarget;
-      if (!state.confirmed && mode !== "setup") return;
+      if (!state.confirmed && mode !== "setup" && mode !== "benchmark") return;
       setAppMode(mode);
     });
   });
@@ -351,14 +383,14 @@ function closeToolDrawer() {
 function appModeForWorkspaceTab(tab = activeWorkspaceTab) {
   if (tab === "report") return "report";
   if (state?.confirmed) return "analysis";
-  return "setup";
+  return "benchmark";
 }
 
 function setAppMode(mode = state?.appMode || "setup", options = {}) {
-  const allowed = ["setup", "analysis", "report"];
-  const nextMode = allowed.includes(mode) ? mode : "setup";
+  const allowed = ["setup", "benchmark", "analysis", "report"];
+  const nextMode = allowed.includes(mode) ? mode : "benchmark";
   state.appMode = nextMode;
-  document.body.dataset.appState = nextMode;
+  document.body.dataset.appState = nextMode === "benchmark" ? "setup" : nextMode;
   try {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("benchmarkiq.appMode", nextMode);
@@ -368,7 +400,7 @@ function setAppMode(mode = state?.appMode || "setup", options = {}) {
     const isActive = button.dataset.appModeTarget === nextMode;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-current", isActive ? "step" : "false");
-    if (!state.confirmed && button.dataset.appModeTarget !== "setup") {
+    if (!state.confirmed && button.dataset.appModeTarget !== "setup" && button.dataset.appModeTarget !== "benchmark") {
       button.setAttribute("aria-disabled", "true");
     } else {
       button.removeAttribute("aria-disabled");
@@ -379,10 +411,10 @@ function setAppMode(mode = state?.appMode || "setup", options = {}) {
     if (nextMode === "analysis" && activeWorkspaceTab === "report") setWorkspaceTab("overview");
   }
   if (!options.skipPortal && typeof setPortalPage === "function" && typeof getPortalPage === "function") {
-    if (nextMode === "setup" && getPortalPage() !== "launch") {
-      setPortalPage("launch", { skipScroll: true });
+    if ((nextMode === "setup" || nextMode === "benchmark") && getPortalPage() !== "benchmark") {
+      setPortalPage("benchmark", { skipScroll: true });
     }
-    if (nextMode === "analysis" && getPortalPage() === "launch") {
+    if (nextMode === "analysis" && getPortalPage() === "benchmark") {
       setPortalPage("answer", { skipScroll: true });
     }
     if (nextMode === "report" && getPortalPage() !== "report") {
@@ -608,6 +640,373 @@ function renderStep2Kpis(model) {
       <span>${step2Esc(item.label)}</span>
       <b>${step2Esc(item.value)}</b>
     </div>`).join("");
+}
+
+function evidencePackEmptyHtml() {
+  return `<div class="step2-empty-state">
+    <b>请先在数据对标页确认证据包</b>
+    <p>后续页面将基于已确认的问题、证据和因果链生成。</p>
+    <button type="button" data-page-link="benchmark">返回数据对标</button>
+  </div>`;
+}
+
+function evidencePackVisualHtml(visualAsset, compact = false) {
+  if (!visualAsset || !visualAsset.src) return "";
+  return `<figure class="${compact ? "step2-pack-visual is-compact" : "step2-pack-visual"}">
+    <img loading="lazy" src="${step2Esc(visualAsset.src)}" alt="${step2Esc(visualAsset.label || "故事线证据图")}" />
+    <figcaption>${step2Esc(visualAsset.caption || visualAsset.label || "故事线证据图")}</figcaption>
+  </figure>`;
+}
+
+function evidencePackChainHtml(nodes = []) {
+  if (!nodes.length) return "";
+  return `<div class="step2-pack-chain">
+    ${nodes.map((node, index) => `<span>${index > 0 ? "因为" : ""}${step2Esc(node)}</span>`).join("<i>→</i>")}
+  </div>`;
+}
+
+function evidencePackPageVisualHtml(visualAsset) {
+  if (!visualAsset || !visualAsset.src) {
+    return `<div class="step2-pack-page-visual is-empty">
+      <b>证据图待生成</b>
+      <span>本页仍保留指标证据与因果链，后续可补入咨询风格图表。</span>
+    </div>`;
+  }
+  return `<figure class="step2-pack-page-visual">
+    <img loading="lazy" src="${step2Esc(visualAsset.src)}" alt="${step2Esc(visualAsset.label || "故事线证据图")}" />
+    <figcaption>${step2Esc(visualAsset.caption || visualAsset.label || "故事线证据图")}</figcaption>
+  </figure>`;
+}
+
+function evidencePackEvidenceRowsHtml(rows = []) {
+  const items = (rows || []).slice(0, 4);
+  if (!items.length) {
+    return `<div class="report-page-evidence-row">
+      <b>证据待补</b>
+      <span>请先回到数据对标页确认该结论对应的指标证据。</span>
+    </div>`;
+  }
+  return items.map((row) => `<div class="report-page-evidence-row">
+    <b>${step2Esc(row.metric || row.primaryMetric || row.evidenceId || "指标证据")}</b>
+    <span>${step2Esc(row.direction || row.strength || "")}${row.gap ? `｜差距 ${step2Esc(row.gap)}` : ""}${row.targetValue || row.peerValue ? `｜目标 ${step2Esc(row.targetValue || "--")} / 对标 ${step2Esc(row.peerValue || "--")}` : ""}</span>
+  </div>`).join("");
+}
+
+function evidencePackCanvasPageHtml(options = {}) {
+  const evidenceRows = options.evidenceRows || [];
+  const chain = options.causalChain || [];
+  return `<article class="report-page-canvas step2-pack-page" data-step2-pack-page="${step2Esc(options.pageType || "analysis")}">
+    <div class="report-page-canvas-inner">
+      <div class="report-page-mark"><span></span><span></span><span></span></div>
+      <div class="step2-pack-page-kicker">${step2Esc(options.kicker || "数据对标证据包")}</div>
+      <h3 class="report-page-title">${step2Esc(options.title || "分析页待生成")}</h3>
+      <p class="report-page-subtitle">${step2Esc(options.subtitle || "本页将数据对标、证据和管理含义放在同一页内闭环呈现。")}</p>
+      <div class="report-page-body-grid step2-pack-page-body">
+        ${evidencePackPageVisualHtml(options.visualAsset)}
+        <div class="step2-pack-page-proof">
+          <div class="report-page-evidence-list">${evidencePackEvidenceRowsHtml(evidenceRows)}</div>
+          ${evidencePackChainHtml(chain.slice(0, 5))}
+        </div>
+      </div>
+      <div class="report-page-bbar"><b>${step2Esc(options.footerLabel || "管理含义")}</b><span>${step2Esc(options.conclusion || "需要结合证据包继续复核。")}</span></div>
+    </div>
+  </article>`;
+}
+
+const storyDeckPlayerState = {};
+
+function updateStoryDeckPlayerDom(playerId) {
+  const host = Array.from(document.querySelectorAll("[data-story-deck-player]"))
+    .find((item) => item.dataset.storyDeckPlayer === playerId);
+  if (!host) return;
+  const slides = Array.from(host.querySelectorAll("[data-story-deck-page]"));
+  const total = slides.length;
+  const active = Math.min(Math.max(0, storyDeckPlayerState[playerId] || 0), Math.max(0, total - 1));
+  storyDeckPlayerState[playerId] = active;
+  slides.forEach((slide, index) => slide.classList.toggle("is-active", index === active));
+  const label = host.dataset.storyDeckLabel || "故事页";
+  const counter = host.querySelector("[data-story-deck-counter]");
+  if (counter) counter.textContent = `${label} ${String(active + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+  const prev = host.querySelector("[data-story-deck-prev]");
+  const next = host.querySelector("[data-story-deck-next]");
+  if (prev) prev.disabled = active <= 0;
+  if (next) next.disabled = active >= total - 1;
+}
+
+function stepStoryDeckPlayer(playerId, delta) {
+  const hosts = Array.from(document.querySelectorAll("[data-story-deck-player]"));
+  const host = hosts.find((item) => item.dataset.storyDeckPlayer === playerId);
+  const total = host ? host.querySelectorAll("[data-story-deck-page]").length : 0;
+  if (!total) return;
+  const current = storyDeckPlayerState[playerId] || 0;
+  storyDeckPlayerState[playerId] = Math.min(Math.max(0, current + delta), total - 1);
+  updateStoryDeckPlayerDom(playerId);
+}
+
+function renderStoryDeckPlayer(playerId, pages = [], options = {}) {
+  const safePages = pages.filter(Boolean);
+  const active = Math.min(storyDeckPlayerState[playerId] || 0, Math.max(0, safePages.length - 1));
+  storyDeckPlayerState[playerId] = active;
+  if (!safePages.length) return evidencePackEmptyHtml();
+  const label = options.label || "故事页";
+  return `<div class="story-deck-player" data-story-deck-player="${step2Esc(playerId)}" data-story-deck-label="${step2Esc(label)}">
+    <div class="story-deck-controls">
+      <button type="button" data-story-deck-prev="${step2Esc(playerId)}"${active <= 0 ? " disabled" : ""}>上一页</button>
+      <span data-story-deck-counter>${step2Esc(label)} ${String(active + 1).padStart(2, "0")} / ${String(safePages.length).padStart(2, "0")}</span>
+      <button type="button" data-story-deck-next="${step2Esc(playerId)}"${active >= safePages.length - 1 ? " disabled" : ""}>下一页</button>
+    </div>
+    <div class="story-deck-frame">
+      ${safePages.map((page, index) => `<div class="story-deck-slide${index === active ? " is-active" : ""}" data-story-deck-page="${index}">${page}</div>`).join("")}
+    </div>
+  </div>`;
+}
+
+document.addEventListener("click", function (event) {
+  const prev = event.target.closest("[data-story-deck-prev]");
+  const next = event.target.closest("[data-story-deck-next]");
+  const playerId = prev?.dataset.storyDeckPrev || next?.dataset.storyDeckNext;
+  if (!playerId) return;
+  stepStoryDeckPlayer(playerId, next ? 1 : -1);
+});
+
+document.addEventListener("click", function (event) {
+  const jump = event.target.closest("[data-jump-report-page]");
+  if (!jump) return;
+  if (typeof setAppMode === "function") setAppMode("report");
+  if (typeof setWorkspaceTab === "function") setWorkspaceTab("report");
+  if (typeof renderReportPageLibrary === "function") renderReportPageLibrary();
+  const reportShell = document.getElementById("analysisDeckShell") || document.getElementById("formalReportShell");
+  reportShell?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+window.stepStoryDeckPlayer = stepStoryDeckPlayer;
+window.storyDeckPlayerState = storyDeckPlayerState;
+
+function readinessLabel(status) {
+  if (status === "ready") return "可入报告";
+  if (status === "review") return "需复核";
+  return "附录线索";
+}
+
+function renderManagementDiagnosisAnswer(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  return `<div class="management-diagnosis-answer">
+    <p class="step2-pack-meta">管理层诊断包 ${step2Esc(model.version || "")} · ${step2Esc(model.context?.targetBank?.name || "")} · ${step2Esc(model.context?.year || "")}</p>
+    <section class="management-answer-hero">
+      <span>结论摘要</span>
+      <h3>${step2Esc(model.headline || "本轮管理层诊断")}</h3>
+      <p>${step2Esc(model.totalVerdict || "请先生成数据对标证据包。")}</p>
+    </section>
+    <div class="management-judgment-grid">
+      ${(model.judgments || []).slice(0, 3).map((judgment, index) => `<article class="management-judgment-card management-readiness-${step2Esc(judgment.reportReadiness || "review")}">
+        <span>判断 ${index + 1} · ${step2Esc(readinessLabel(judgment.reportReadiness))}</span>
+        <h4>${step2Esc(judgment.title)}</h4>
+        <p>${step2Esc(judgment.conclusion)}</p>
+        <b>${step2Esc(judgment.primaryMetric)}｜${step2Esc(judgment.metricGap)}</b>
+        ${evidencePackChainHtml((judgment.causeChain || []).slice(0, 3))}
+        <button type="button" class="btn secondary" data-jump-report-page="${step2Esc(judgment.id)}">生成候选页</button>
+      </article>`).join("")}
+    </div>
+    <details class="step2-pack-detail-list">
+      <summary>展开证据</summary>
+      <div class="step2-pack-map-list">
+        ${(model.judgments || []).map((judgment) => `<article class="step2-pack-map-row">
+          ${evidencePackVisualHtml(judgment.visualAsset, true)}
+          <div><span>${step2Esc((judgment.evidenceRefs || []).join("、") || "证据待补")}</span><b>${step2Esc(judgment.title)}</b><p>${step2Esc(judgment.recommendedAction)}</p></div>
+        </article>`).join("")}
+      </div>
+    </details>
+  </div>`;
+}
+
+function renderManagementDiagnosisEvidenceMap(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  const rowsByJudgment = (model.rows || []).reduce((acc, row) => {
+    if (!acc[row.judgmentId]) acc[row.judgmentId] = [];
+    acc[row.judgmentId].push(row);
+    return acc;
+  }, {});
+  return `<div class="management-evidence-index">
+    <p class="step2-pack-meta">证据地图 ${step2Esc(model.version || "")} · 只核验 3 个核心判断</p>
+    ${(model.judgments || []).slice(0, 3).map((judgment, index) => {
+      const rows = rowsByJudgment[judgment.id] || [];
+      return `<article class="management-evidence-row management-readiness-${step2Esc(judgment.reportReadiness || "review")}">
+        <div>
+          <span>判断 ${index + 1}</span>
+          <h4>${step2Esc(judgment.title)}</h4>
+          <p>${step2Esc(judgment.conclusion)}</p>
+        </div>
+        <div class="management-evidence-metrics">
+          ${rows.slice(0, 3).map((row) => `<b>${step2Esc(row.metricKey)}<em>${step2Esc(row.gap || "差距待补")}</em></b>`).join("")}
+        </div>
+        <div class="management-evidence-status">
+          <strong>${step2Esc(readinessLabel(judgment.reportReadiness))}</strong>
+          <span>${step2Esc(rows.map((row) => row.evidenceId).filter(Boolean).join("、") || "证据待补")}</span>
+        </div>
+      </article>`;
+    }).join("")}
+    <details class="step2-pack-detail-list">
+      <summary>展开证据</summary>
+      <div class="step2-pack-map-list">
+        ${(model.rows || []).map((row) => `<article class="step2-pack-map-row">
+          <div><span>${step2Esc(row.evidenceId)}</span><b>${step2Esc(row.metricKey)} · ${step2Esc(row.gap || "--")}</b><p>${step2Esc(row.supports || "")}</p><em>${step2Esc(row.dataQuality || "待复核")}证据 · ${step2Esc(readinessLabel(row.reportReadiness))}</em></div>
+        </article>`).join("")}
+      </div>
+    </details>
+  </div>`;
+}
+
+function renderManagementDiagnosisTopics(model) {
+  if (!model || model.empty) return `<div class="empty-card">
+    <b>暂无可展开专题链</b>
+    <p>当前证据包已确认，但尚未形成足够清晰的 1-3 条多层因果链。建议回到证据地图补充原因指标，或将该判断暂时降级为附录线索。</p>
+  </div>`;
+  const pages = (model.topicChains || []).slice(0, 3).map((chain, index) => `
+    <article class="management-topic-chain">
+      <span>专题链 ${index + 1} · ${step2Esc(readinessLabel(chain.reportReadiness))}</span>
+      <h3>${step2Esc(chain.title)}</h3>
+      ${evidencePackChainHtml(chain.nodes || [])}
+      <div class="report-page-bbar"><b>管理动作</b><span>${step2Esc(chain.action || "补充证据后形成管理动作。")}</span></div>
+    </article>`);
+  return `<div class="step2-pack-topics step2-pack-page-stack">
+    <p class="step2-pack-meta">专题归因 ${step2Esc(model.version || "")} · 默认只展示最强 1-3 条链</p>
+    ${renderStoryDeckPlayer("topics", pages, { label: "专题归因" })}
+    <details class="step2-pack-detail-list">
+      <summary>展开证据</summary>
+      ${(model.topicChains || []).map((chain) => `<article class="step2-pack-topic-card">
+        <h3>${step2Esc(chain.title)}</h3>
+        ${evidencePackChainHtml(chain.nodes || [])}
+        <small>证据：${step2Esc((chain.evidenceRefs || []).join("、") || "证据待补")}</small>
+        <b>${step2Esc(chain.action || "")}</b>
+      </article>`).join("")}
+    </details>
+  </div>`;
+}
+
+function renderEvidencePackAnswer(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  const primaryIssue = model.issues[0] || {};
+  const evidenceRows = model.issues.flatMap((issue) => (issue.evidence || []).map((row) => Object.assign({}, row, {
+    primaryMetric: issue.primaryMetric,
+  })));
+  const pages = [
+    evidencePackCanvasPageHtml({
+      pageType: "summary",
+      kicker: "结论摘要",
+      title: model.summary,
+      subtitle: `围绕 ${step2Esc(model.targetBank?.name || "目标银行")} 的已确认问题，先给董事会一个可被证据支撑的总答案。`,
+      visualAsset: primaryIssue.visualAsset,
+      evidenceRows,
+      causalChain: primaryIssue.causalChain || [],
+      footerLabel: "下一步",
+      conclusion: primaryIssue.action || "优先进入证据地图，核验证据强度和因果链是否足以支撑正式报告。"
+    })
+  ].concat(model.issues.map((issue, index) => evidencePackCanvasPageHtml({
+    pageType: "summary",
+    kicker: `结论摘要 0${index + 2}`,
+    title: issue.title,
+    subtitle: issue.conclusion,
+    visualAsset: issue.visualAsset,
+    evidenceRows: issue.evidence || [],
+    causalChain: issue.causalChain || [],
+    footerLabel: "管理含义",
+    conclusion: issue.action || "该问题已纳入本轮诊断。"
+  })));
+  return `<div class="step2-pack-answer step2-pack-page-stack">
+    <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")} · ${step2Esc(model.targetBank?.name || "")} · ${step2Esc(model.year || "")}</p>
+    ${renderStoryDeckPlayer("answer", pages, { label: "结论摘要" })}
+    <details class="step2-pack-detail-list">
+      <summary>查看已纳入诊断的问题明细</summary>
+      <div class="step2-pack-issue-grid">
+      ${model.issues.map((issue) => {
+        const ev = issue.evidence?.[0] || {};
+        return `<article class="step2-pack-issue-card">
+          <span>${step2Esc(issue.confidence || "中")}置信</span>
+          ${evidencePackVisualHtml(issue.visualAsset, true)}
+          <b>${step2Esc(issue.title)}</b>
+          <p>${step2Esc(issue.conclusion)}</p>
+          <em>证据 ${step2Esc(ev.evidenceId || "--")}：${step2Esc(issue.primaryMetric)} ${step2Esc(ev.gap || "--")} · ${step2Esc(ev.strength || "--")}证据</em>
+          ${evidencePackChainHtml((issue.causalChain || []).slice(0, 4))}
+          <small>${step2Esc(issue.action || "")}</small>
+        </article>`;
+      }).join("")}
+      </div>
+    </details>
+  </div>`;
+}
+
+function renderEvidencePackMap(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  const grouped = model.rows.reduce((acc, row) => {
+    const key = row.issueId || row.storyId || "evidence";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(row);
+    return acc;
+  }, {});
+  const pages = Object.keys(grouped).map((key, index) => {
+      const rows = grouped[key];
+      const first = rows[0] || {};
+      return evidencePackCanvasPageHtml({
+        pageType: "evidence-map",
+        kicker: `证据地图 0${index + 1}`,
+        title: `${first.issueTitle || first.metric || "核心问题"} 的证据链`,
+        subtitle: "把同一条故事线下的结果指标、直接原因和结构原因放在同一页，避免只看单点数值。",
+        visualAsset: first.visualAsset,
+        evidenceRows: rows,
+        causalChain: rows.map((row, rowIndex) => `${rowIndex > 0 ? "因为" : ""}${row.metric || row.evidenceId}${row.gap ? " " + row.gap : ""}`),
+        footerLabel: "证据判断",
+        conclusion: first.supports || "该证据组用于支撑后续专题归因。"
+      });
+    });
+  return `<div class="step2-pack-map step2-pack-page-stack">
+    <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")}</p>
+    ${renderStoryDeckPlayer("evidence", pages, { label: "证据地图" })}
+    <details class="step2-pack-detail-list">
+      <summary>查看全部证据行</summary>
+      <div class="step2-pack-map-list">
+      ${model.rows.map((row) => `<article class="step2-pack-map-row">
+        ${evidencePackVisualHtml(row.visualAsset, true)}
+        <div>
+          <span>${step2Esc(row.evidenceId)}</span>
+          <b>${step2Esc(row.metric)} · ${step2Esc(row.gap || "--")}</b>
+          <p>${step2Esc(row.supports)}</p>
+          <em>${step2Esc(row.direction || "")} · ${step2Esc(row.strength || "--")}证据 · 目标 ${step2Esc(row.targetValue || "--")} / 对标 ${step2Esc(row.peerValue || "--")}</em>
+        </div>
+      </article>`).join("")}
+      </div>
+    </details>
+  </div>`;
+}
+
+function renderEvidencePackTopics(model) {
+  if (!model || model.empty) return evidencePackEmptyHtml();
+  const pages = model.topics.map((topic, index) => evidencePackCanvasPageHtml({
+    pageType: "topic-attribution",
+    kicker: `专题归因 0${index + 1}`,
+    title: topic.title,
+    subtitle: topic.conclusion,
+    visualAsset: topic.visualAsset,
+    evidenceRows: (topic.evidenceIds || []).map((id) => ({ evidenceId: id, metric: id, direction: "引用证据", strength: "已选" })),
+    causalChain: topic.causalChain || [],
+    footerLabel: "管理动作",
+    conclusion: topic.action || "将该专题纳入正式报告，并继续补充可落地的管理抓手。"
+  }));
+  return `<div class="step2-pack-topics step2-pack-page-stack">
+    <p class="step2-pack-meta">证据包 ${step2Esc(model.version || "")}</p>
+    ${renderStoryDeckPlayer("topics", pages, { label: "专题归因" })}
+    <details class="step2-pack-detail-list">
+      <summary>查看专题归因明细</summary>
+      ${model.topics.map((topic) => `<article class="step2-pack-topic-card">
+      ${evidencePackVisualHtml(topic.visualAsset)}
+      <h3>${step2Esc(topic.title)}</h3>
+      <p>${step2Esc(topic.conclusion)}</p>
+      ${evidencePackChainHtml(topic.causalChain || [])}
+      <ol>${(topic.causalChain || []).map((node) => `<li>${step2Esc(node)}</li>`).join("")}</ol>
+      <small>证据：${step2Esc((topic.evidenceIds || []).join("、"))}</small>
+      <b>${step2Esc(topic.action)}</b>
+    </article>`).join("")}
+    </details>
+  </div>`;
 }
 
 function renderStep2DecisionBrief(model) {
@@ -859,6 +1258,7 @@ function renderStep2Diagnosis() {
   const topics = document.getElementById("step2TopicGrid");
   const actions = document.getElementById("step2ActionPathGrid");
   const storyline = step2StorylinePack(row, peers);
+  const evidencePack = typeof readEvidencePack === "function" ? readEvidencePack() : null;
   if (title) title.textContent = model.title;
   if (lead) lead.textContent = model.lead;
   [
@@ -874,6 +1274,21 @@ function renderStep2Diagnosis() {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   });
+  if (evidencePack && evidencePack.status === "confirmed" && typeof buildManagementDiagnosisPack === "function") {
+    const diagnosis = buildManagementDiagnosisPack(evidencePack);
+    if (decision && typeof managementDiagnosisAnswerModel === "function") decision.innerHTML = renderManagementDiagnosisAnswer(managementDiagnosisAnswerModel(diagnosis));
+    if (kpis) kpis.innerHTML = renderStep2Kpis(model);
+    if (questions) questions.innerHTML = renderStep2Questions(step2BoardQuestions(row, peers));
+    if (peer) peer.innerHTML = renderStep2PeerPosition(row);
+    if (changes && typeof managementDiagnosisEvidenceMapModel === "function") changes.innerHTML = renderManagementDiagnosisEvidenceMap(managementDiagnosisEvidenceMapModel(diagnosis));
+    if (typeof updateEvidenceMapCommentaryPanel === "function") updateEvidenceMapCommentaryPanel();
+    if (pb) pb.innerHTML = renderStep2PbAnswer(row, peers);
+    if (topics && typeof managementDiagnosisTopicModel === "function") topics.innerHTML = renderManagementDiagnosisTopics(managementDiagnosisTopicModel(diagnosis));
+    if (actions) actions.innerHTML = renderStep2ActionPath(row, peers);
+    renderMetricContextRail();
+    bindAnalysisRoadmap();
+    return;
+  }
   if (decision) decision.innerHTML = `${typeof whatIfSimulationBadge === "function" ? whatIfSimulationBadge(row) : ""}${renderStep2DecisionBrief(model)}`;
   if (kpis) kpis.innerHTML = renderStep2Kpis(model);
   if (questions) questions.innerHTML = renderStep2Questions(step2BoardQuestions(row, peers));
@@ -1492,10 +1907,10 @@ function initProductWorkspace() {
       restoredMode = localStorage.getItem("benchmarkiq.appMode");
     }
   } catch (err) { /* silent */ }
-  const allowedRestored = ["setup", "analysis", "report"].includes(restoredMode);
+  const allowedRestored = ["setup", "benchmark", "analysis", "report"].includes(restoredMode);
   const bootMode = state.confirmed
-    ? (allowedRestored && restoredMode !== "setup" ? restoredMode : "analysis")
-    : "setup";
+    ? (allowedRestored && restoredMode !== "setup" && restoredMode !== "benchmark" ? restoredMode : "analysis")
+    : "benchmark";
   setAppMode(bootMode, { skipRouting: true });
   state.activeWorkspaceTab = "overview";
   setWorkspaceTab(state.activeWorkspaceTab);
