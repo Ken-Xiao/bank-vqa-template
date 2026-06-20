@@ -240,9 +240,13 @@
     var chart = (story.charts || []).filter(function (item) { return item.chartId === chartId; })[0] || {};
     if (!chart.src && !chart.url && !chart.imageUrl) return null;
     return {
+      chartId: chart.chartId || chartId || "",
       src: chart.src || chart.url || chart.imageUrl,
       label: chart.title || chart.label || candidate.title || story.title || "证据图",
-      caption: chart.caption || candidate.evidenceSentence || ""
+      title: chart.title || chart.label || candidate.title || story.title || "证据图",
+      caption: chart.caption || candidate.evidenceSentence || "",
+      readingGuide: chart.readingGuide || {},
+      sourceFactIds: chart.sourceFactIds || candidate.sourceFactIds || []
     };
   }
 

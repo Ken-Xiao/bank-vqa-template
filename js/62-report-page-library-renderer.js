@@ -65,6 +65,24 @@
     }).join("");
   }
 
+  function storylineEvidenceMetaHtml(page) {
+    if (page.source !== "storylineFactPack") return "";
+    var sourceFactIds = (page.sourceFactIds || []).join("、") || "待补证据";
+    var layout = page.recommendedSlideLayout || "待补版式";
+    var scenario = page.useScenario || "待补使用场景";
+    return '<div class="report-page-storyline-meta">'
+      + '<div><b>证据句</b><span>' + esc(page.evidenceSentence || "待补证据句") + '</span></div>'
+      + '<div><b>来源事实</b><span>' + esc(sourceFactIds) + '</span></div>'
+      + '<div><b>使用场景</b><span>' + esc(scenario) + '</span></div>'
+      + '<div><b>推荐版式</b><span>' + esc(layout) + '</span></div>'
+      + '</div>';
+  }
+
+  function chartGuideButtonHtml(page) {
+    if (page.source !== "storylineFactPack" || !page.visualAsset) return "";
+    return '<button type="button" class="report-page-chart-guide" data-open-report-chart-guide="' + esc(page.pageId) + '">查看读图指南</button>';
+  }
+
   function renderReportPageLibraryPreview(lib) {
     var host = document.getElementById("reportPageLibraryPreview");
     var status = document.getElementById("reportPageLibraryStatus");
@@ -95,10 +113,12 @@
       + '<h2 class="report-page-title">' + esc(page.title) + '</h2>'
       + '<p class="report-page-subtitle">' + esc(page.conclusion || "") + '</p>'
       + '<p class="report-page-source-meta">来源：' + esc(page.source === "management-diagnosis-pack" ? "管理层诊断包" : "数据对标证据包") + ' · 状态：' + esc(page.reportReadiness || (page.quality && page.quality.status) || "待复核") + '</p>'
+      + storylineEvidenceMetaHtml(page)
       + '<div class="report-page-body-grid">'
       + '<figure class="report-page-visual">' + (page.visualAsset && page.visualAsset.src ? '<img loading="lazy" src="' + esc(page.visualAsset.src) + '" alt="' + esc(page.visualAsset.label || page.title) + '">' : '<div class="report-page-library-empty">暂无证据图</div>') + '</figure>'
       + '<div class="report-page-evidence-list">' + evidenceRowsHtml(page) + '</div>'
       + '</div>'
+      + chartGuideButtonHtml(page)
       + '<div class="report-page-bbar"><b>研究判断</b><span>' + esc(page.conclusion || "该页基于数据对标证据链形成管理判断。") + '</span></div>'
       + '</div>'
       + '</article>'
@@ -190,6 +210,22 @@
       var page = (lib2.pages || []).filter(function (p) { return p.pageId === activePageId; })[0];
       if (page) activeChapterKey = page.chapterKey;
       renderReportPageLibrary();
+      return;
+    }
+    var guide = event.target.closest && event.target.closest("[data-open-report-chart-guide]");
+    if (guide) {
+      var lib3 = library();
+      var guidePage = (lib3.pages || []).filter(function (p) { return p.pageId === guide.dataset.openReportChartGuide; })[0];
+      if (guidePage && guidePage.visualAsset && typeof window.openStorylineChartViewer === "function") {
+        window.openStorylineChartViewer({
+          chartId: guidePage.visualAsset.chartId || guidePage.readingGuideId || "",
+          title: guidePage.visualAsset.title || guidePage.visualAsset.label || guidePage.title,
+          src: guidePage.visualAsset.src,
+          enlargedSrc: guidePage.visualAsset.src,
+          readingGuide: guidePage.visualAsset.readingGuide || {},
+          sourceFactIds: guidePage.visualAsset.sourceFactIds || guidePage.sourceFactIds || []
+        });
+      }
     }
   });
 
