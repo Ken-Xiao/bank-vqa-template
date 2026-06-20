@@ -75,6 +75,16 @@
     );
   }
 
+  function issueDedupeId(issue) {
+    return firstText(
+      issue && issue.storylineId,
+      issue && issue.issueId,
+      issue && issue.storyId,
+      issue && issue.id,
+      issue && issue.key
+    );
+  }
+
   function issueTitle(issue, fallbackId) {
     return firstText(issue && issue.title, issue && issue.issueName, issue && issue.name, fallbackId);
   }
@@ -265,8 +275,16 @@
   }
 
   function collectIssues(sourcePack) {
+    var seen = {};
     return asArray(sourcePack && sourcePack.recommendedIssues)
-      .concat(asArray(sourcePack && sourcePack.storylines));
+      .concat(asArray(sourcePack && sourcePack.storylines))
+      .filter(function (issue) {
+        var dedupeId = issueDedupeId(issue);
+        if (!dedupeId) return true;
+        if (seen[dedupeId]) return false;
+        seen[dedupeId] = true;
+        return true;
+      });
   }
 
   function normalizeStoryline(issue, index, selectedMap, context) {

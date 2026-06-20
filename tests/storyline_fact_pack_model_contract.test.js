@@ -98,6 +98,21 @@ const sourcePack = {
   ],
   storylines: [
     {
+      storylineId: "nim_pressure",
+      title: "重复故事线不应覆盖推荐问题",
+      priority: 99,
+      conclusion: "这条重复项应被去重。",
+      primaryMetric: "重复净息差",
+      evidence: [
+        {
+          factId: "duplicate_fact",
+          metric: "重复指标",
+          gap: "重复差距",
+          source: "重复故事线"
+        }
+      ]
+    },
+    {
       storylineId: "existing_story",
       title: "已有故事线可被统一接入",
       priority: 3,
@@ -129,9 +144,12 @@ assert.strictEqual(model.context.peerGroup.length, 3);
 const selected = model.storylines.filter((storyline) => storyline.selected);
 assert.strictEqual(selected.length, 2);
 assert.strictEqual(model.storylines.find((storyline) => storyline.storylineId === "cost_pressure").selected, false);
+assert.strictEqual(model.storylines.filter((storyline) => storyline.storylineId === "nim_pressure").length, 1);
 
 const nimStory = model.storylines.find((storyline) => storyline.storylineId === "nim_pressure");
 assert.strictEqual(nimStory.status, "confirmed");
+assert.strictEqual(nimStory.title, "息差防守压力扩大");
+assert.strictEqual(nimStory.priority, 1);
 assert.strictEqual(nimStory.facts[0].factId, "fact_nim_gap");
 assert.strictEqual(nimStory.causalChain.resultMetric, "净息差");
 assert.strictEqual(nimStory.causalChain.directCause, "净息差低于对标组");
