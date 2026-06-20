@@ -2173,4 +2173,7 @@ function renderAll() {
   if (typeof renderFormalReport === "function") renderFormalReport();
   buildSideNav();
   if (typeof renderPortalWorkflowPanels === "function") renderPortalWorkflowPanels();
+  if (typeof window !== "undefined" && typeof window.renderThreePageDiagnosis === "function") {
+    window.renderThreePageDiagnosis();
+  }
 }

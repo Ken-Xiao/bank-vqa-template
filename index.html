@@ -553,17 +553,20 @@
           </div>
           <button type="button" class="topics-disclosure-btn" id="topicsDisclosureBtn" aria-expanded="false" aria-controls="topicsAdvancedGroup">展开机制深钻</button>
         </div>
-        <!-- 衍生分析挂载点：利润质量 + 估值三维 -->
-        <!-- Sprint 14A 交叉信号引擎：4 条因果链 -->
-        <div id="crossSignalNimMount" data-cross-signal-mount="nim" data-portal-page="topics" data-topics-disclosure="advanced"></div>
-        <div id="crossSignalRoaMount" data-cross-signal-mount="roa" data-portal-page="topics" data-topics-disclosure="advanced"></div>
-        <div id="crossSignalRiskMount" data-cross-signal-mount="risk" data-portal-page="topics" data-topics-disclosure="advanced"></div>
-        <div id="crossSignalValueMount" data-cross-signal-mount="value" data-portal-page="topics" data-topics-disclosure="advanced"></div>
-        <div id="profitQualityMount" data-tushare-mount="profit-quality" data-phase="1" data-portal-page="topics" data-topics-disclosure="advanced"></div>
-        <div id="dividendValueMount" data-tushare-mount="dividend-value" data-phase="1" data-portal-page="topics" data-topics-disclosure="advanced"></div>
-        <!-- 金融资产分类 + 现金流深度 -->
-        <div id="assetClassificationMount" data-tushare-mount="asset-classification" data-phase="2" data-portal-page="topics" data-topics-disclosure="advanced"></div>
-        <div id="cashFlowDepthMount" data-tushare-mount="cashflow-depth" data-phase="2" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        <details class="three-page-advanced legacy-topic-advanced" id="topicsAdvancedGroup" data-portal-page="topics" data-topics-disclosure="advanced">
+          <summary>展开更多机制证据</summary>
+          <!-- 衍生分析挂载点：利润质量 + 估值三维 -->
+          <!-- Sprint 14A 交叉信号引擎：4 条因果链 -->
+          <div id="crossSignalNimMount" data-cross-signal-mount="nim" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+          <div id="crossSignalRoaMount" data-cross-signal-mount="roa" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+          <div id="crossSignalRiskMount" data-cross-signal-mount="risk" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+          <div id="crossSignalValueMount" data-cross-signal-mount="value" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+          <div id="profitQualityMount" data-tushare-mount="profit-quality" data-phase="1" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+          <div id="dividendValueMount" data-tushare-mount="dividend-value" data-phase="1" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+          <!-- 金融资产分类 + 现金流深度 -->
+          <div id="assetClassificationMount" data-tushare-mount="asset-classification" data-phase="2" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+          <div id="cashFlowDepthMount" data-tushare-mount="cashflow-depth" data-phase="2" data-portal-page="topics" data-topics-disclosure="advanced"></div>
+        </details>
         <div class="section-bridge" id="step2BridgeActions" data-portal-page="answer topics">最后把诊断翻译成管理层可承接的时间表，而不是停留在指标解释。</div>
         <section class="step-focus-section step2-action-section" id="step2ActionPath" data-portal-page="answer topics" aria-label="行动路径">
           <span>行动路径</span>

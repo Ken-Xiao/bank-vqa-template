@@ -173,6 +173,9 @@ function setPortalPage(page, options) {
   if (syncBenchmark && typeof window !== "undefined" && typeof window.syncBenchmarkToState === "function") {
     window.syncBenchmarkToState({ renderDownstream: true, forceRefresh: true });
   }
+  if (typeof window !== "undefined" && typeof window.renderThreePageDiagnosis === "function" && ["answer", "evidence", "topics"].indexOf(target) >= 0) {
+    window.renderThreePageDiagnosis();
+  }
   // 滚动到顶部（避免 page 切换后还在旧位置）
   if (!options.skipScroll && typeof window !== "undefined") {
     try {
